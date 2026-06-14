@@ -3,6 +3,7 @@ import { Volume2, VolumeX, RotateCcw, ArrowLeft } from 'lucide-react';
 import { drawGrid, drawBlock, getGridOffset, drawGhostBlock, blockCollision, findBestGridPlacement, checkAndGetClearedLines, canPlaceAnyBlock, drawTray, createTrayBlocks, updateTrayBlockPositions, GRID_SIZE, CELL_SIZE, drawClearingEffects } from './gameFunctions';
 import { BLOCK_SHAPES } from './blocks';
 import { useNavigate } from 'react-router-dom';
+import SystemAlert from "../../SystemAlert";
 
 const playSound = (type, isMuted) => {
   if (isMuted) return;
@@ -61,9 +62,35 @@ const BlockBlastGame = () => {
   
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
 
+  const [alertState, setAlertState] = useState({ 
+    isOpen: false, type: 'warning', title: '', message: '', onConfirm: null 
+  });
+
   const CANVAS_WIDTH = isDesktop ? 1400 : 800; 
   const CANVAS_HEIGHT = isDesktop ? 900 : 1250; 
   const TRAY_BLOCK_SIZE = 45; 
+
+  const performReset = () => {
+    const canvas = canvasRef.current;
+    gameData.current.grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+    gameData.current.activeBlock = null;
+    gameData.current.clearingEffects = [];
+    setScore(0);
+    setCombo(0);
+    setGameOver(false);
+    createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
+    setAlertState(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handleConfirmReset = () => {
+    setAlertState({
+      isOpen: true,
+      type: 'warning',
+      title: 'RESTART GAME',
+      message: 'ยืนยันการเริ่มเกมใหม่หรือไม่? คะแนนปัจจุบันจะถูกล้างทั้งหมด',
+      onConfirm: performReset
+    });
+  };
 
   const gameData = useRef({
     grid: Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0)),
@@ -92,19 +119,7 @@ const BlockBlastGame = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isDesktop]);
-
-  const resetGame = () => {
-    if(!window.confirm("ต้องการเริ่มเกมใหม่หรือไม่?")) return;
-    const canvas = canvasRef.current;
-    gameData.current.grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
-    gameData.current.activeBlock = null;
-    gameData.current.clearingEffects = [];
-    setScore(0);
-    setCombo(0);
-    setGameOver(false);
-    createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
-  };
-
+  
   useEffect(() => {
     const canvas = canvasRef.current;
     // ลบ alpha: false ออก เพื่อให้ Canvas โปร่งใสได้
@@ -260,32 +275,32 @@ const BlockBlastGame = () => {
   };
 
   return (
-    // ปรับ max-w ให้กว้างสุดๆ รองรับขนาด 1400px ของ Canvas ได้
     <div className="relative flex flex-col items-center w-full max-w-[450px] lg:max-w-[1200px] xl:max-w-[1400px] mx-auto pt-4 md:pt-8">
       
-      {/* UI Overlay: เปลี่ยนคลาสให้ชิดซ้าย (lg:left-4 หรือ xl:left-0) */}
+      {/* 1. จุดที่ต้องเพิ่ม: นำ Alert มาวางไว้ตรงนี้ */}
+      <SystemAlert 
+        {...alertState} 
+        onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} 
+      />
+
       <div className="absolute top-4 left-4 lg:top-10 lg:left-4 xl:left-0 z-10 flex flex-col items-start gap-4 pointer-events-none">
-        
-        {/* แถวปุ่ม (ปุ่มต่างๆ จะถูกผลักไปอยู่ซ้ายสุดของจอคอม) */}
         <div className="flex gap-2 pointer-events-auto">
             <button 
                 onClick={() => navigate('/dashboard/minigames')}
                 className="bg-[#08050f]/60 hover:bg-white/20 p-3 rounded-xl border border-white/10 backdrop-blur-md text-white transition-all shadow-lg"
-                title="Back to Arcade"
             >
                 <ArrowLeft size={22} />
             </button>
+            {/* 2. แก้ไขปุ่มนี้: เปลี่ยนจาก resetGame เป็น handleConfirmReset */}
             <button 
-                onClick={resetGame} 
+                onClick={handleConfirmReset} 
                 className="bg-[#08050f]/60 hover:bg-white/20 p-3 rounded-xl border border-white/10 backdrop-blur-md text-white transition-all shadow-lg"
-                title="Restart"
             >
                 <RotateCcw size={22} />
             </button>
             <button 
                 onClick={() => setIsMuted(!isMuted)} 
                 className="bg-[#08050f]/60 hover:bg-white/20 p-3 rounded-xl border border-white/10 backdrop-blur-md text-white transition-all shadow-lg"
-                title="Mute/Unmute"
             >
                 {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
             </button>
@@ -322,17 +337,8 @@ const BlockBlastGame = () => {
               FINAL SCORE<br/><span className="text-[#99eedd] font-bold text-6xl drop-shadow-[0_0_15px_rgba(153,238,221,0.5)]">{score}</span>
             </p>
             <button 
-              onClick={() => {
-                 const canvas = canvasRef.current;
-                 gameData.current.grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
-                 gameData.current.activeBlock = null;
-                 gameData.current.clearingEffects = [];
-                 setScore(0);
-                 setCombo(0);
-                 setGameOver(false);
-                 createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
-              }}
-              className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-4 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all font-bold tracking-widest text-xl"
+              onClick={performReset} // เปลี่ยนจากโค้ดก้อนใหญ่ๆ มาเป็น performReset เลยครับ
+              className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-4 rounded-2xl ..."
             >
               TRY AGAIN
             </button>

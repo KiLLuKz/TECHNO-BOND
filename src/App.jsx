@@ -58,38 +58,79 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  useEffect(() => {
-    const checkSession = async () => {
-      setIsAuthLoading(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // เช็ค Role น้อง
-        const { data: seniorData } = await supabase.from('junior_clues').select('senior_email').eq('senior_email', session.user.email).maybeSingle();
-        setUserRole(seniorData ? 'senior' : 'junior');
+  // ฟังก์ชันดึงข้อมูล Profile และ Role
+  const fetchUserData = async (user) => {
+    if (!user) {
+      setUserRole(null);
+      setIsAdmin(false);
+      return;
+    }
 
-        // เช็ค Admin
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-        setIsAdmin(profile?.role === 'admin');
-      } else {
+    try {
+      // 1. เช็ค Role น้อง (Junior/Senior)
+      const { data: seniorData } = await supabase
+        .from('junior_clues')
+        .select('senior_email')
+        .eq('senior_email', user.email)
+        .maybeSingle();
+      
+      setUserRole(seniorData ? 'senior' : 'junior');
+
+      // 2. เช็ค Admin (ดึงจากตาราง profiles)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single();
+        
+      setIsAdmin(profile?.role === 'admin');
+    } catch (error) {
+      console.error("Error fetching user role:", error);
+    }
+  };
+
+  useEffect(() => {
+    // 1. เช็คสถานะปัจจุบันตอนเปิดหน้าเว็บ
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) await fetchUserData(session.user);
+      setIsAuthLoading(false);
+    };
+    checkInitialSession();
+
+    // 2. ตั้ง Listener คอยฟังเหตุการณ์ LOGIN / LOGOUT
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        fetchUserData(session.user);
+      } else if (event === 'SIGNED_OUT') {
         setUserRole(null);
         setIsAdmin(false);
       }
-      setIsAuthLoading(false);
-    };
-    checkSession();
+    });
+
+    // Cleanup subscription เมื่อ component ถูกทำลาย
+    return () => subscription.unsubscribe();
   }, []);
 
-  // ใช้ Loader ปกติในหน้า App
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/verify'; // บังคับโหลดใหม่ชัวร์ที่สุด
+  };
+
   if (isAuthLoading) return <Loader text="LOADING" />;
 
   return (
     <Router>
       <div className="relative min-h-screen text-white flex flex-col">
         <Background />
-        <FloatingMenu userRole={userRole} isAdmin={isAdmin} onLogout={() => { /* logout logic */ }} /> 
+        <FloatingMenu userRole={userRole} isAdmin={isAdmin} onLogout={handleLogout} /> 
         <main className="flex-grow flex flex-col">
-          <AppRoutes setUserRole={setUserRole} setIsAdmin={setIsAdmin} userRole={userRole} isAdmin={isAdmin} />
+          <AppRoutes 
+            setUserRole={setUserRole} 
+            setIsAdmin={setIsAdmin} 
+            userRole={userRole} 
+            isAdmin={isAdmin} 
+          />
         </main>
         <Footer />
       </div>
