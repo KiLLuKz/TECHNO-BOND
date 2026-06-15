@@ -5,7 +5,7 @@ import { BLOCK_SHAPES } from './blocks';
 import { useNavigate } from 'react-router-dom';
 import SystemAlert from "../../SystemAlert";
 
-import { supabase } from '../../supabaseClient';
+import { supabase } from "../../../supabaseClient";
 
 const saveScore = async () => {
   try {
