@@ -11,7 +11,7 @@ const GuessPanel = ({
     nextGuessDate 
 }) => {
   return (
-    <div className="lg:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-[#d966ff]/20 rounded-[20px] p-6 shadow-xl flex flex-col relative overflow-hidden">
+    <div className="h-full lg:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-[#d966ff]/20 rounded-[20px] p-6 shadow-xl flex flex-col relative overflow-hidden">
       {isGameCleared && (
          <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm z-10 flex flex-col items-center justify-center animate__animated animate__fadeIn">
              <CheckCircle size={48} className="text-green-400 mb-2 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
@@ -24,16 +24,18 @@ const GuessPanel = ({
         <h2 className="text-[#d966ff] font-bold tracking-widest text-lg uppercase font-['Orbitron'] flex items-center gap-2">
             <Target size={18} /> GUESS MODE
         </h2>
-        <span className="text-white font-bold text-l font-['Chakra Petch']">ทายสายรหัส</span>
+        <span className="text-white font-bold text-sm md:text-l font-['Chakra_Petch']">ทายสายรหัส</span>
       </div>
-      <p className="text-xl text-gray-400 mb-4 font-['Chakra Petch'] leading-relaxed">
+      
+      {/* เพิ่ม break-words และปรับขนาด font ให้เล็กลงในหน้าจอเล็ก */}
+      <p className="text-lg md:text-xl text-gray-400 mb-4 font-['Chakra_Petch'] leading-relaxed break-words">
         พิมพ์ชื่อของพี่ ๆ โดยขึ้นต้นด้วยคำว่า พี่ ตามด้วยชื่อในโน้ต เช่น พี่ซัน หากมีชื่อซ้ำ ให้เว้น 1 ครั้ง แล้วใส่วงเล็บพร้อมเลขที่ของพี่คนที่ต้องการ เช่น พี่วิน (1)
       </p>
 
       <div className="flex gap-3 mt-auto relative z-0">
         <input 
-            className="flex-1 bg-black/40 border border-[#2a303c] rounded-xl p-3 text-l focus:outline-none focus:border-[#d966ff]/50 transition-colors text-white disabled:opacity-50 font-['Chakra Petch']" 
-            placeholder={canGuess ? "พิมพ์ชื่อพี่ที่คิดว่าใช่" : "ระบบปิดรับการทายชั่วคราว... ลองเดาใหม่วันพรุ่งนี้น้าา"} 
+            className="flex-1 bg-black/40 border border-[#2a303c] rounded-xl p-3 text-sm md:text-l focus:outline-none focus:border-[#d966ff]/50 transition-colors text-white disabled:opacity-50 font-['Chakra_Petch']" 
+            placeholder={canGuess ? "พิมพ์ชื่อพี่ที่คิดว่าใช่" : "ระบบปิดรับการทายชั่วคราว..."} 
             value={guessInput}
             onChange={(e) => setGuessInput(e.target.value)}
             disabled={!canGuess}
@@ -41,25 +43,25 @@ const GuessPanel = ({
         <button 
             onClick={handleGuessSubmit}
             disabled={!canGuess}
-            className="bg-[#1c2431] border border-[#2a303c] text-white px-8 py-2 rounded-xl hover:bg-[#2a303c] transition-all font-bold tracking-wider active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-['Rajdhani']"
+            className="bg-[#1c2431] border border-[#2a303c] text-white px-6 md:px-8 py-2 rounded-xl hover:bg-[#2a303c] transition-all font-bold tracking-wider active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed font-['Rajdhani']"
         >
             ทาย
         </button>
       </div>
 
-      {/* Feedback Display */}
+      {/* Feedback Display - ใส่ break-words ที่นี่ด้วย */}
       {guessFeedback && !isGameCleared && (
          <div className="mt-4 pt-3 border-t border-white/5 animate__animated animate__fadeIn">
-             <p className="text-[16px] text-[#99eedd] font-['Rajdhani'] italic">
+             <p className="text-sm md:text-[16px] text-[#99eedd] font-['Rajdhani'] italic break-words">
                 " {guessFeedback} "
              </p>
          </div>
       )}
 
-      {/* Timer Display - แยกออกมาให้แสดงผลได้อิสระ */}
+      {/* Timer Display */}
       {!canGuess && nextGuessDate && (
           <div className="mt-2 pt-2 border-t border-white/5">
-            <p className="text-[14px] text-red-400 font-['Chakra Petch'] flex items-center gap-1 animate__animated animate__fadeIn">
+            <p className="text-[13px] md:text-[14px] text-red-400 font-['Chakra_Petch'] flex items-center gap-1 animate__animated animate__fadeIn">
                 <Lock size={10} /> กดทายได้อีกครั้งวันที่: {nextGuessDate.toLocaleDateString('th-TH', { 
                     year: 'numeric', 
                     month: 'long', 

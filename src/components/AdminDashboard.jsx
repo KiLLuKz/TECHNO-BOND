@@ -3,14 +3,13 @@ import { ShieldAlert, RefreshCw, MessageSquare, BookOpen } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import UnifiedDirectoryBox from './Admin_Dashboard/UnifiedDirectoryBox';
 import Loader from './Loader';
-import SystemAlert from './SystemAlert'; // <--- Import Component ของคุณ
+import SystemAlert from './SystemAlert'; 
 
 const AdminDashboard = () => {
   const [seniors, setSeniors] = useState([]);
   const [juniors, setJuniors] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  // State สำหรับควบคุม Modal Alert
   const [alertState, setAlertState] = useState({ 
     isOpen: false, type: 'info', title: '', message: '', onConfirm: null 
   });
@@ -21,34 +20,48 @@ const AdminDashboard = () => {
 
   const fetchAdminData = async () => {
     setLoading(true);
+    // 1. ดึงข้อมูล Profile ทั้งหมด และข้อมูลจาก pairing_data (ตารางใหม่ของเรา)
     const { data: allProfiles } = await supabase.from('profiles').select('*');
-    const { data: allClues } = await supabase.from('junior_clues').select('*');
+    const { data: allPairs } = await supabase.from('pairing_data').select('*');
 
-    if (allProfiles && allClues) {
+    if (allProfiles && allPairs) {
+      // 2. จัดกลุ่ม Seniors (ต้องดึงมาแบบไม่ซ้ำ)
       const seniorMap = new Map();
-      allClues.forEach(clue => {
-        if (clue.senior_email) {
-          const sId = clue.senior_email.split('@')[0];
-          if (!seniorMap.has(sId)) {
-            seniorMap.set(sId, { student_id: sId, senior_nickname: clue.senior_nickname });
-          }
+      allPairs.forEach(pair => {
+        if (pair.senior_id && !seniorMap.has(pair.senior_id)) {
+          // ดึงข้อมูล profile ของพี่รหัสคนนั้น (ถ้ามี)
+          const profile = allProfiles.find(p => String(p.student_id) === String(pair.senior_student_id));
+          seniorMap.set(pair.senior_id, {
+            senior_id: pair.senior_id,
+            senior_student_id: pair.senior_student_id,
+            senior_nickname: pair.senior_nickname,
+            senior_full_name: pair.senior_full_name,
+            ...(profile || {}), // ถ้าไม่มี profile ให้ใช้ข้อมูลจาก pair แทน
+            id: profile ? profile.id : pair.senior_id
+          });
         }
       });
-      const allSeniors = Array.from(seniorMap.values()).map(senior => {
-        const profile = allProfiles.find(p => String(p.student_id) === String(senior.student_id));
-        return { ...senior, ...(profile || {}), id: profile ? profile.id : senior.student_id };
+      
+      // 3. จัดกลุ่ม Juniors (น้องรหัสทุกคนตาม pairing_data)
+      const juniorsWithProfile = allPairs.map(pair => {
+        const profile = allProfiles.find(p => String(p.student_id) === String(pair.junior_student_id));
+        return { 
+            ...pair, 
+            ...(profile || {}),
+            // เพื่อให้สอดคล้องกับ UnifiedDirectoryBox
+            junior_id: pair.junior_id,
+            junior_student_id: pair.junior_student_id,
+            junior_full_name: pair.junior_full_name 
+        };
       });
-      const juniorsWithProfile = allClues.map(clue => {
-        const profile = allProfiles.find(p => String(p.student_id) === String(clue.student_id));
-        return { ...clue, ...(profile || {}) };
-      });
-      setSeniors(allSeniors);
+
+      setSeniors(Array.from(seniorMap.values()));
       setJuniors(juniorsWithProfile);
     }
     setLoading(false);
   };
 
-  // ขั้นตอนที่ 1: เรียกหน้า Modal ยืนยัน
+  // ... (ฟังก์ชัน handleReset และ executeReset เหมือนเดิม ไม่ต้องเปลี่ยน)
   const handleReset = (action) => {
     setAlertState({
       isOpen: true,
@@ -59,7 +72,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // ขั้นตอนที่ 2: ทำงานจริงหลังจากกด Confirm
   const executeReset = async (action) => {
     try {
       let updateData = {};
@@ -74,18 +86,16 @@ const AdminDashboard = () => {
 
       if (error) throw error;
       
-      // อัปเดตเสร็จแล้ว แสดง Success Alert
       setAlertState({
         isOpen: true,
         type: 'success',
         title: 'SUCCESS',
         message: `${action} เรียบร้อยแล้ว!`,
-        onConfirm: null // ไม่มีปุ่ม Cancel ให้กด
+        onConfirm: null 
       });
       
       fetchAdminData();
     } catch (error) { 
-      // กรณี Error แสดง Error Alert
       setAlertState({
         isOpen: true,
         type: 'error',
@@ -100,7 +110,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6 md:p-10 text-white w-full">
-      {/* ใส่ Modal ตรงนี้ */}
       <SystemAlert 
         {...alertState} 
         onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} 

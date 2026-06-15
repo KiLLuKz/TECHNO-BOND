@@ -12,6 +12,20 @@ const MOCK_LEADERBOARD = [
 ];
 
 const MiniGames = () => {
+  const [leaderboard, setLeaderboard] = useState([]);
+  
+  useEffect(() => {
+    const fetchScores = async () => {
+      const { data } = await supabase
+        .from('leaderboard')
+        .select('*')
+        .order('score', { ascending: false })
+        .limit(10); // เอาแค่ Top 10
+      if (data) setLeaderboard(data);
+    };
+    fetchScores();
+  }, []);
+  
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('games'); // 'games' หรือ 'leaderboard'
   const [gameFilter, setGameFilter] = useState('all'); // 'all', 'block-blast', etc.

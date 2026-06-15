@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Send, Loader2 } from 'lucide-react'; // เพิ่ม Loader2 เข้ามาด้วย
+import { MessageSquare, Send, Loader2 } from 'lucide-react';
 
 const TransmissionBox = ({ 
     messagesLeft, 
@@ -10,17 +10,23 @@ const TransmissionBox = ({
     hasSeniorEmail
 }) => {
   return (
-    <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 animate__animated animate__fadeIn">
+    // เพิ่ม h-full และ flex flex-col เพื่อให้กล่องยืดเต็มช่อง Grid
+    <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col h-full animate__animated animate__fadeIn">
+      
       <h2 className="flex items-center gap-2 text-[#7eb8ff] mb-4 font-bold tracking-widest">
         <MessageSquare size={18} /> TRANSMISSION
       </h2>
+
+      {/* เพิ่ม flex-1 เพื่อให้ textarea ยืดหยุ่นตามความสูงของกล่อง */}
       <textarea 
-        className=" font-[Chakra Petch] w-full h-20 bg-black/30 border border-white/10 rounded-xl p-3 text-l focus:outline-none mb-3 resize-none transition-all focus:border-[#7eb8ff]/50" 
+        className="flex-1 font-['Chakra_Petch'] w-full min-h-[100px] bg-black/30 border border-white/10 rounded-xl p-3 text-sm focus:outline-none mb-3 resize-none transition-all focus:border-[#7eb8ff]/50" 
         placeholder={messagesLeft > 0 ? "ส่งข้อความถึงพี่รหัส..." : "หมดโควต้าของวันนี้แล้ว รีเซตโควต้า ตอนเที่ยงคืนนะครับ/ค่ะ"}
         value={messageText} 
         onChange={(e) => setMessageText(e.target.value)} 
         disabled={messagesLeft <= 0 || !hasSeniorEmail || isSending}
       />
+      
+      {/* ส่วนนี้จะถูกดันลงล่างสุดโดยอัตโนมัติด้วย flex-col */}
       <button 
         onClick={handleSendMessage} 
         disabled={messagesLeft <= 0 || isSending || !hasSeniorEmail} 

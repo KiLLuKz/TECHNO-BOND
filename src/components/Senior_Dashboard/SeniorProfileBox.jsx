@@ -1,19 +1,11 @@
 import React from 'react';
-import { Upload, Save, User } from 'lucide-react'; // นำเข้า User icon
+import { Upload, Save, User } from 'lucide-react';
 
-const SeniorProfileBox = ({ 
-    profile, 
-    setProfile, 
-    userEmail, 
-    getDefaultAvatar, 
-    handleUploadAvatar, 
-    handleUpdateProfile, 
-    isSaving 
-}) => {
+const SeniorProfileBox = ({ profile, setProfile, userEmail, getDefaultAvatar, handleUploadAvatar, handleUpdateProfile, isSaving }) => {
   return (
-    <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col items-center">
+    // เพิ่ม h-full เข้าไปที่ div หลัก
+    <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col items-center h-full">
         <div className="relative group w-24 h-24 rounded-full mb-4 border border-white/10 overflow-hidden cursor-pointer bg-black/50 flex items-center justify-center">
-            {/* เช็คถ้ามีรูปให้โชว์รูป ถ้าไม่มีโชว์ Icon User */}
             {profile.avatar_url ? (
                 <img 
                     src={profile.avatar_url} 
@@ -42,10 +34,11 @@ const SeniorProfileBox = ({
             onChange={(e) => setProfile({...profile, username: e.target.value})} 
         />
         
+        {/* เพิ่ม mt-auto เพื่อดันปุ่ม Save ลงล่างสุดของช่อง */}
         <button 
             onClick={handleUpdateProfile} 
             disabled={isSaving} 
-            className="w-full py-2 bg-[#d966ff]/10 border border-[#d966ff]/30 rounded-lg text-xs hover:bg-[#d966ff]/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+            className="w-full py-2 mt-auto bg-[#d966ff]/10 border border-[#d966ff]/30 rounded-lg text-xs hover:bg-[#d966ff]/20 flex items-center justify-center gap-2 transition-all active:scale-95"
         >
             <Save size={14} /> {isSaving ? 'SAVING...' : 'SAVE PROFILE'}
         </button>

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import 'animate.css';
 
@@ -17,6 +17,14 @@ import MiniGames from './components/MiniGames/MiniGames';
 import BlockBlastGame from './components/MiniGames/BlockBlast/BlockBlastGame';
 import AdminDashboard from './components/AdminDashboard';
 import Loader from './components/Loader';
+
+const ConditionalFooter = () => {
+  const location = useLocation();
+  const hideFooter = location.pathname.includes('minigames');
+
+  if (hideFooter) return null;
+  return <Footer />;
+};
 
 function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
   const navigate = useNavigate();
@@ -38,14 +46,13 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
       <Route path="/dashboard" element={
         userRole ? <DashboardLayout /> : <div className="text-center mt-20 text-2xl font-['Orbitron']">ACCESS DENIED</div>
       }>
+        {/* ตรงนี้สำคัญ! ถ้าเป็น junior จะเห็น J_Dashboard, แต่ถ้าเป็น senior หรือ admin จะเห็น S_Dashboard แทน */}
         <Route index element={userRole === 'junior' ? <J_Dashboard /> : <S_Dashboard />} />
         
-        {/* หน้า Arcade รวมเกม */}
         <Route path="minigames" element={<MiniGames />} />
-        
-        {/* เพิ่มบรรทัดนี้ครับ! เพื่อให้เข้าเกม Block Blast ได้ */}
         <Route path="minigames/block-blast" element={<BlockBlastGame />} />
         
+        {/* หน้า Admin จะเข้าได้ต้องเป็น isAdmin เท่านั้น */}
         <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
       </Route>
       
@@ -67,30 +74,36 @@ export default function App() {
     }
 
     try {
-      // 1. เช็ค Role น้อง (Junior/Senior)
-      const { data: seniorData } = await supabase
-        .from('junior_clues')
-        .select('senior_email')
-        .eq('senior_email', user.email)
-        .maybeSingle();
-      
-      setUserRole(seniorData ? 'senior' : 'junior');
+      const studentId = user.email.split('@')[0];
 
-      // 2. เช็ค Admin (ดึงจากตาราง profiles)
+      // 1. เช็คก่อนว่าคนนี้มี Role เป็น Admin ใน profiles หรือไม่
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', user.id)
         .single();
         
-      setIsAdmin(profile?.role === 'admin');
+      if (profile?.role === 'admin') {
+        setUserRole('admin');
+        setIsAdmin(true);
+      } else {
+        // 2. ถ้าไม่ใช่ Admin ค่อยไปเช็คว่าเป็นพี่รหัสหรือน้องรหัส
+        const { data: seniorData } = await supabase
+          .from('pairing_data') // เปลี่ยนเป็นตารางใหม่
+          .select('senior_student_id')
+          .eq('senior_student_id', studentId)
+          .maybeSingle();
+        
+        setUserRole(seniorData ? 'senior' : 'junior');
+        setIsAdmin(false);
+      }
+
     } catch (error) {
       console.error("Error fetching user role:", error);
     }
   };
 
   useEffect(() => {
-    // 1. เช็คสถานะปัจจุบันตอนเปิดหน้าเว็บ
     const checkInitialSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) await fetchUserData(session.user);
@@ -98,7 +111,6 @@ export default function App() {
     };
     checkInitialSession();
 
-    // 2. ตั้ง Listener คอยฟังเหตุการณ์ LOGIN / LOGOUT
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         fetchUserData(session.user);
@@ -108,13 +120,12 @@ export default function App() {
       }
     });
 
-    // Cleanup subscription เมื่อ component ถูกทำลาย
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/verify'; // บังคับโหลดใหม่ชัวร์ที่สุด
+    window.location.href = '/verify'; 
   };
 
   if (isAuthLoading) return <Loader text="LOADING" />;
@@ -132,7 +143,7 @@ export default function App() {
             isAdmin={isAdmin} 
           />
         </main>
-        <Footer />
+        <ConditionalFooter/>
       </div>
     </Router>
   );

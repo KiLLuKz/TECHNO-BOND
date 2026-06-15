@@ -3,22 +3,25 @@ import { getRandomColor } from "./blocks";
 export const GRID_SIZE = 8;
 export const CELL_SIZE = 72; 
 
-// ตรวจสอบว่าเป็นแนวนอน (จอคอม) หรือแนวตั้ง (มือถือ)
+// ใน gameFunctions.js
 export function getGridOffset(canvas) {
   const isLandscape = canvas.width > canvas.height;
-  const gridWidth = GRID_SIZE * CELL_SIZE; // ขนาด 720px
+  const gridWidth = GRID_SIZE * CELL_SIZE; // ขนาดตาราง 8x8 (576px)
+  
+  // สมการกึ่งกลางคือ: (ความกว้างหรือสูงของจอ - ขนาดตาราง) / 2
+  const centerX = (canvas.width - gridWidth) / 2;
   
   if (isLandscape) {
-    // จอคอม: ดันกระดานไปขวาเริ่มที่แกน X = 350 เพื่อให้ซ้ายว่างสนิท!
+    // จอแนวนอน (คอม/iPad แนวนอน): ตรงกลางเป๊ะๆ ทั้งแกน X และ Y
     return {
-      x: 350,
+      x: centerX,
       y: (canvas.height - gridWidth) / 2, 
     };
   } else {
-    // มือถือ: ดันกระดานลงมาเยอะๆ ที่ระยะ 280px ให้หลบ Score
+    // จอแนวตั้ง (มือถือ): แกน X ตรงกลาง, แกน Y ดันลงมาจากขอบบน 80px
     return {
-      x: (canvas.width - gridWidth) / 2,
-      y: 280, 
+      x: centerX,
+      y: 80, 
     };
   }
 }
@@ -26,44 +29,34 @@ export function getGridOffset(canvas) {
 function drawTexturedCell(ctx, px, py, size, color, alpha = 1) {
   ctx.save();
   ctx.globalAlpha = alpha;
-
   ctx.fillStyle = color;
   ctx.fillRect(px, py, size, size);
-
   ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
   ctx.fillRect(px, py + size - 6, size, 6); 
   ctx.fillRect(px + size - 6, py, 6, size); 
-
   ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
   ctx.fillRect(px, py, size, 6); 
   ctx.fillRect(px, py, 6, size); 
-
   const gradient = ctx.createLinearGradient(px, py, px, py + size);
   gradient.addColorStop(0, "rgba(255, 255, 255, 0.25)"); 
   gradient.addColorStop(1, "rgba(0, 0, 0, 0.15)"); 
   ctx.fillStyle = gradient;
   ctx.fillRect(px + 6, py + 6, size - 12, size - 12);
-
   ctx.strokeStyle = "rgba(255, 255, 255, 0.8)";
   ctx.lineWidth = 1;
   ctx.strokeRect(px, py, size, size);
-  
   ctx.restore();
 }
 
 export function drawGrid(ctx, canvas, grid) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
   const offset = getGridOffset(canvas);
-
   for (let y = 0; y < GRID_SIZE; y++) {
     for (let x = 0; x < GRID_SIZE; x++) {
       const px = offset.x + x * CELL_SIZE;
       const py = offset.y + y * CELL_SIZE;
-
       ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
       ctx.lineWidth = 1;
       ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
-
       if (grid[y][x]) {
         drawTexturedCell(ctx, px, py, CELL_SIZE, grid[y][x]);
       }
@@ -74,7 +67,6 @@ export function drawGrid(ctx, canvas, grid) {
 export function drawBlock(ctx, block, startX, startY, cellSize, alpha = 1, color = "#4CAF50") {
   ctx.save();
   ctx.globalAlpha = alpha;
-
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
@@ -94,7 +86,6 @@ export function drawGhostBlock(ctx, block, gridX, gridY, canvas, alpha = 0.5, co
   ctx.fillStyle = color;
   ctx.strokeStyle = "rgba(255, 255, 255, 0.8)"; 
   ctx.lineWidth = 2;
-
   for (let y = 0; y < block.length; y++) {
     for (let x = 0; x < block[y].length; x++) {
       if (block[y][x]) {
@@ -110,25 +101,20 @@ export function drawGhostBlock(ctx, block, gridX, gridY, canvas, alpha = 0.5, co
 
 export function drawClearingEffects(ctx, canvas, clearingCells) {
   const offset = getGridOffset(canvas);
-  
   clearingCells.forEach(cell => {
     const px = offset.x + cell.x * CELL_SIZE;
     const py = offset.y + cell.y * CELL_SIZE;
-    
     const sizeOffset = (cell.scale - 1) * CELL_SIZE / 2;
     const currentPx = px - sizeOffset;
     const currentPy = py - sizeOffset;
     const currentSize = CELL_SIZE * cell.scale;
-
     ctx.save();
     ctx.shadowBlur = 15;
     ctx.shadowColor = cell.color;
     drawTexturedCell(ctx, currentPx, currentPy, currentSize, cell.color, cell.opacity);
-    
     ctx.strokeStyle = `rgba(255, 255, 255, ${cell.opacity})`;
     ctx.lineWidth = 3;
     ctx.strokeRect(currentPx - 2, currentPy - 2, currentSize + 4, currentSize + 4);
-    
     ctx.restore();
   });
 }
@@ -141,61 +127,111 @@ export function drawTray(ctx, availableBlocks, TRAY_BLOCK_SIZE) {
   }
 }
 
-// อัปเดตตำแหน่งของบล็อกในถาด ให้จัดเรียงอัตโนมัติตามแนวจอ
+// ใน gameFunctions.js
 export function updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE) {
     const isLandscape = canvas.width > canvas.height;
-    const TOTAL_BLOCKS = 3;
-    
-    const BLOCK_SPACING_X = isLandscape ? 0 : 250; 
-    const BLOCK_SPACING_Y = isLandscape ? 220 : 0; 
-    
-    // --- จุดที่ฉลาดขึ้น: คำนวณจุดกึ่งกลางถาดให้บาลานซ์กับกระดาน ---
-    const gridRightEdge = 350 + (10 * 72); // ตำแหน่งขอบขวาของกระดาน (ประมาณ 1070px)
-    // จอคอม: เอาไปวางไว้กึ่งกลางของพื้นที่ที่เหลือด้านขวา | มือถือ: ตรงกลางปกติ
-    const trayCenterX = isLandscape ? gridRightEdge + (canvas.width - gridRightEdge) / 2 : canvas.width / 2;
-    const trayCenterY = isLandscape ? canvas.height / 2 : canvas.height - 120;
+    const offset = getGridOffset(canvas);
+    const gridWidth = GRID_SIZE * CELL_SIZE;
 
     availableBlocks.forEach((block) => {
         const blockWidth = block.shape[0].length * TRAY_BLOCK_SIZE;
         const blockHeight = block.shape.length * TRAY_BLOCK_SIZE;
 
+        let slotCenterX, slotCenterY;
+
         if (isLandscape) {
-            block.x = trayCenterX - blockWidth / 2;
-            block.y = trayCenterY - ((TOTAL_BLOCKS - 1) * BLOCK_SPACING_Y) / 2 + block.slotIndex * BLOCK_SPACING_Y - blockHeight / 2;
+            // แนวนอน (จอคอม): แบ่งพื้นที่ว่างฝั่งขวาเป็น 3 ล็อก (บน, กลาง, ล่าง)
+            const rightSpaceX = offset.x + gridWidth;
+            const trayWidth = canvas.width - rightSpaceX;
+            slotCenterX = rightSpaceX + (trayWidth / 2);
+
+            // แบ่งความสูงเป็น 3 กรอบล่องหน
+            const slotHeight = canvas.height / 3;
+            slotCenterY = (block.slotIndex * slotHeight) + (slotHeight / 2);
         } else {
-            block.x = trayCenterX - ((TOTAL_BLOCKS - 1) * BLOCK_SPACING_X) / 2 + block.slotIndex * BLOCK_SPACING_X - blockWidth / 2;
-            block.y = trayCenterY - blockHeight / 2;
+            // แนวตั้ง (มือถือ): แบ่งความกว้างจอเป็น 3 ล็อก (ซ้าย, กลาง, ขวา) เป๊ะๆ
+            const slotWidth = canvas.width / 3;
+            slotCenterX = (block.slotIndex * slotWidth) + (slotWidth / 2);
+
+            // หาจุดกึ่งกลางของพื้นที่ที่เหลือด้านล่างกระดาน
+            const bottomSpaceY = offset.y + gridWidth;
+            const trayHeight = canvas.height - bottomSpaceY;
+            slotCenterY = bottomSpaceY + Math.max(100, trayHeight / 2); // วางไว้ตรงกลางพื้นที่ด้านล่าง
         }
+
+        // จับบล็อกไปวางกึ่งกลางของแต่ละกรอบล่องหน
+        block.x = slotCenterX - (blockWidth / 2);
+        block.y = slotCenterY - (blockHeight / 2);
     });
+}
+
+function padShape(shape) {
+    const h = shape.length;
+    const w = shape[0].length;
+    // สร้างขนาดกล่องให้ครอบคลุมบล็อกที่ใหญ่ที่สุด (อย่างน้อยต้อง 3x3)
+    const padSize = Math.max(3, h, w); 
+    let padded = Array.from({ length: padSize }, () => Array(padSize).fill(0));
+    
+    // หาจุดกึ่งกลางเพื่อให้บล็อกอยู่ตรงกลางเสมอ
+    const startY = Math.floor((padSize - h) / 2);
+    const startX = Math.floor((padSize - w) / 2);
+    
+    for(let y = 0; y < h; y++) {
+        for(let x = 0; x < w; x++) {
+            padded[startY + y][startX + x] = shape[y][x];
+        }
+    }
+    return padded;
 }
 
 export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, BLOCK_SHAPES }) {
   availableBlocks.length = 0;
   for (let i = 0; i < TOTAL_BLOCKS; i++) {
-    const shape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
+    const rawShape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
+    // เรียกใช้ฟังก์ชัน padShape ตรงนี้
+    const shape = padShape(rawShape); 
+    
     availableBlocks.push({
       id: Math.random().toString(36).substr(2, 9),
       shape,
-      x: 0, y: 0, // ค่าชั่วคราว เดี๋ยวโดนอัปเดตข้างล่าง
+      x: 0, y: 0, 
       color: getRandomColor(),
       active: true,
-      slotIndex: i, // จำตำแหน่งช่องของตัวเองไว้
+      slotIndex: i, 
     });
   }
   updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE);
 }
 
+
 export function blockCollision(x, y, block, TRAY_BLOCK_SIZE) {
-  const w = block.shape[0].length * TRAY_BLOCK_SIZE;
-  const h = block.shape.length * TRAY_BLOCK_SIZE;
-  return x >= block.x && x <= block.x + w && y >= block.y && y <= block.y + h;
+  // เช็คขนาดกล่อง (ที่ถูก padShape แล้ว) ของบล็อกตัวนั้นๆ
+  const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
+  
+  // เช็คว่านิ้วแตะโดนกล่องขนาดนั้นหรือไม่
+  return x >= block.x && 
+         x <= block.x + slotSize && 
+         y >= block.y && 
+         y <= block.y + slotSize;
 }
 
 export function canPlaceBlockAtPosition(grid, shape, gridX, gridY) {
-  if (gridX < 0 || gridY < 0 || gridX + shape[0].length > GRID_SIZE || gridY + shape.length > GRID_SIZE) return false;
   for (let y = 0; y < shape.length; y++) {
     for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x] && grid[gridY + y][gridX + x] !== 0) return false;
+      if (shape[y][x] === 1) { // เช็คเฉพาะช่องที่เป็นตัวบล็อกจริงๆ
+        const targetX = gridX + x;
+        const targetY = gridY + y;
+
+        // 1. เช็คว่าถ้าเป็นตัวบล็อกแล้วหลุดขอบ ให้คืนค่า false ทันที
+        if (targetX < 0 || targetY < 0 || targetX >= GRID_SIZE || targetY >= GRID_SIZE) {
+          return false;
+        }
+
+        // 2. เช็คว่าช่องนั้นมีบล็อกอื่นวางอยู่หรือไม่
+        if (grid[targetY][targetX] !== 0) {
+          return false;
+        }
+      }
     }
   }
   return true;
@@ -203,49 +239,22 @@ export function canPlaceBlockAtPosition(grid, shape, gridX, gridY) {
 
 export function findBestGridPlacement({ canvas, grid, block, offsetX, offsetY, blockX, blockY }) {
   const offset = getGridOffset(canvas);
-  const blockWidth = block.shape[0].length * CELL_SIZE;
-  const blockHeight = block.shape.length * CELL_SIZE;
-  const blockCenterX = blockX + blockWidth / 2;
-  const blockCenterY = blockY + blockHeight / 2;
 
-  const gridLeft = offset.x;
-  const gridRight = offset.x + GRID_SIZE * CELL_SIZE;
-  const gridTop = offset.y;
-  const gridBottom = offset.y + GRID_SIZE * CELL_SIZE;
-  const margin = CELL_SIZE * 2; 
+  // คำนวณพิกัดบนกระดาน โดยเทียบจากตำแหน่งที่ลากไปหักลบกับจุดเริ่มต้นกระดาน
+  const relativeX = blockX - offset.x;
+  const relativeY = blockY - offset.y;
 
-  if (
-    blockCenterX < gridLeft - margin ||
-    blockCenterX > gridRight + margin ||
-    blockCenterY < gridTop - margin ||
-    blockCenterY > gridBottom + margin
-  ) {
-    return { gridX: 0, gridY: 0, canPlace: false };
+  // ปัดเศษเพื่อหาช่อง Grid ที่ใกล้กับตำแหน่งนิ้วที่สุด (ล็อกเป้าตรงๆ)
+  const gridX = Math.round(relativeX / CELL_SIZE);
+  const gridY = Math.round(relativeY / CELL_SIZE);
+
+  // เช็คว่าตำแหน่งเป๊ะๆ ตรงนี้ วางได้หรือไม่?
+  if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) {
+    return { gridX, gridY, canPlace: true };
   }
 
-  let bestGridX = 0;
-  let bestGridY = 0;
-  let bestDistance = Infinity;
-
-  for (let gridY = 0; gridY <= GRID_SIZE - block.shape.length; gridY++) {
-    for (let gridX = 0; gridX <= GRID_SIZE - block.shape[0].length; gridX++) {
-      if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) {
-        const screenX = offset.x + gridX * CELL_SIZE;
-        const screenY = offset.y + gridY * CELL_SIZE;
-        const screenCenterX = screenX + blockWidth / 2;
-        const screenCenterY = screenY + blockHeight / 2;
-
-        const distance = Math.sqrt(Math.pow(blockCenterX - screenCenterX, 2) + Math.pow(blockCenterY - screenCenterY, 2));
-
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          bestGridX = gridX;
-          bestGridY = gridY;
-        }
-      }
-    }
-  }
-  return { gridX: bestGridX, gridY: bestGridY, canPlace: bestDistance < Infinity };
+  // ถ้าวางตรงนี้ไม่ได้ ให้ตอบ false ทันที (บล็อกจะไม่กระโดดไปหาที่อื่นเองแล้ว)
+  return { gridX: 0, gridY: 0, canPlace: false };
 }
 
 export function checkAndGetClearedLines(grid) {
