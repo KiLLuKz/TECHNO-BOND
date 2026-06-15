@@ -55,6 +55,7 @@ const playSound = (type, isMuted) => {
 const BlockBlastGame = () => {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
+  const comboTimerRef = useRef(null);
   const [score, setScore] = useState(0);
   const [combo, setCombo] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -93,7 +94,7 @@ const BlockBlastGame = () => {
   };
 
   const gameData = useRef({
-    const comboTimerRef = useRef(null);
+
     grid: Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0)),
     availableBlocks: [],
     activeBlock: null,
