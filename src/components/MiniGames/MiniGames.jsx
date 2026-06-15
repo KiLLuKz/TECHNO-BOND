@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Gamepad2, Trophy, Play, Medal, Filter, Loader2 } from 'lucide-react';
-import { supabase } from '../../../supabaseClient'; // ปรับ path ให้ตรงกับที่ตั้งไฟล์คุณ
+import { supabase } from '../../supabaseClient';
 
 const MiniGames = () => {
   const navigate = useNavigate();
