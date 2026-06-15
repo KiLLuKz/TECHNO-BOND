@@ -1,6 +1,6 @@
 import { getRandomColor } from "./blocks";
 
-export const GRID_SIZE = 10;
+export const GRID_SIZE = 8;
 export const CELL_SIZE = 72; 
 
 // ตรวจสอบว่าเป็นแนวนอน (จอคอม) หรือแนวตั้ง (มือถือ)
