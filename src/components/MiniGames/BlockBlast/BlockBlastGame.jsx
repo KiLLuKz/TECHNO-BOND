@@ -93,6 +93,7 @@ const BlockBlastGame = () => {
   };
 
   const gameData = useRef({
+    const comboTimerRef = useRef(null);
     grid: Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0)),
     availableBlocks: [],
     activeBlock: null,
