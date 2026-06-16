@@ -1,145 +1,433 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Volume2, VolumeX, RotateCcw, ArrowLeft } from 'lucide-react';
+import { drawGrid, drawBlock, getGridOffset, drawGhostBlock, blockCollision, findBestGridPlacement, checkAndGetClearedLines, canPlaceAnyBlock, drawTray, createTrayBlocks, updateTrayBlockPositions, GRID_SIZE, CELL_SIZE, drawClearingEffects } from './gameFunctions';
+import { BLOCK_SHAPES } from './blocks';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Trophy, Play, Medal, Filter, Loader2 } from 'lucide-react';
-import { supabase } from '../../supabaseClient'; // เช็ค Path ให้ตรงกับของคุณนะครับ
+import SystemAlert from "../../SystemAlert";
 
-const MiniGames = () => {
+import { supabase } from "../../../supabaseClient";
+
+// ฟังก์ชันบันทึกคะแนนลง Supabase
+const saveScore = async (finalScore) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const username = user.email ? user.email.split('@')[0] : 'Player'; 
+
+    await supabase.from('leaderboard').insert([
+      { username: username, score: finalScore, game_slug: 'block-blast' }
+    ]);
+  } catch (error) {
+    console.error("Error saving score:", error);
+  }
+};
+
+const playSound = (type, isMuted, comboCount = 0) => {
+  if (isMuted) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  if (type === 'grab') { 
+    osc.type = 'sine'; osc.frequency.setValueAtTime(400, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1); 
+  }
+  else if (type === 'drop') { 
+    osc.type = 'sine'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.1); gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1); osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1); 
+  }
+  else if (type === 'clear') { 
+    osc.type = 'square'; 
+    const pitchShift = Math.min(comboCount, 10) * 150; 
+
+    osc.frequency.setValueAtTime(400 + pitchShift, ctx.currentTime);
+    osc.frequency.setValueAtTime(600 + pitchShift, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(800 + pitchShift, ctx.currentTime + 0.2);
+
+    gain.gain.setValueAtTime(0.05, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3); 
+  }
+  else if (type === 'gameover') { 
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(300, ctx.currentTime); osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.5); gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5); osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5); 
+  }
+};
+
+const BlockBlastGame = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('games');
-  const [gameFilter, setGameFilter] = useState('all');
+  const canvasRef = useRef(null);
+  const comboTimerRef = useRef(null); 
 
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [score, setScore] = useState(0);
+  const [combo, setCombo] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
+  const [isMuted, setIsMuted] = useState(false); 
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+
+  const [alertState, setAlertState] = useState({ 
+    isOpen: false, type: 'warning', title: '', message: '', onConfirm: null 
+  });
+
+  const CANVAS_WIDTH = isDesktop ? 1000 : 600; 
+  const CANVAS_HEIGHT = isDesktop ? 650 : 900; 
+  const TRAY_BLOCK_SIZE = isDesktop ? 45 : 40; 
+
+  const gameData = useRef({
+    grid: Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0)),
+    availableBlocks: [],
+    activeBlock: null,
+    offsetX: 0,
+    offsetY: 0,
+    startX: 0, 
+    startY: 0, 
+    isDragging: false, 
+    clearingEffects: [], 
+    floatingTexts: [], 
+    megaEffect: { active: false, phase: 0, progress: 0 } 
+  });
+
+  const performReset = () => {
+    if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+    const canvas = canvasRef.current;
+    gameData.current.grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+    gameData.current.activeBlock = null;
+    gameData.current.clearingEffects = [];
+    gameData.current.floatingTexts = [];
+    gameData.current.megaEffect = { active: false, phase: 0, progress: 0 };
+    setScore(0);
+    setCombo(0);
+    setGameOver(false);
+    createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
+    setAlertState(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handleConfirmReset = () => {
+    setAlertState({ isOpen: true, type: 'warning', title: 'RESTART GAME', message: 'ยืนยันการเริ่มเกมใหม่หรือไม่? คะแนนปัจจุบันจะถูกล้างทั้งหมด', onConfirm: performReset });
+  };
 
   useEffect(() => {
-    const fetchScores = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('leaderboard')
-          .select('*')
-          .order('score', { ascending: false });
-
-        if (error) throw error;
-        setLeaderboard(data || []);
-      } catch (err) {
-        console.error("Error loading scores:", err);
-      } finally {
-        setLoading(false);
+    const style = document.createElement('style');
+    style.innerHTML = `
+      body { 
+        overscroll-behavior-y: none; 
+        overflow: hidden; 
       }
+      .game-wrapper { 
+        touch-action: none; 
+        overscroll-behavior: none; 
+      }
+      canvas { 
+        background-color: transparent !important; 
+      }
+    `;
+    document.head.appendChild(style);
+
+    return () => {
+      document.head.removeChild(style);
     };
-    fetchScores();
   }, []);
 
-  const filteredLeaderboard = (leaderboard || [])
-    .filter(entry => gameFilter === 'all' || entry.game_slug === gameFilter)
-    .sort((a, b) => b.score - a.score);
+  useEffect(() => {
+    return () => { if (comboTimerRef.current) clearTimeout(comboTimerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
+
+    let animationFrameId;
+    const gameLoop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
+
+      drawGrid(ctx, canvas, gameData.current.grid);
+
+      if (gameData.current.clearingEffects.length > 0) {
+         drawClearingEffects(ctx, canvas, gameData.current.clearingEffects);
+         gameData.current.clearingEffects = gameData.current.clearingEffects
+            .map(cell => ({ ...cell, opacity: cell.opacity - 0.05, scale: cell.scale + 0.02 }))
+            .filter(cell => cell.opacity > 0); 
+      }
+
+      if (gameData.current.megaEffect.active) {
+        const effect = gameData.current.megaEffect;
+        const offset = getGridOffset(canvas);
+        const W = GRID_SIZE * CELL_SIZE; 
+
+        if (effect.phase === 1) {
+            effect.progress += 0.035; 
+            ctx.save();
+            for (let i = 0; i < 25; i++) {
+                const p = effect.progress - (i * 0.01); 
+                if (p < 0 || p > 1) continue;
+
+                const getPos = (prog) => {
+                    let s = prog * 4 * W;
+                    if (s < W) return { x: s, y: 0 }; 
+                    if (s < 2*W) return { x: W, y: s - W }; 
+                    if (s < 3*W) return { x: W - (s - 2*W), y: W }; 
+                    return { x: 0, y: W - (s - 3*W) }; 
+                };
+
+                const pos = getPos(p);
+                const hue = (p * 720) % 360; 
+                const alpha = 1 - (i / 25);
+
+                ctx.fillStyle = `hsla(${hue}, 100%, 60%, ${alpha})`;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = `hsl(${hue}, 100%, 50%)`;
+
+                ctx.beginPath();
+                ctx.arc(offset.x + pos.x, offset.y + pos.y, 4 + (alpha * 6), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            if (effect.progress >= 1) {
+                effect.phase = 2;
+                effect.progress = 1; 
+            }
+        } else if (effect.phase === 2) {
+            effect.progress -= 0.02; 
+
+            ctx.save();
+            const opacity = Math.max(0, effect.progress);
+            ctx.shadowBlur = 50;
+            ctx.shadowColor = `rgba(153, 238, 221, ${opacity})`;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+            ctx.lineWidth = 6 + (1 - opacity) * 10; 
+
+            ctx.strokeRect(offset.x, offset.y, W, W);
+
+            ctx.fillStyle = `rgba(153, 238, 221, ${opacity * 0.15})`;
+            ctx.fillRect(offset.x, offset.y, W, W);
+            ctx.restore();
+
+            if (effect.progress <= 0) effect.active = false; 
+        }
+      }
+
+      drawTray(ctx, gameData.current.availableBlocks, TRAY_BLOCK_SIZE);
+
+      if (gameData.current.activeBlock) {
+        const { activeBlock, offsetX, offsetY, isDragging } = gameData.current;
+        ctx.shadowBlur = 15; 
+        ctx.shadowColor = activeBlock.color;
+        drawBlock(ctx, activeBlock.shape, activeBlock.x, activeBlock.y, CELL_SIZE, 0.9, activeBlock.color);
+        ctx.shadowBlur = 0; 
+
+        if (isDragging) {
+            const placement = findBestGridPlacement({ canvas, grid: gameData.current.grid, block: activeBlock, offsetX, offsetY, blockX: activeBlock.x, blockY: activeBlock.y });
+            if (placement.canPlace) drawGhostBlock(ctx, activeBlock.shape, placement.gridX, placement.gridY, canvas, 0.5, activeBlock.color);
+        }
+      }
+
+      if (gameData.current.floatingTexts && gameData.current.floatingTexts.length > 0) {
+        gameData.current.floatingTexts.forEach(ft => {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, ft.opacity);
+            ctx.fillStyle = ft.color;
+            ctx.font = "bold 56px 'Orbitron', sans-serif";
+            ctx.textAlign = "center";
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = ft.color;
+            ctx.fillText(ft.text, ft.x, ft.y + ft.offsetY);
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
+            ctx.lineWidth = 4;
+            ctx.strokeText(ft.text, ft.x, ft.y + ft.offsetY);
+            ctx.restore();
+            ft.offsetY -= 2;
+            ft.opacity -= 0.012; 
+        });
+        gameData.current.floatingTexts = gameData.current.floatingTexts.filter(ft => ft.opacity > 0);
+      }
+
+      animationFrameId = requestAnimationFrame(gameLoop);
+    };
+    animationFrameId = requestAnimationFrame(gameLoop);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [CANVAS_WIDTH, CANVAS_HEIGHT]); 
+
+  const handleMouseDown = (e) => {
+    if (gameOver) return;
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+
+    gameData.current.availableBlocks.forEach((block) => {
+      if (block.active && blockCollision(x, y, block, TRAY_BLOCK_SIZE)) {
+        gameData.current.activeBlock = { ...block }; 
+        block.active = false; 
+        gameData.current.startX = x; gameData.current.startY = y;
+        const scaleRatio = CELL_SIZE / TRAY_BLOCK_SIZE;
+        gameData.current.offsetX = (x - block.x) * scaleRatio;
+        gameData.current.offsetY = (y - block.y) * scaleRatio;
+        gameData.current.isDragging = false; 
+        playSound('grab', isMuted); 
+      }
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!gameData.current.activeBlock) return;
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = (clientX - rect.left) * scaleX;
+    const y = (clientY - rect.top) * scaleY;
+    const moveDist = Math.hypot(x - gameData.current.startX, y - gameData.current.startY);
+    if (moveDist > 10) gameData.current.isDragging = true;
+    gameData.current.activeBlock.x = x - gameData.current.offsetX;
+    gameData.current.activeBlock.y = y - gameData.current.offsetY;
+  };
+
+  const handleMouseUp = () => {
+    if (!gameData.current.activeBlock) return;
+    const canvas = canvasRef.current;
+    const activeBlock = gameData.current.activeBlock;
+    const { isDragging } = gameData.current;
+
+    if (!isDragging) {
+        const originalBlock = gameData.current.availableBlocks.find(b => b.id === activeBlock.id);
+        if (originalBlock) originalBlock.active = true;
+        gameData.current.activeBlock = null;
+        return;
+    }
+    const placement = findBestGridPlacement({ canvas, grid: gameData.current.grid, block: activeBlock, offsetX: gameData.current.offsetX, offsetY: gameData.current.offsetY, blockX: activeBlock.x, blockY: activeBlock.y });
+
+    if (placement.canPlace) {
+      for (let y = 0; y < activeBlock.shape.length; y++) {
+        for (let x = 0; x < activeBlock.shape[y].length; x++) {
+          if (activeBlock.shape[y][x]) gameData.current.grid[placement.gridY + y][placement.gridX + x] = activeBlock.color;
+        }
+      }
+      gameData.current.availableBlocks = gameData.current.availableBlocks.filter(b => b.id !== activeBlock.id);
+      playSound('drop', isMuted);
+      const { linesCleared, clearedCellsData } = checkAndGetClearedLines(gameData.current.grid);
+
+      if (linesCleared > 0) {
+        if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+        const nextCombo = combo + 1;
+        setCombo(nextCombo);
+        
+        // คืนค่า score ด้วยการคำนวณแบบเดิม แต่เก็บค่าไว้เพื่อใช้ save ตอน game over ได้ตรง
+        setScore(s => s + (linesCleared * 100 * nextCombo));
+        
+        gameData.current.clearingEffects = clearedCellsData; 
+
+        let popText = "";
+        let popColor = "#99eedd";
+
+        if (nextCombo > 1) {
+            popText = `COMBO x${nextCombo}!`;
+            popColor = "#FFD166"; 
+        } else if (linesCleared >= 4) {
+            popText = "AMAZING!";
+            popColor = "#F15BB5"; 
+        } else if (linesCleared >= 2) {
+            popText = "GREAT!";
+            popColor = "#4ECDC4"; 
+        } else {
+            popText = "NICE!";
+            popColor = "#99eedd"; 
+        }
+
+        if (linesCleared >= 3) {
+            gameData.current.megaEffect = { active: true, phase: 1, progress: 0 };
+        }
+
+        const blockWidth = activeBlock.shape[0].length * CELL_SIZE;
+        const dropX = activeBlock.x + (blockWidth / 2);
+        const dropY = activeBlock.y;
+
+        gameData.current.floatingTexts.push({
+            id: Date.now(), text: popText, x: dropX, y: dropY, opacity: 1, offsetY: 0, color: popColor
+        });
+
+        setTimeout(() => playSound('clear', isMuted, nextCombo), 100); 
+      } else {
+        if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+        comboTimerRef.current = setTimeout(() => setCombo(0), 3000); 
+      }
+
+      if (gameData.current.availableBlocks.length === 0) createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
+      
+      if (!canPlaceAnyBlock({ grid: gameData.current.grid, availableBlocks: gameData.current.availableBlocks })) {
+        setGameOver(true); 
+        playSound('gameover', isMuted);
+        saveScore(score); // โยนค่าคะแนนที่เล่นได้เข้าไปบันทึก
+      }
+    } else {
+      const originalBlock = gameData.current.availableBlocks.find(b => b.id === activeBlock.id);
+      if (originalBlock) originalBlock.active = true;
+    }
+    gameData.current.activeBlock = null; gameData.current.isDragging = false;
+  };
 
   return (
-    <div className="min-h-screen p-6 md:p-10 font-['Orbitron'] text-white animate__animated animate__fadeIn max-w-[1200px] mx-auto">
-      
-      {/* ----------------- ส่วน Header และ ปุ่มเปลี่ยน Tab ----------------- */}
-      <div className="mb-10 border-b border-white/10">
-        <h1 className="text-3xl md:text-4xl text-[#99eedd] font-bold tracking-widest flex items-center gap-3 mb-6">
-          <Gamepad2 size={36} className="text-[#d966ff]" /> MINI GAMES HUB
-        </h1>
-        <div className="flex gap-8">
-          <button 
-            onClick={() => setActiveTab('games')}
-            className={`pb-4 text-lg font-bold transition-all border-b-2 ${
-              activeTab === 'games' ? 'border-[#99eedd] text-[#99eedd]' : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            🕹️ GAMES
-          </button>
-          <button 
-            onClick={() => setActiveTab('leaderboard')}
-            className={`pb-4 text-lg font-bold transition-all border-b-2 ${
-              activeTab === 'leaderboard' ? 'border-[#d966ff] text-[#d966ff]' : 'border-transparent text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            🏆 LEADERBOARD
-          </button>
+    <div className="relative flex flex-col items-center w-full h-[100dvh] overflow-hidden" style={{ isolation: 'isolate' }}>
+      <SystemAlert {...alertState} onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} />
+
+      <div className="w-full absolute top-0 left-0 right-0 z-10 px-4 py-4 md:px-8 pointer-events-none">
+        <div className="flex flex-row md:flex-col items-start justify-between md:justify-start gap-4 pointer-events-auto">
+          <div className="flex gap-2">
+              <button onClick={() => navigate('/dashboard/minigames')} className="bg-transparent hover:bg-white/10 p-2 md:p-3 rounded-xl text-white transition-all"><ArrowLeft size={24} /></button>
+              <button onClick={handleConfirmReset} className="bg-transparent hover:bg-white/10 p-2 md:p-3 rounded-xl text-white transition-all"><RotateCcw size={24} /></button>
+              <button onClick={() => setIsMuted(!isMuted)} className="bg-transparent hover:bg-white/10 p-2 md:p-3 rounded-xl text-white transition-all">{isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}</button>
+          </div>
+
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 bg-transparent border-none shadow-none flex flex-col items-center md:items-start min-w-[100px]">
+              <span className="text-[10px] md:text-sm text-gray-400 font-['Orbitron'] drop-shadow-md">SCORE</span>
+              <span className="text-2xl md:text-4xl font-bold text-[#99eedd] font-['Orbitron'] leading-none drop-shadow-lg">{score}</span>
+              {combo > 0 && <span className="text-yellow-400 text-xs md:text-sm font-['Orbitron'] mt-1 animate-pulse drop-shadow-md">COMBO x{combo}</span>}
+          </div>
         </div>
       </div>
 
-      {/* ----------------- TAB 1: หน้าเลือกเกม ----------------- */}
-      {activeTab === 'games' && (
-        <div className="animate__animated animate__fadeIn">
-          <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">เลือกเกมที่คุณต้องการเล่นเพื่อสะสมคะแนน</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <div 
-              onClick={() => navigate('/dashboard/minigames/block-blast')}
-              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#99eedd]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
-            >
-              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#d966ff] to-[#99eedd] text-black text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">HOT GAME</div>
-              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
-                <Play size={48} className="text-[#99eedd]/20 group-hover:text-[#99eedd] transition-colors z-10" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#99eedd] transition-colors tracking-wider">BLOCK BLAST</h2>
-              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">เกมต่อบล็อกสุดคลาสสิก ลากบล็อกลงตารางเพื่อเคลียร์แถว ทำคอมโบเพื่อรับคะแนนทวีคูณ!</p>
-              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
-                <span className="flex items-center gap-1.5"><Trophy size={14} className="text-[#FFD166]"/> Score System</span>
-              </div>
-            </div>
+      <div className="flex-1 w-full flex items-center justify-center px-2 pt-16 md:pt-0">
+          <canvas 
+            ref={canvasRef} 
+            width={CANVAS_WIDTH} height={CANVAS_HEIGHT}
+            style={{ willChange: 'transform', backfaceVisibility: 'hidden' }} 
+            className="max-w-full max-h-[85vh] md:max-h-none object-contain touch-none"
+            onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseOut={handleMouseUp} 
+            onTouchStart={handleMouseDown} onTouchMove={(e) => { e.preventDefault(); handleMouseMove(e); }} onTouchEnd={handleMouseUp}
+          />
+        </div>
 
-            <div className="bg-[#08050f]/30 backdrop-blur-xl border border-white/5 rounded-[24px] p-6 shadow-xl opacity-50 flex flex-col items-center justify-center min-h-[350px]">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                <Gamepad2 size={32} className="text-gray-600" />
-              </div>
-              <h2 className="text-xl font-bold text-gray-500 mb-2 tracking-widest">COMING SOON</h2>
-              <p className="text-sm text-gray-600 font-['Rajdhani'] text-center">มินิเกมใหม่กำลังอยู่ระหว่างการพัฒนา</p>
-            </div>
+      {gameOver && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl animate__animated animate__fadeIn">
+          <div className="bg-[#110b1c] border border-indigo-500/30 p-8 rounded-3xl text-center w-[90%] max-w-[350px]">
+            <h2 className="text-3xl font-bold text-white mb-2 font-['Orbitron']">OUT OF MOVES</h2>
+            <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">FINAL SCORE <span className="text-[#99eedd] font-bold text-4xl block mt-2">{score}</span></p>
+            <button onClick={performReset} className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-3 rounded-xl font-bold tracking-widest hover:bg-indigo-600/50 transition-all">TRY AGAIN</button>
           </div>
         </div>
       )}
-
-      {/* ----------------- TAB 2: หน้า LEADERBOARD ----------------- */}
-      {activeTab === 'leaderboard' && (
-        <div className="animate__animated animate__fadeIn">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <p className="text-gray-400 font-['Rajdhani'] text-lg">หอเกียรติยศยอดฝีมือ (TOP PLAYERS)</p>
-            <div className="flex items-center gap-2 bg-[#08050f]/60 p-1.5 rounded-xl border border-white/10 backdrop-blur-sm">
-              <Filter size={18} className="text-gray-400 ml-2" />
-              <select 
-                value={gameFilter}
-                onChange={(e) => setGameFilter(e.target.value)}
-                className="bg-transparent text-white border-none outline-none font-['Orbitron'] text-sm p-2 cursor-pointer"
-              >
-                <option value="all" className="bg-[#110b1c]">ALL GAMES</option>
-                <option value="block-blast" className="bg-[#110b1c]">BLOCK BLAST</option>
-              </select>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="text-center py-20 text-[#99eedd]"><Loader2 className="animate-spin mx-auto" size={40}/></div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filteredLeaderboard.length > 0 ? (
-                filteredLeaderboard.map((player, index) => (
-                  <div key={player.id} className="flex items-center justify-between p-4 bg-[#08050f]/60 border border-white/5 rounded-2xl">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 font-bold">{index + 1}</div>
-                      <div>
-                        <h3 className="font-bold">{player.username}</h3>
-                        <p className="text-xs text-gray-500 uppercase">{player.game_slug}</p>
-                      </div>
-                    </div>
-                    <span className="text-xl font-bold text-[#99eedd]">{player.score.toLocaleString()}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-20 text-gray-500 border border-white/5 border-dashed rounded-2xl">ไม่มีข้อมูลคะแนน</div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
     </div>
   );
 };
 
-export default MiniGames;
+export default BlockBlastGame;
