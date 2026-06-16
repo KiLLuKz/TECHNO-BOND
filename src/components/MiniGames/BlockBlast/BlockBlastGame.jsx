@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, RotateCcw, ArrowLeft } from 'lucide-react';
-import { drawGrid, drawBlock, getGridOffset, drawGhostBlock, blockCollision, findBestGridPlacement, checkAndGetClearedLines, canPlaceAnyBlock, drawTray, createTrayBlocks, updateTrayBlockPositions, GRID_SIZE, CELL_SIZE, drawClearingEffects } from './gameFunctions';
+import { drawGrid, drawBlock, getGridOffset, drawGhostBlock, findBestGridPlacement, checkAndGetClearedLines, canPlaceAnyBlock, drawTray, createTrayBlocks, updateTrayBlockPositions, GRID_SIZE, CELL_SIZE, drawClearingEffects } from './gameFunctions';
 import { BLOCK_SHAPES } from './blocks';
 import { useNavigate } from 'react-router-dom';
 import SystemAlert from "../../SystemAlert";
@@ -220,6 +220,22 @@ const BlockBlastGame = () => {
         }
       }
 
+      // --- ส่วนวาด Debug Overlay (Hitbox) ---
+      gameData.current.availableBlocks.forEach(block => {
+        if (block.active) {
+          ctx.save();
+          // สีขาวจางๆ เหมือนเป็นกรอบ UI ให้รู้ว่าแตะตรงไหนได้บ้าง
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; 
+          ctx.lineWidth = 2;
+          ctx.setLineDash([5, 5]); // เส้นประ
+          const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
+          const PADDING = 30; // รัศมีการกด
+          ctx.strokeRect(block.x - PADDING, block.y - PADDING, slotSize + (PADDING * 2), slotSize + (PADDING * 2));
+          ctx.restore();
+        }
+      });
+      // ------------------------------------
+
       drawTray(ctx, gameData.current.availableBlocks, TRAY_BLOCK_SIZE);
 
       if (gameData.current.activeBlock) {
@@ -273,14 +289,27 @@ const BlockBlastGame = () => {
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
 
+    const PADDING = 30; // เพิ่มพื้นที่กดรอบบล็อกอีก 30px ให้มือถือกดง่ายขึ้น
+
     gameData.current.availableBlocks.forEach((block) => {
-      if (block.active && blockCollision(x, y, block, TRAY_BLOCK_SIZE)) {
+      const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
+
+      // ตรวจสอบพื้นที่การสัมผัส (แบบขยาย Hitbox แล้ว)
+      const isHit = (x >= block.x - PADDING) && 
+                    (x <= block.x + slotSize + PADDING) && 
+                    (y >= block.y - PADDING) && 
+                    (y <= block.y + slotSize + PADDING);
+
+      if (block.active && isHit) {
         gameData.current.activeBlock = { ...block }; 
         block.active = false; 
-        gameData.current.startX = x; gameData.current.startY = y;
+        gameData.current.startX = x; 
+        gameData.current.startY = y;
+        
         const scaleRatio = CELL_SIZE / TRAY_BLOCK_SIZE;
         gameData.current.offsetX = (x - block.x) * scaleRatio;
         gameData.current.offsetY = (y - block.y) * scaleRatio;
+        
         gameData.current.isDragging = false; 
         playSound('grab', isMuted); 
       }
@@ -331,10 +360,9 @@ const BlockBlastGame = () => {
         if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
         const nextCombo = combo + 1;
         setCombo(nextCombo);
-        
-        // คืนค่า score ด้วยการคำนวณแบบเดิม แต่เก็บค่าไว้เพื่อใช้ save ตอน game over ได้ตรง
+
         setScore(s => s + (linesCleared * 100 * nextCombo));
-        
+
         gameData.current.clearingEffects = clearedCellsData; 
 
         let popText = "";
@@ -373,11 +401,11 @@ const BlockBlastGame = () => {
       }
 
       if (gameData.current.availableBlocks.length === 0) createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, BLOCK_SHAPES });
-      
+
       if (!canPlaceAnyBlock({ grid: gameData.current.grid, availableBlocks: gameData.current.availableBlocks })) {
         setGameOver(true); 
         playSound('gameover', isMuted);
-        saveScore(score); // โยนค่าคะแนนที่เล่นได้เข้าไปบันทึก
+        saveScore(score); 
       }
     } else {
       const originalBlock = gameData.current.availableBlocks.find(b => b.id === activeBlock.id);
