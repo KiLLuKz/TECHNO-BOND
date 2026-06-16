@@ -28,9 +28,9 @@ const Footer = () => {
       {/* Dev Team Credit */}
       <p className={`text-[11px] tracking-[0.2em] ${labelText} font-['Rajdhani'] uppercase text-center flex flex-wrap justify-center gap-2 transition-colors duration-700`}>
         <span>© 2026 // SYS.DEV_TEAM:</span>
-        <span className={accentText}>สรวิชญ์</span> 
+        <span className={accentText}>Q</span> 
         <span className="opacity-40">X</span> 
-        <span className={accentText}>กาญจนา</span>
+        <span className={accentText}>Tek</span>
       </p>
 
       {/* Decorative Bottom Line */}
