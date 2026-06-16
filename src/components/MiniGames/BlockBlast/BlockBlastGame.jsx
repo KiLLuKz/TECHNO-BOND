@@ -7,21 +7,49 @@ import SystemAlert from "../../SystemAlert";
 
 import { supabase } from "../../../supabaseClient";
 
-// ฟังก์ชันบันทึกคะแนนลง Supabase
+// ฟังก์ชันบันทึกคะแนนลง Supabase (แบบเช็ค High Score)
 const saveScore = async (finalScore) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const username = user.email ? user.email.split('@')[0] : 'Player'; 
+    const gameSlug = 'block-blast';
 
-    await supabase.from('leaderboard').insert([
-      { username: username, score: finalScore, game_slug: 'block-blast' }
-    ]);
+    // 1. ดึงข้อมูลคะแนนเดิมของ User คนนี้ในเกมนี้มาดูก่อน
+    const { data: existingData, error: fetchError } = await supabase
+      .from('leaderboard')
+      .select('id, score')
+      .eq('username', username)
+      .eq('game_slug', gameSlug)
+      .single(); // ดึงมาแค่แถวเดียว
+
+    // ถ้ารหัส Error คือ PGRST116 แปลว่า "หาข้อมูลไม่เจอ" (ผู้เล่นเพิ่งเคยเล่นครั้งแรก) ซึ่งไม่ใช่ปัญหา
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error("Error fetching old score:", fetchError);
+      return;
+    }
+
+    if (existingData) {
+      // 2. ถ้าเคยมีคะแนนอยู่แล้ว ให้เทียบว่าคะแนนใหม่เยอะกว่าคะแนนเดิมไหม
+      if (finalScore > existingData.score) {
+        await supabase
+          .from('leaderboard')
+          .update({ score: finalScore })
+          .eq('id', existingData.id); // อัปเดตแถวเดิมด้วยคะแนนใหม่
+      }
+      // ถ้าน้อยกว่า หรือเท่าเดิม ก็ปล่อยผ่าน ไม่ต้องทำอะไรเลย
+    } else {
+      // 3. ถ้าไม่เคยมีข้อมูล (เพิ่งเล่นครั้งแรก) ให้ Insert แถวใหม่
+      await supabase.from('leaderboard').insert([
+        { username: username, score: finalScore, game_slug: gameSlug }
+      ]);
+    }
   } catch (error) {
     console.error("Error saving score:", error);
   }
 };
+
 
 const playSound = (type, isMuted, comboCount = 0) => {
   if (isMuted) return;
