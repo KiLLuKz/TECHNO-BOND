@@ -101,7 +101,7 @@ const BlockBlastGame = () => {
     isOpen: false, type: 'warning', title: '', message: '', onConfirm: null 
   });
 
-  const CANVAS_WIDTH = isDesktop ? 1000 : 600; 
+  const CANVAS_WIDTH = isDesktop ? 1250 : 600; 
   const CANVAS_HEIGHT = isDesktop ? 650 : 900; 
   const TRAY_BLOCK_SIZE = isDesktop ? 45 : 40; 
 
@@ -181,8 +181,10 @@ const BlockBlastGame = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.globalCompositeOperation = 'source-over';
 
+      // 1. วาดกระดานหลัก
       drawGrid(ctx, canvas, gameData.current.grid);
 
+      // 2. วาดเอฟเฟกต์บล็อกหาย
       if (gameData.current.clearingEffects.length > 0) {
          drawClearingEffects(ctx, canvas, gameData.current.clearingEffects);
          gameData.current.clearingEffects = gameData.current.clearingEffects
@@ -190,6 +192,7 @@ const BlockBlastGame = () => {
             .filter(cell => cell.opacity > 0); 
       }
 
+      // 3. วาดเอฟเฟกต์ทำคอมโบ 3 แถว (Mega Effect)
       if (gameData.current.megaEffect.active) {
         const effect = gameData.current.megaEffect;
         const offset = getGridOffset(canvas);
@@ -248,24 +251,45 @@ const BlockBlastGame = () => {
         }
       }
 
-      // --- ส่วนวาด Debug Overlay (Hitbox) ---
-      gameData.current.availableBlocks.forEach(block => {
-        if (block.active) {
-          ctx.save();
-          // สีขาวจางๆ เหมือนเป็นกรอบ UI ให้รู้ว่าแตะตรงไหนได้บ้าง
-          ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; 
-          ctx.lineWidth = 2;
-          ctx.setLineDash([5, 5]); // เส้นประ
-          const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
-          const PADDING = 30; // รัศมีการกด
-          ctx.strokeRect(block.x - PADDING, block.y - PADDING, slotSize + (PADDING * 2), slotSize + (PADDING * 2));
-          ctx.restore();
-        }
-      });
-      // ------------------------------------
+      // --- 4. วาดกรอบ Slot คงที่ 3 ช่อง (Inventory UI) ---
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)"; // สีเส้นประจางๆ
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]); 
+      
+      // ขนาดกรอบ 4.5 ช่อง ให้กว้างพอใส่บล็อกที่ใหญ่ที่สุดได้พอดีๆ
+      const MAX_SLOT_SIZE = 4.5 * TRAY_BLOCK_SIZE; 
+      
+      const isLandscape = canvas.width > canvas.height;
+      const offset = getGridOffset(canvas);
+      const gridWidth = GRID_SIZE * CELL_SIZE;
 
+      for (let i = 0; i < 3; i++) {
+          let slotCenterX, slotCenterY;
+          if (isLandscape) {
+              const rightSpaceX = offset.x + gridWidth;
+              const trayWidth = canvas.width - rightSpaceX;
+              slotCenterX = rightSpaceX + (trayWidth / 2) + 40;
+              const slotHeight = canvas.height / 3;
+              slotCenterY = (i * slotHeight) + (slotHeight / 2);
+          } else {
+              const slotWidth = canvas.width / 3;
+              slotCenterX = (i * slotWidth) + (slotWidth / 2);
+              const bottomSpaceY = offset.y + gridWidth;
+              const trayHeight = canvas.height - bottomSpaceY;
+              slotCenterY = bottomSpaceY + Math.max(100, trayHeight / 2);
+          }
+          
+          // วาดกล่องสี่เหลี่ยมให้อยู่กึ่งกลางพอดี
+          ctx.strokeRect(slotCenterX - MAX_SLOT_SIZE/2, slotCenterY - MAX_SLOT_SIZE/2, MAX_SLOT_SIZE, MAX_SLOT_SIZE);
+      }
+      ctx.restore();
+      // ------------------------------------------------
+
+      // 5. วาดบล็อกตัวเลือกทั้ง 3 ชิ้นลงในกรอบ
       drawTray(ctx, gameData.current.availableBlocks, TRAY_BLOCK_SIZE);
 
+      // 6. วาดบล็อกที่กำลังใช้นิ้วลากอยู่ และเงา (Ghost Block) บนกระดาน
       if (gameData.current.activeBlock) {
         const { activeBlock, offsetX, offsetY, isDragging } = gameData.current;
         ctx.shadowBlur = 15; 
@@ -279,6 +303,7 @@ const BlockBlastGame = () => {
         }
       }
 
+      // 7. วาดข้อความเด้งตอนเคลียร์แถว (Combo, Score)
       if (gameData.current.floatingTexts && gameData.current.floatingTexts.length > 0) {
         gameData.current.floatingTexts.forEach(ft => {
             ctx.save();
@@ -317,16 +342,20 @@ const BlockBlastGame = () => {
     const x = (clientX - rect.left) * scaleX;
     const y = (clientY - rect.top) * scaleY;
 
-    const PADDING = 30; // เพิ่มพื้นที่กดรอบบล็อกอีก 30px ให้มือถือกดง่ายขึ้น
+    // ขนาดกรอบที่ตั้งไว้ (4.5 ช่อง)
+    const MAX_SLOT_SIZE = 4.5 * TRAY_BLOCK_SIZE; 
 
     gameData.current.availableBlocks.forEach((block) => {
-      const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
+      // คำนวณความกว้างยาวจริงของตัวบล็อกเพื่อไปสร้างระยะห่างตอนลาก
+      const blockWidth = block.shape[0].length * TRAY_BLOCK_SIZE;
+      const blockHeight = block.shape.length * TRAY_BLOCK_SIZE;
 
-      // ตรวจสอบพื้นที่การสัมผัส (แบบขยาย Hitbox แล้ว)
-      const isHit = (x >= block.x - PADDING) && 
-                    (x <= block.x + slotSize + PADDING) && 
-                    (y >= block.y - PADDING) && 
-                    (y <= block.y + slotSize + PADDING);
+      // ลอจิกใหม่: เช็คว่านิ้วจิ้มโดนใน "กรอบเส้นประ" เลยหรือเปล่า
+      // แค่จิ้มโดนกรอบ ก็ถือว่าจับบล็อกได้ทันที ไม่ต้องสนว่าจิ้มโดนตัวบล็อกสีๆ ไหม!
+      const isHit = (x >= block.baseX - MAX_SLOT_SIZE/2) && 
+                    (x <= block.baseX + MAX_SLOT_SIZE/2) && 
+                    (y >= block.baseY - MAX_SLOT_SIZE/2) && 
+                    (y <= block.baseY + MAX_SLOT_SIZE/2);
 
       if (block.active && isHit) {
         gameData.current.activeBlock = { ...block }; 
@@ -335,15 +364,18 @@ const BlockBlastGame = () => {
         gameData.current.startY = y;
         
         const scaleRatio = CELL_SIZE / TRAY_BLOCK_SIZE;
-        gameData.current.offsetX = (x - block.x) * scaleRatio;
-        gameData.current.offsetY = (y - block.y) * scaleRatio;
+        // ล็อกให้บล็อกเด้งมาอยู่กึ่งกลางปลายนิ้วพอดี
+        gameData.current.offsetX = (blockWidth / 2) * scaleRatio;
+        gameData.current.offsetY = (blockHeight / 2) * scaleRatio;
+
+        gameData.current.activeBlock.x = x - gameData.current.offsetX;
+        gameData.current.activeBlock.y = y - gameData.current.offsetY;
         
-        gameData.current.isDragging = false; 
+        gameData.current.isDragging = true; 
         playSound('grab', isMuted); 
       }
     });
   };
-
   const handleMouseMove = (e) => {
     if (!gameData.current.activeBlock) return;
     const canvas = canvasRef.current;

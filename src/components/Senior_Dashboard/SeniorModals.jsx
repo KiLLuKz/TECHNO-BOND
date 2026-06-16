@@ -13,7 +13,7 @@ export const InboxModal = ({ isOpen, onClose, realMessages, getDefaultAvatar, fo
         </button>
         
         <h3 className="text-[#7eb8ff] mb-6 font-bold tracking-widest uppercase flex items-center gap-3 text-xl">
-            <MessageSquare size={24}/> INBOX_FULL_LOGS
+            <MessageSquare size={24}/> INBOX_LOGS
         </h3>
         
         <div className="flex-1 overflow-y-auto space-y-6 pr-2">

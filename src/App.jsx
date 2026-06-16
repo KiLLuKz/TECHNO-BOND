@@ -15,6 +15,10 @@ import { supabase } from './supabaseClient';
 import DashboardLayout from './components/DashboardLayout';
 import MiniGames from './components/MiniGames/MiniGames';
 import BlockBlastGame from './components/MiniGames/BlockBlast/BlockBlastGame';
+import ConnectFourGame from './components/MiniGames/ConnectFour/ConnectFourGame';
+import TicTacToe from './components/MiniGames/TicTacToe/TicTacToe';
+import Referee from './components/MiniGames/ChessGame/Referee/Referee';
+import ThaiCheckers from './components/MiniGames/ThaiCheckers/ThaiCheckersGame';
 import AdminDashboard from './components/AdminDashboard';
 import Loader from './components/Loader';
 
@@ -46,26 +50,27 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
       <Route path="/dashboard" element={
         userRole ? <DashboardLayout /> : <div className="text-center mt-20 text-2xl font-['Orbitron']">ACCESS DENIED</div>
       }>
-        {/* ตรงนี้สำคัญ! ถ้าเป็น junior จะเห็น J_Dashboard, แต่ถ้าเป็น senior หรือ admin จะเห็น S_Dashboard แทน */}
         <Route index element={userRole === 'junior' ? <J_Dashboard /> : <S_Dashboard />} />
         
         <Route path="minigames" element={<MiniGames />} />
         <Route path="minigames/block-blast" element={<BlockBlastGame />} />
+        <Route path="minigames/connect-four" element={<ConnectFourGame />} /> 
+        <Route path="minigames/chess" element={<Referee />} />
+        <Route path="minigames/tic-tac-toe" element={<TicTacToe />} />
+        <Route path="minigames/thai-checkers" element={<ThaiCheckers />} />
         
-        {/* หน้า Admin จะเข้าได้ต้องเป็น isAdmin เท่านั้น */}
+        
         <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
       </Route>
       
     </Routes>
   );
 }
-
 export default function App() {
   const [userRole, setUserRole] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  // ฟังก์ชันดึงข้อมูล Profile และ Role
   const fetchUserData = async (user) => {
     if (!user) {
       setUserRole(null);
@@ -76,7 +81,6 @@ export default function App() {
     try {
       const studentId = user.email.split('@')[0];
 
-      // 1. เช็คก่อนว่าคนนี้มี Role เป็น Admin ใน profiles หรือไม่
       const { data: profile } = await supabase
         .from('profiles')
         .select('role')
@@ -87,9 +91,8 @@ export default function App() {
         setUserRole('admin');
         setIsAdmin(true);
       } else {
-        // 2. ถ้าไม่ใช่ Admin ค่อยไปเช็คว่าเป็นพี่รหัสหรือน้องรหัส
         const { data: seniorData } = await supabase
-          .from('pairing_data') // เปลี่ยนเป็นตารางใหม่
+          .from('pairing_data') 
           .select('senior_student_id')
           .eq('senior_student_id', studentId)
           .maybeSingle();

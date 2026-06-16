@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Gamepad2, Trophy, Play, Medal, Filter, Loader2 } from 'lucide-react';
-import { supabase } from '../../supabaseClient'; // เช็ค Path ให้ตรงกับของคุณนะครับ
+import { Gamepad2, Trophy, Play, Filter, Loader2, Users, Crown, Hash } from 'lucide-react';
+import { supabase } from '../../supabaseClient'; 
 
 const MiniGames = () => {
   const navigate = useNavigate();
@@ -68,6 +68,8 @@ const MiniGames = () => {
         <div className="animate__animated animate__fadeIn">
           <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">เลือกเกมที่คุณต้องการเล่นเพื่อสะสมคะแนน</p>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            
+            {/* GAME 1: BLOCK BLAST */}
             <div 
               onClick={() => navigate('/dashboard/minigames/block-blast')}
               className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#99eedd]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
@@ -84,13 +86,71 @@ const MiniGames = () => {
               </div>
             </div>
 
-            <div className="bg-[#08050f]/30 backdrop-blur-xl border border-white/5 rounded-[24px] p-6 shadow-xl opacity-50 flex flex-col items-center justify-center min-h-[350px]">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                <Gamepad2 size={32} className="text-gray-600" />
+            {/* GAME 2: CONNECT FOUR */}
+            <div 
+              onClick={() => navigate('/dashboard/minigames/connect-four')}
+              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#4ECDC4]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#4ECDC4] to-[#2EC4B6] text-black text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">HOT PvP</div>
+              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
+                <Play size={48} className="text-[#4ECDC4]/20 group-hover:text-[#4ECDC4] transition-colors z-10" />
               </div>
-              <h2 className="text-xl font-bold text-gray-500 mb-2 tracking-widest">COMING SOON</h2>
-              <p className="text-sm text-gray-600 font-['Rajdhani'] text-center">มินิเกมใหม่กำลังอยู่ระหว่างการพัฒนา</p>
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#4ECDC4] transition-colors tracking-wider">CONNECT FOUR</h2>
+              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">เกมหยอดเหรียญ 4 แถว ประลองปัญญาเรียงเหรียญสีเดียวกันให้ครบ 4 ช่องก่อนใคร!</p>
+              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#4ECDC4]"/> 2 Players / PvP</span>
+              </div>
             </div>
+            {/* GAME 3: TIC TAC TOE */}
+            <div 
+              onClick={() => navigate('/dashboard/minigames/tic-tac-toe')}
+              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#ebecd0] to-[#779556] text-black text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">New games</div>
+              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
+                <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#779556] transition-colors tracking-wider">TIC TAC TOE</h2>
+              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">เกมสุถคลาสิก X/O</p>
+              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#779556]"/> 2 Players </span>
+              </div>
+            </div>
+            {/* GAME 4: THAI CHECKERS */}
+            <div 
+              // onClick={() => navigate('/dashboard/minigames/thai-checkers')}
+              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#EF4444] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">WIP</div>
+              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
+                <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#779556] transition-colors tracking-wider">THAI CHECKERS</h2>
+              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">กำลังพัฒนา...</p>
+              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#779556]"/> 2 Players </span>
+              </div>
+            </div>
+            {/* GAME 5: CLASSIC CHESS */}
+            <div 
+              // onClick={() => navigate('/dashboard/minigames/chess')}
+              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#EF4444] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">WIP</div>
+              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
+                <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#779556] transition-colors tracking-wider">CLASSIC CHESS</h2>
+              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">กำลังพัฒนา...</p>
+              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#779556]"/> 2 Players / PvP</span>
+              </div>
+            </div>
+
           </div>
         </div>
       )}
@@ -109,6 +169,7 @@ const MiniGames = () => {
               >
                 <option value="all" className="bg-[#110b1c]">ALL GAMES</option>
                 <option value="block-blast" className="bg-[#110b1c]">BLOCK BLAST</option>
+                {/* ถอดตัวเลือกเกมอื่นๆ ออก ปล่อยให้มีแค่เกมแนว Score System */}
               </select>
             </div>
           </div>

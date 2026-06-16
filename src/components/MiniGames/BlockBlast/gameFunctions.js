@@ -129,71 +129,49 @@ export function drawTray(ctx, availableBlocks, TRAY_BLOCK_SIZE) {
 
 // ใน gameFunctions.js
 export function updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE) {
-    const isLandscape = canvas.width > canvas.height;
-    const offset = getGridOffset(canvas);
-    const gridWidth = GRID_SIZE * CELL_SIZE;
+  const isLandscape = canvas.width > canvas.height;
+  const offset = getGridOffset(canvas);
+  const gridWidth = GRID_SIZE * CELL_SIZE;
 
-    availableBlocks.forEach((block) => {
-        const blockWidth = block.shape[0].length * TRAY_BLOCK_SIZE;
-        const blockHeight = block.shape.length * TRAY_BLOCK_SIZE;
+  availableBlocks.forEach((block) => {
+    const blockWidth = block.shape[0].length * TRAY_BLOCK_SIZE;
+    const blockHeight = block.shape.length * TRAY_BLOCK_SIZE;
 
-        let slotCenterX, slotCenterY;
+    let slotCenterX, slotCenterY;
 
-        if (isLandscape) {
-            // แนวนอน (จอคอม): แบ่งพื้นที่ว่างฝั่งขวาเป็น 3 ล็อก (บน, กลาง, ล่าง)
-            const rightSpaceX = offset.x + gridWidth;
-            const trayWidth = canvas.width - rightSpaceX;
-            slotCenterX = rightSpaceX + (trayWidth / 2);
-
-            // แบ่งความสูงเป็น 3 กรอบล่องหน
-            const slotHeight = canvas.height / 3;
-            slotCenterY = (block.slotIndex * slotHeight) + (slotHeight / 2);
-        } else {
-            // แนวตั้ง (มือถือ): แบ่งความกว้างจอเป็น 3 ล็อก (ซ้าย, กลาง, ขวา) เป๊ะๆ
-            const slotWidth = canvas.width / 3;
-            slotCenterX = (block.slotIndex * slotWidth) + (slotWidth / 2);
-
-            // หาจุดกึ่งกลางของพื้นที่ที่เหลือด้านล่างกระดาน
-            const bottomSpaceY = offset.y + gridWidth;
-            const trayHeight = canvas.height - bottomSpaceY;
-            slotCenterY = bottomSpaceY + Math.max(100, trayHeight / 2); // วางไว้ตรงกลางพื้นที่ด้านล่าง
-        }
-
-        // จับบล็อกไปวางกึ่งกลางของแต่ละกรอบล่องหน
-        block.x = slotCenterX - (blockWidth / 2);
-        block.y = slotCenterY - (blockHeight / 2);
-    });
-}
-
-function padShape(shape) {
-    const h = shape.length;
-    const w = shape[0].length;
-    // สร้างขนาดกล่องให้ครอบคลุมบล็อกที่ใหญ่ที่สุด (อย่างน้อยต้อง 3x3)
-    const padSize = Math.max(3, h, w); 
-    let padded = Array.from({ length: padSize }, () => Array(padSize).fill(0));
-    
-    // หาจุดกึ่งกลางเพื่อให้บล็อกอยู่ตรงกลางเสมอ
-    const startY = Math.floor((padSize - h) / 2);
-    const startX = Math.floor((padSize - w) / 2);
-    
-    for(let y = 0; y < h; y++) {
-        for(let x = 0; x < w; x++) {
-            padded[startY + y][startX + x] = shape[y][x];
-        }
+    if (isLandscape) {
+      const rightSpaceX = offset.x + gridWidth;
+      const trayWidth = canvas.width - rightSpaceX;
+      slotCenterX = rightSpaceX + (trayWidth / 2) + 40;
+      const slotHeight = canvas.height / 3;
+      slotCenterY = (block.slotIndex * slotHeight) + (slotHeight / 2);
+    } else {
+      const slotWidth = canvas.width / 3;
+      slotCenterX = (block.slotIndex * slotWidth) + (slotWidth / 2);
+      const bottomSpaceY = offset.y + gridWidth;
+      const trayHeight = canvas.height - bottomSpaceY;
+      slotCenterY = bottomSpaceY + Math.max(100, trayHeight / 2);
     }
-    return padded;
+
+    // --- เพิ่ม 2 บรรทัดนี้เพื่อให้บล็อกจำจุดกึ่งกลางของกรอบ ---
+    block.baseX = slotCenterX; 
+    block.baseY = slotCenterY; 
+    // ---------------------------------------------
+
+    block.x = slotCenterX - (blockWidth / 2);
+    block.y = slotCenterY - (blockHeight / 2);
+  });
 }
 
 export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, BLOCK_SHAPES }) {
   availableBlocks.length = 0;
   for (let i = 0; i < TOTAL_BLOCKS; i++) {
-    const rawShape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
-    // เรียกใช้ฟังก์ชัน padShape ตรงนี้
-    const shape = padShape(rawShape); 
+    // ดึงรูปร่างมาใช้เพียวๆ ไม่ต้องทำ padShape แล้ว
+    const shape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
     
     availableBlocks.push({
       id: Math.random().toString(36).substr(2, 9),
-      shape,
+      shape: shape,
       x: 0, y: 0, 
       color: getRandomColor(),
       active: true,
@@ -303,9 +281,14 @@ export function checkAndGetClearedLines(grid) {
 export function canPlaceAnyBlock({ grid, availableBlocks }) {
   for (const block of availableBlocks) {
     if (!block.active) continue;
-    for (let gridY = 0; gridY <= GRID_SIZE - block.shape.length; gridY++) {
-      for (let gridX = 0; gridX <= GRID_SIZE - block.shape[0].length; gridX++) {
-        if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) return true;
+    
+    // สำคัญมาก: เปลี่ยนการวนลูปให้มันเอาส่วนที่ "ยื่นออกนอกบล็อก" ไปทดสอบด้วย
+    // ไม่ใช่ทดสอบแค่รูปร่างสี่เหลี่ยมเป๊ะๆ ของ Array
+    for (let gridY = -block.shape.length + 1; gridY < GRID_SIZE; gridY++) {
+      for (let gridX = -block.shape[0].length + 1; gridX < GRID_SIZE; gridX++) {
+        if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) {
+          return true;
+        }
       }
     }
   }
