@@ -147,9 +147,29 @@ const J_Dashboard = () => {
 
   const startQuiz = async () => {
     if (!userId) return;
+
+    // 1. เช็คว่าเป็นวันที่เล่นไปแล้วหรือยัง
+    if (activityData?.quiz_start_time) {
+      const lastQuizDate = new Date(activityData.quiz_start_time).toDateString();
+      const today = new Date().toDateString();
+
+      if (lastQuizDate === today) {
+        notify("SYSTEM: QUIZ IS ONLY ONCE A DAY!");
+        return; // หยุดการทำงาน ไม่ให้เปิด Modal
+      }
+    }
+
+    // 2. ถ้ายังไม่เคยเล่นวันนี้ หรือผ่านวันมาแล้ว ให้เริ่ม Quiz ได้
     const now = new Date().toISOString();
+    
+    // อัปเดต Database
     await activityApi.updateActivity(userId, { quiz_start_time: now });
-    setSelectedOption(null); setIsAnswerCorrect(null);
+    
+    // อัปเดต Local State เพื่อให้เช็ค Cooldown ได้ทันทีโดยไม่ต้องรีเฟรชหน้า
+    setActivityData(prev => ({ ...prev, quiz_start_time: now }));
+
+    setSelectedOption(null); 
+    setIsAnswerCorrect(null);
     const shuffled = [...quizQuestions].sort(() => 0.5 - Math.random()).slice(0, 10);
     setRandomizedBank(shuffled);
     setQuizState({ step: 'playing', score: 0, currentIndex: 0 });
@@ -181,6 +201,9 @@ const J_Dashboard = () => {
   const now = new Date();
   const isClue2Unlocked = clueData?.clue_2 && (now >= new Date('2026-06-15')) && isQuizPassed;
   const isClue3Unlocked = clueData?.clue_3 && (now >= new Date('2026-06-20')) && isQuizPassed;
+  const canPlayQuiz = activityData?.quiz_start_time 
+    ? new Date(activityData.quiz_start_time).toDateString() !== new Date().toDateString() 
+    : true;
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-10 font-['Orbitron'] text-white relative overflow-y-auto overflow-x-hidden w-full max-w-[100vw]">
@@ -213,7 +236,7 @@ const J_Dashboard = () => {
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 w-full items-stretch">
         <div className="h-full w-full overflow-hidden"><GuessPanel isGameCleared={isGameCleared} canGuess={canGuess} guessInput={guessInput} setGuessInput={setGuessInput} handleGuessSubmit={handleGuessSubmit} guessFeedback={guessFeedback}/></div>
-        <div className="h-full w-full overflow-hidden"><BonusPanel isQuizPassed={isQuizPassed} startQuiz={startQuiz} /></div>
+        <div className="h-full w-full overflow-hidden"><BonusPanel isQuizPassed={isQuizPassed} startQuiz={startQuiz} canPlayQuiz={canPlayQuiz} /></div>
       </div>
       
       <div className="grid grid-cols-1 gap-4 w-full">

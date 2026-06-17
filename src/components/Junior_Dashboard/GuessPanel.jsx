@@ -27,7 +27,6 @@ const GuessPanel = ({
         <span className="text-white font-bold text-sm md:text-l font-['Chakra_Petch']">ทายสายรหัส</span>
       </div>
       
-      {/* เพิ่ม break-words และปรับขนาด font ให้เล็กลงในหน้าจอเล็ก */}
       <p className="text-lg md:text-xl text-gray-400 mb-4 font-['Chakra_Petch'] leading-relaxed break-words">
         พิมพ์ชื่อของพี่ ๆ โดยขึ้นต้นด้วยคำว่า พี่ ตามด้วยชื่อในโน้ต เช่น พี่ซัน หากมีชื่อซ้ำ ให้เว้น 1 ครั้ง แล้วใส่วงเล็บพร้อมเลขที่ของพี่คนที่ต้องการ เช่น พี่วิน (1)
       </p>
@@ -35,7 +34,8 @@ const GuessPanel = ({
       <div className="flex gap-3 mt-auto relative z-0">
         <input 
             className="flex-1 bg-black/40 border border-[#2a303c] rounded-xl p-3 text-sm md:text-l focus:outline-none focus:border-[#d966ff]/50 transition-colors text-white disabled:opacity-50 font-['Chakra_Petch']" 
-            placeholder={canGuess ? "พิมพ์ชื่อพี่ที่คิดว่าใช่" : "ระบบปิดรับการทายชั่วคราว..."} 
+            // จุดที่แก้: เปลี่ยน placeholder เมื่อติด Cooldown
+            placeholder={canGuess ? "พิมพ์ชื่อพี่ที่คิดว่าใช่" : "ทายใหม่พรุ่งนี้นะ..."} 
             value={guessInput}
             onChange={(e) => setGuessInput(e.target.value)}
             disabled={!canGuess}
@@ -49,7 +49,6 @@ const GuessPanel = ({
         </button>
       </div>
 
-      {/* Feedback Display - ใส่ break-words ที่นี่ด้วย */}
       {guessFeedback && !isGameCleared && (
          <div className="mt-4 pt-3 border-t border-white/5 animate__animated animate__fadeIn">
              <p className="text-sm md:text-[16px] text-[#99eedd] font-['Rajdhani'] italic break-words">
@@ -62,7 +61,9 @@ const GuessPanel = ({
       {!canGuess && nextGuessDate && (
           <div className="mt-2 pt-2 border-t border-white/5">
             <p className="text-[13px] md:text-[14px] text-red-400 font-['Chakra_Petch'] flex items-center gap-1 animate__animated animate__fadeIn">
-                <Lock size={10} /> กดทายได้อีกครั้งวันที่: {nextGuessDate.toLocaleDateString('th-TH', { 
+                <Lock size={10} /> 
+                {/* จุดที่แก้: ปรับคำอธิบายให้กระชับเข้ากับ placeholder */}
+                ระบบล็อค จนถึงวันที่: {nextGuessDate.toLocaleDateString('th-TH', { 
                     year: 'numeric', 
                     month: 'long', 
                     day: 'numeric' 

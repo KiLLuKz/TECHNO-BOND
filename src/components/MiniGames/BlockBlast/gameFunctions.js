@@ -1,28 +1,17 @@
-import { getRandomColor } from "./blocks";
+import { getRandomColor, BLOCK_SHAPES, SHAPE_GROUPS } from "./blocks";
 
 export const GRID_SIZE = 8;
 export const CELL_SIZE = 72; 
 
-// ใน gameFunctions.js
 export function getGridOffset(canvas) {
   const isLandscape = canvas.width > canvas.height;
-  const gridWidth = GRID_SIZE * CELL_SIZE; // ขนาดตาราง 8x8 (576px)
-  
-  // สมการกึ่งกลางคือ: (ความกว้างหรือสูงของจอ - ขนาดตาราง) / 2
+  const gridWidth = GRID_SIZE * CELL_SIZE; 
   const centerX = (canvas.width - gridWidth) / 2;
   
   if (isLandscape) {
-    // จอแนวนอน (คอม/iPad แนวนอน): ตรงกลางเป๊ะๆ ทั้งแกน X และ Y
-    return {
-      x: centerX,
-      y: (canvas.height - gridWidth) / 2, 
-    };
+    return { x: centerX, y: (canvas.height - gridWidth) / 2 };
   } else {
-    // จอแนวตั้ง (มือถือ): แกน X ตรงกลาง, แกน Y ดันลงมาจากขอบบน 80px
-    return {
-      x: centerX,
-      y: 80, 
-    };
+    return { x: centerX, y: 80 };
   }
 }
 
@@ -127,7 +116,6 @@ export function drawTray(ctx, availableBlocks, TRAY_BLOCK_SIZE) {
   }
 }
 
-// ใน gameFunctions.js
 export function updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE) {
   const isLandscape = canvas.width > canvas.height;
   const offset = getGridOffset(canvas);
@@ -153,62 +141,21 @@ export function updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZ
       slotCenterY = bottomSpaceY + Math.max(100, trayHeight / 2);
     }
 
-    // --- เพิ่ม 2 บรรทัดนี้เพื่อให้บล็อกจำจุดกึ่งกลางของกรอบ ---
     block.baseX = slotCenterX; 
     block.baseY = slotCenterY; 
-    // ---------------------------------------------
-
     block.x = slotCenterX - (blockWidth / 2);
     block.y = slotCenterY - (blockHeight / 2);
   });
 }
 
-export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, BLOCK_SHAPES }) {
-  availableBlocks.length = 0;
-  for (let i = 0; i < TOTAL_BLOCKS; i++) {
-    // ดึงรูปร่างมาใช้เพียวๆ ไม่ต้องทำ padShape แล้ว
-    const shape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
-    
-    availableBlocks.push({
-      id: Math.random().toString(36).substr(2, 9),
-      shape: shape,
-      x: 0, y: 0, 
-      color: getRandomColor(),
-      active: true,
-      slotIndex: i, 
-    });
-  }
-  updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE);
-}
-
-
-export function blockCollision(x, y, block, TRAY_BLOCK_SIZE) {
-  // เช็คขนาดกล่อง (ที่ถูก padShape แล้ว) ของบล็อกตัวนั้นๆ
-  const slotSize = block.shape.length * TRAY_BLOCK_SIZE;
-  
-  // เช็คว่านิ้วแตะโดนกล่องขนาดนั้นหรือไม่
-  return x >= block.x && 
-         x <= block.x + slotSize && 
-         y >= block.y && 
-         y <= block.y + slotSize;
-}
-
 export function canPlaceBlockAtPosition(grid, shape, gridX, gridY) {
   for (let y = 0; y < shape.length; y++) {
     for (let x = 0; x < shape[y].length; x++) {
-      if (shape[y][x] === 1) { // เช็คเฉพาะช่องที่เป็นตัวบล็อกจริงๆ
+      if (shape[y][x] === 1) { 
         const targetX = gridX + x;
         const targetY = gridY + y;
-
-        // 1. เช็คว่าถ้าเป็นตัวบล็อกแล้วหลุดขอบ ให้คืนค่า false ทันที
-        if (targetX < 0 || targetY < 0 || targetX >= GRID_SIZE || targetY >= GRID_SIZE) {
-          return false;
-        }
-
-        // 2. เช็คว่าช่องนั้นมีบล็อกอื่นวางอยู่หรือไม่
-        if (grid[targetY][targetX] !== 0) {
-          return false;
-        }
+        if (targetX < 0 || targetY < 0 || targetX >= GRID_SIZE || targetY >= GRID_SIZE) return false;
+        if (grid[targetY][targetX] !== 0) return false;
       }
     }
   }
@@ -217,21 +164,14 @@ export function canPlaceBlockAtPosition(grid, shape, gridX, gridY) {
 
 export function findBestGridPlacement({ canvas, grid, block, offsetX, offsetY, blockX, blockY }) {
   const offset = getGridOffset(canvas);
-
-  // คำนวณพิกัดบนกระดาน โดยเทียบจากตำแหน่งที่ลากไปหักลบกับจุดเริ่มต้นกระดาน
   const relativeX = blockX - offset.x;
   const relativeY = blockY - offset.y;
-
-  // ปัดเศษเพื่อหาช่อง Grid ที่ใกล้กับตำแหน่งนิ้วที่สุด (ล็อกเป้าตรงๆ)
   const gridX = Math.round(relativeX / CELL_SIZE);
   const gridY = Math.round(relativeY / CELL_SIZE);
 
-  // เช็คว่าตำแหน่งเป๊ะๆ ตรงนี้ วางได้หรือไม่?
   if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) {
     return { gridX, gridY, canPlace: true };
   }
-
-  // ถ้าวางตรงนี้ไม่ได้ ให้ตอบ false ทันที (บล็อกจะไม่กระโดดไปหาที่อื่นเองแล้ว)
   return { gridX: 0, gridY: 0, canPlace: false };
 }
 
@@ -241,15 +181,10 @@ export function checkAndGetClearedLines(grid) {
   const clearedCellsData = []; 
 
   for (let y = 0; y < GRID_SIZE; y++) {
-    let rowComplete = true;
-    for (let x = 0; x < GRID_SIZE; x++) { if (grid[y][x] === 0) { rowComplete = false; break; } }
-    if (rowComplete) rowsToClear.push(y);
+    if (grid[y].every(cell => cell !== 0)) rowsToClear.push(y);
   }
-
   for (let x = 0; x < GRID_SIZE; x++) {
-    let colComplete = true;
-    for (let y = 0; y < GRID_SIZE; y++) { if (grid[y][x] === 0) { colComplete = false; break; } }
-    if (colComplete) colsToClear.push(x);
+    if (grid.every(row => row[x] !== 0)) colsToClear.push(x);
   }
 
   let linesCleared = 0;
@@ -281,16 +216,99 @@ export function checkAndGetClearedLines(grid) {
 export function canPlaceAnyBlock({ grid, availableBlocks }) {
   for (const block of availableBlocks) {
     if (!block.active) continue;
-    
-    // สำคัญมาก: เปลี่ยนการวนลูปให้มันเอาส่วนที่ "ยื่นออกนอกบล็อก" ไปทดสอบด้วย
-    // ไม่ใช่ทดสอบแค่รูปร่างสี่เหลี่ยมเป๊ะๆ ของ Array
     for (let gridY = -block.shape.length + 1; gridY < GRID_SIZE; gridY++) {
       for (let gridX = -block.shape[0].length + 1; gridX < GRID_SIZE; gridX++) {
-        if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) {
-          return true;
-        }
+        if (canPlaceBlockAtPosition(grid, block.shape, gridX, gridY)) return true;
       }
     }
   }
   return false;
+}
+
+// -------------------------------------------------------------
+// 🔥 Look-Ahead Algorithm: ป้องกันการสุ่มบล็อกที่วางไม่ได้ 100%
+// -------------------------------------------------------------
+function checkSequence(grid, shapes) {
+  if (shapes.length === 0) return true; 
+  const currentShape = shapes[0];
+  const nextShapes = shapes.slice(1);
+  
+  for (let y = 0; y < GRID_SIZE; y++) {
+    for (let x = 0; x < GRID_SIZE; x++) {
+      if (canPlaceBlockAtPosition(grid, currentShape, x, y)) {
+        const nextGrid = grid.map(row => [...row]);
+        for (let sy = 0; sy < currentShape.length; sy++) {
+          for (let sx = 0; sx < currentShape[sy].length; sx++) {
+            if (currentShape[sy][sx]) nextGrid[y + sy][x + sx] = 1; 
+          }
+        }
+        if (checkSequence(nextGrid, nextShapes)) return true;
+      }
+    }
+  }
+  return false; 
+}
+
+function isTripletPlaceable(grid, shapes) {
+  const permutations = [
+    [0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]
+  ];
+  for (const p of permutations) {
+    const orderedShapes = [shapes[p[0]], shapes[p[1]], shapes[p[2]]];
+    if (checkSequence(grid, orderedShapes)) return true; 
+  }
+  return false;
+}
+
+export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, grid, hadClear = false }) {
+  availableBlocks.length = 0;
+  
+  let attempts = 0;
+  let finalIndices = [];
+  
+  while (attempts < 30) {
+    let categoriesToSpawn = [];
+    
+    if (hadClear) {
+      const REWARD_SHAPES = [...SHAPE_GROUPS.EASY]; 
+      categoriesToSpawn = [REWARD_SHAPES, REWARD_SHAPES, Math.random() < 0.7 ? REWARD_SHAPES : SHAPE_GROUPS.MEDIUM];
+    } else {
+      const rollCategory = () => {
+        const chance = Math.random();
+        if (chance < 0.50) return SHAPE_GROUPS.EASY;       
+        if (chance < 0.85) return SHAPE_GROUPS.MEDIUM;     
+        return SHAPE_GROUPS.HARD;                          
+      };
+      categoriesToSpawn = [SHAPE_GROUPS.EASY, rollCategory(), rollCategory()];
+    }
+    
+    categoriesToSpawn.sort(() => Math.random() - 0.5);
+    const candidateIndices = categoriesToSpawn.map(group => group[Math.floor(Math.random() * group.length)]);
+    const candidateShapes = candidateIndices.map(idx => BLOCK_SHAPES[idx]);
+    
+    // คำนวณล่วงหน้า ถ้าไม่มีบอร์ดส่งมา (ตอนเริ่มเกม) หรือ เช็คแล้วว่ามีทางรอดแน่นอน ให้ใช้ชุดนี้เลย
+    if (!grid || isTripletPlaceable(grid, candidateShapes)) {
+      finalIndices = candidateIndices;
+      break;
+    }
+    attempts++;
+  }
+  
+  // ตัวช่วยฉุกเฉิน (Fallback): ถ้าสุ่ม 30 รอบยังตัน แปลว่าบอร์ดแคบมาก ให้แจกบล็อกจิ๋วๆ 3 อันเพื่อยื้อชีวิต
+  if (finalIndices.length === 0) {
+    finalIndices = [0, 0, 0]; // 0 คือบล็อก 1x1 รับประกันว่ารอดแน่นอน
+  }
+
+  for (let i = 0; i < TOTAL_BLOCKS; i++) {
+    availableBlocks.push({
+      id: Math.random().toString(36).substr(2, 9),
+      shape: BLOCK_SHAPES[finalIndices[i]],
+      x: 0, y: 0, 
+      color: getRandomColor(),
+      active: true,
+      slotIndex: i, 
+    });
+  }
+  
+  updateTrayBlockPositions(canvas, availableBlocks, TRAY_BLOCK_SIZE);
 }
