@@ -107,7 +107,7 @@ const MiniGames = () => {
               onClick={() => navigate('/dashboard/minigames/tic-tac-toe')}
               className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
             >
-              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#ebecd0] to-[#779556] text-black text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">New games</div>
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#451A70] to-[#6D26B5] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">Intense</div>
               <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
                 <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
@@ -120,23 +120,39 @@ const MiniGames = () => {
             </div>
             {/* GAME 4: THAI CHECKERS */}
             <div 
-              // onClick={() => navigate('/dashboard/minigames/thai-checkers')}
+              onClick={() => navigate('/dashboard/minigames/thai-checkers')}
               className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
             >
-              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#EF4444] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">WIP</div>
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#223EC9] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">Thailand</div>
               <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
                 <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#779556] transition-colors tracking-wider">THAI CHECKERS</h2>
+              <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">หมากฮอสไทย</p>
+              <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
+                <span className="flex items-center gap-1.5"><Users size={14} className="text-[#779556]"/> 2 Players </span>
+              </div>
+            </div>
+            {/* GAME 5: BATTLESHIP */}
+            <div 
+              onClick={() => navigate('/dashboard/minigames/battleship')}
+              className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+            >
+              <div className="absolute top-0 right-0 bg-gradient-to-l from-[#223EC9] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">Thailand</div>
+              <div className="w-full h-48 bg-[#110b1c] rounded-xl mb-6 border border-white/5 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-500 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#08050f] to-transparent opacity-50 z-0"></div>
+                <Crown size={48} className="text-[#779556]/20 group-hover:text-[#779556] transition-colors z-10" />
+              </div>
+              <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-[#779556] transition-colors tracking-wider">BATTLESHIP</h2>
               <p className="text-sm text-gray-400 font-['Rajdhani'] line-clamp-2 mb-6 flex-grow">กำลังพัฒนา...</p>
               <div className="mt-auto flex items-center gap-4 text-xs text-gray-500 font-bold bg-white/5 p-3 rounded-lg border border-white/5">
                 <span className="flex items-center gap-1.5"><Users size={14} className="text-[#779556]"/> 2 Players </span>
               </div>
             </div>
-            {/* GAME 5: CLASSIC CHESS */}
+            {/* GAME 6: CLASSIC CHESS */}
             <div 
-              // onClick={() => navigate('/dashboard/minigames/chess')}
+              onClick={() => navigate('/dashboard/minigames/chess')}
               className="group relative bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 shadow-xl hover:border-[#779556]/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
             >
               <div className="absolute top-0 right-0 bg-gradient-to-l from-[#EF4444] to-[#B91C1C] text-white text-xs font-bold px-4 py-1.5 rounded-bl-xl z-10">WIP</div>

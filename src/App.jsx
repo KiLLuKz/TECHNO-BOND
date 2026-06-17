@@ -19,6 +19,7 @@ import ConnectFourGame from './components/MiniGames/ConnectFour/ConnectFourGame'
 import TicTacToe from './components/MiniGames/TicTacToe/TicTacToe';
 import Referee from './components/MiniGames/ChessGame/Referee/Referee';
 import ThaiCheckers from './components/MiniGames/ThaiCheckers/ThaiCheckersGame';
+import BattleShip from './components/MiniGames/BattleShip/BattleshipGame';
 import AdminDashboard from './components/AdminDashboard';
 import Loader from './components/Loader';
 
@@ -58,6 +59,7 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
         <Route path="minigames/chess" element={<Referee />} />
         <Route path="minigames/tic-tac-toe" element={<TicTacToe />} />
         <Route path="minigames/thai-checkers" element={<ThaiCheckers />} />
+        <Route path="minigames/BattleShip" element={<BattleShip />} />
         
         
         <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
