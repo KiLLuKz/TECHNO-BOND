@@ -101,7 +101,7 @@ export default function HomeworkHub({ userRole, isAdmin }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#060412] text-white font-['Inter',sans-serif] p-6 md:p-12 relative overflow-hidden">
+    <div className="min-h-screen  text-white font-['Inter',sans-serif] p-6 md:p-12 relative overflow-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-[#a855f7]/10 blur-[120px] rounded-full pointer-events-none"></div>
       <div className="max-w-4xl mx-auto relative z-10">
         
