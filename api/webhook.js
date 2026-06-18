@@ -1,9 +1,8 @@
 // ✅ ใช้ import ตามมาตรฐาน ES Modules ที่ package.json กำหนดไว้
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://phuinjzermedmtliybbn.supabase.co';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBodWluanplcm1lZG10bGl5YmJuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2MTU4MDIsImV4cCI6MjA4ODE5MTgwMn0.Ck2AK9Vxc0vHZEDZqMaLs8YvvgMn9Okt2vVf699X554';
-
+const SUPABASE_URL = process.env.SUPABASE_URL
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const sendDialogflowResponse = (res, text) => {
