@@ -410,7 +410,7 @@ const BlockBlastGame = () => {
               </button>
           </div>
 
-          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 bg-transparent border-none shadow-none flex flex-col items-center md:items-start min-w-[100px]">
+          <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 bg-transparent border-none shadow-none flex flex-col items-center md:items-start min-w-[100px] mt-15 md:mt-0">
               <span className="text-[10px] md:text-sm text-gray-400 font-['Orbitron'] drop-shadow-md">SCORE</span>
               <span className="text-2xl md:text-4xl font-bold text-[#99eedd] font-['Orbitron'] leading-none drop-shadow-lg">{score}</span>
               {combo > 0 && <span className="text-yellow-400 text-xs md:text-sm font-['Orbitron'] mt-1 animate-pulse drop-shadow-md">COMBO x{combo}</span>}

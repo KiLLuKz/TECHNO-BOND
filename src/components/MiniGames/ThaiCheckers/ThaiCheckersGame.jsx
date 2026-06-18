@@ -196,7 +196,7 @@ export default function ThaiCheckersGame() {
   });
 
   return (
-    <div className="w-full min-h-[100dvh] flex flex-col items-center p-2 md:p-6 font-['Orbitron'] text-white overflow-hidden">
+    <div className="w-full min-h-[100dvh] flex flex-col items-center p-2 md:p-6 font-['Orbitron'] text-white overflow-hidden mt-25 md:mt-10">
       <SystemAlert {...alertState} onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} />
 
       {/* Header */}

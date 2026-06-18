@@ -89,14 +89,14 @@ const ConnectFourGame = () => {
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
-      <div className="w-full max-w-4xl flex items-center justify-between mb-8 z-10">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-8 z-10 mt-15 md:mt-0">
         <button onClick={() => navigate('/dashboard/minigames')} className="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-all backdrop-blur-md">
           <ArrowLeft size={24} />
         </button>
 
         <div className="flex flex-col items-center">
           <h1 className="text-3xl md:text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#4ECDC4] to-[#2EC4B6] drop-shadow-lg">
-            CONNECT FOUR
+            CONNECT-4
           </h1>
           {!winner ? (
             <div className="flex items-center gap-3 mt-4 bg-white/5 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md">
@@ -118,7 +118,7 @@ const ConnectFourGame = () => {
         </button>
       </div>
 
-      <div className="relative z-10 p-4 md:p-6 bg-[#1a1429]/80 backdrop-blur-xl border-t-2 border-l-2 border-[#ffffff10] shadow-[10px_10px_30px_rgba(0,0,0,0.5)] rounded-3xl">
+      <div className="relative z-10 p-4 md:p-6 bg-[#1a1429]/80 backdrop-blur-xl border-t-2 border-l-2 border-[#ffffff10] shadow-[10px_10px_30px_rgba(0,0,0,0.5)] rounded-3xl mt-20 md:mt-0">
         <div className="grid grid-cols-7 gap-2 md:gap-4">
           {board.map((row, rIndex) => 
             row.map((cell, cIndex) => (

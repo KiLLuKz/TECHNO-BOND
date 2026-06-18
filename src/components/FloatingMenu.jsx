@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; 
-import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert } from 'lucide-react'; // เพิ่ม ShieldAlert
+import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, BookOpen } from 'lucide-react';
 
 const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isLoggedIn = userRole !== null;
   const isDashboardPage = location.pathname.startsWith('/dashboard');
+
+  // ตรวจสอบว่าเป็น Senior หรือ Admin หรือไม่
+  const isSeniorOrAdmin = userRole === 'senior' || isAdmin;
 
   const handleLogout = () => {
     onLogout();
@@ -29,6 +32,17 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
             <Home size={16} /> HOME
           </Link>
           
+          <Link to="/curriculum" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-[#f0eaff] hover:bg-[#b464ff]/20 rounded-xl transition-all">
+            <BookOpen size={16} /> CURRICULUM
+          </Link>
+
+          {/* 🔥 เพิ่มปุ่มลัดไป HOMEWORK HUB เฉพาะ Senior หรือ Admin ตรงนี้ */}
+          {isSeniorOrAdmin && (
+            <Link to="/homework" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm  hover:bg-[#b464ff]/20 rounded-xl transition-all ">
+              <BookOpen size={16} /> HOMEWORK HUB
+            </Link>
+          )}
+          
           <Link 
             to={isLoggedIn ? "/dashboard" : "/verify"} 
             onClick={() => setIsOpen(false)} 
@@ -45,7 +59,6 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
                 <Gamepad2 size={14} /> MINI GAMES
               </Link>
               
-              {/* ADMIN PANEL: ต่อท้าย Mini Games และเช็คสิทธิ์ Admin เท่านั้น */}
               {isAdmin && (
                 <Link to="/dashboard/admin" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-2 text-xs text-[#ff4d4d] hover:text-white transition-all">
                   <ShieldAlert size={14} /> ADMIN PANEL

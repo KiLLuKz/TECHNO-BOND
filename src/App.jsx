@@ -6,8 +6,10 @@ import Welcome from './components/Welcome';
 import Footer from './components/Footer';
 import Verify from './components/Verify';
 import Background from './components/Background';
+import Curriculum from './components/Curriculum'
 import IdentityQuiz from './components/IdentityQuiz';
 import FloatingMenu from './components/FloatingMenu';
+import Homework from'./components/Homework';
 import J_Dashboard from './components/J_Dashboard';
 import S_Dashboard from './components/S_Dashboard';
 import { supabase } from './supabaseClient';
@@ -47,6 +49,8 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
         />
       } />
       <Route path="/quiz" element={<IdentityQuiz />} />
+      <Route path="/curriculum" element={<Curriculum />} />
+      <Route path="homework" element={<Homework userRole={userRole} isAdmin={isAdmin} />} />
       
       {/* ส่วน Dashboard และหน้าย่อย (Nested Routes) */}
       <Route path="/dashboard" element={
