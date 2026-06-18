@@ -196,11 +196,11 @@ export default function ThaiCheckersGame() {
   });
 
   return (
-    <div className="w-full min-h-[100dvh] flex flex-col items-center p-2 md:p-6 font-['Orbitron'] text-white overflow-hidden mt-25 md:mt-10">
+    <div className="w-full min-h-[100dvh] flex flex-col items-center p-2 md:p-6 font-['Orbitron'] text-white overflow-hidden mt-25 md:mt-0">
       <SystemAlert {...alertState} onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} />
 
       {/* Header */}
-      <div className="w-full max-w-4xl flex items-center justify-between mb-4 md:mb-8 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-lg">
+      <div className="w-full max-w-4xl flex items-center justify-between mb-4 md:mb-4 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-lg">
         <button onClick={() => navigate('/dashboard/minigames')} className="p-2 hover:bg-white/10 rounded-full transition-all"><ArrowLeft /></button>
         <h1 className="text-lg md:text-2xl font-bold text-[#4ECDC4] tracking-widest">THAI CHECKERS</h1>
         <button onClick={() => {
@@ -209,7 +209,7 @@ export default function ThaiCheckersGame() {
       </div>
 
       {/* Turn Indicator */}
-      <div className="flex gap-4 mb-4 md:mb-8 bg-white/5 px-6 py-3 rounded-full border border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+      <div className="flex gap-4 mb-4 md:mb-4 bg-white/5 px-6 py-3 rounded-full border border-white/10 backdrop-blur-md shadow-[0_0_15px_rgba(0,0,0,0.5)]">
         <span className={`text-sm md:text-lg font-bold tracking-widest transition-colors ${turn === 1 ? 'text-[#FF6B6B]' : 'text-[#FFD166]'}`}>
           PLAYER {turn}'S TURN
         </span>
