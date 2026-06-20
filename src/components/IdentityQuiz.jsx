@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import 'animate.css'; 
-import Loader from './Loader'; // Import Loader เข้ามาครับ
+import Loader from './Loader';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const IdentityQuiz = ({ onCorrect }) => {
     const navigate = useNavigate();
@@ -38,7 +38,12 @@ const IdentityQuiz = ({ onCorrect }) => {
         {isLoading && <Loader text="DECRYPTING..." />}
 
         {/* CARD Wrapper (Mac Style) */}
-        <div className="w-full max-w-md bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative animate__animated animate__fadeInUp animate__faster overflow-hidden">
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-md bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+        >
             
             {/* macOS Title Bar */}
             <div className="px-5 py-4 flex items-center gap-2 border-b border-white/5 bg-white/5">
@@ -52,7 +57,11 @@ const IdentityQuiz = ({ onCorrect }) => {
 
             {/* Content Area */}
             <div className="p-8" key={stage}>
-                <div className="animate__animated animate__fadeInRight animate__faster">
+                <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                >
                 {stage === 'intro' ? (
                     <div className="text-center">
                     <div className="mb-6 p-4 border border-[#99eedd]/20 rounded-lg bg-[#99eedd]/5">
@@ -76,31 +85,36 @@ const IdentityQuiz = ({ onCorrect }) => {
                         {options.map((opt) => {
                         let borderClass = 'border-white/10';
                         if (selectedOption === opt) {
-                            borderClass = isCorrect ? 'border-green-500' : 'border-red-500 animate__animated animate__shakeX';
+                            borderClass = isCorrect ? 'border-green-500' : 'border-red-500';
                         }
                         return (
-                            <button
+                            <motion.button
                             key={opt}
                             onClick={() => handleAnswer(opt)}
                             disabled={selectedOption !== null && !isCorrect}
+                            animate={selectedOption === opt && isCorrect === false ? { x: [-5, 5, -5, 5, 0], transition: { duration: 0.4 } } : {}}
                             className={`w-full py-4 border-2 rounded-xl text-[#99eedd] transition-all duration-300 hover:bg-[#B3AEBD]/10 active:scale-[0.98] ${borderClass}`}
                             >
                             {opt}
-                            </button>
+                            </motion.button>
                         );
                         })}
                     </div>
 
                     {errorMessage && (
-                        <p className="mt-6 text-xs text-red-500 font-['Orbitron'] animate__animated animate__headShake">
+                        <motion.p 
+                            animate={{ x: [-5, 5, -5, 5, 0] }} 
+                            transition={{ duration: 0.4 }}
+                            className="mt-6 text-xs text-red-500 font-['Orbitron']"
+                        >
                         {errorMessage}
-                        </p>
+                        </motion.p>
                     )}
                     </div>
                 )}
-                </div>
+                </motion.div>
             </div>
-        </div>
+        </motion.div>
         </div>
     );
 };

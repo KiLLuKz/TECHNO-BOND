@@ -263,30 +263,51 @@ function isTripletPlaceable(grid, shapes) {
 export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, grid, hadClear = false }) {
   availableBlocks.length = 0;
   
+  // Calculate Board Density (0 to 64)
+  let filledCells = 0;
+  if (grid) {
+      for(let y=0; y<GRID_SIZE; y++){
+          for(let x=0; x<GRID_SIZE; x++){
+              if (grid[y][x] !== 0) filledCells++;
+          }
+      }
+  }
+  
   let attempts = 0;
   let finalIndices = [];
   
-  while (attempts < 30) {
+  while (attempts < 50) {
     let categoriesToSpawn = [];
     
-    if (hadClear) {
-      const REWARD_SHAPES = [...SHAPE_GROUPS.EASY]; 
-      categoriesToSpawn = [REWARD_SHAPES, REWARD_SHAPES, Math.random() < 0.7 ? REWARD_SHAPES : SHAPE_GROUPS.MEDIUM];
+    // 🔥 Smart RNG / Mercy Logic based on board density
+    if (filledCells > 45) {
+       // Board is extremely full (Over 70%)
+       // SECRET TO ADDICTION: Still give LARGE blocks! 
+       // The look-ahead algorithm will filter them, meaning if a LARGE block spawns, it is guaranteed to fit perfectly into a hole!
+       categoriesToSpawn = [SHAPE_GROUPS.SMALL, Math.random() < 0.6 ? SHAPE_GROUPS.SMALL : SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
+    } else if (filledCells > 30) {
+       // Board is half full, balance it out
+       categoriesToSpawn = [SHAPE_GROUPS.SMALL, SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
+    } else if (hadClear) {
+       // Just cleared, reward with big/medium combinations for chain combos!
+       categoriesToSpawn = [SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE, Math.random() < 0.5 ? SHAPE_GROUPS.LARGE : SHAPE_GROUPS.WEIRD];
     } else {
-      const rollCategory = () => {
-        const chance = Math.random();
-        if (chance < 0.50) return SHAPE_GROUPS.EASY;       
-        if (chance < 0.85) return SHAPE_GROUPS.MEDIUM;     
-        return SHAPE_GROUPS.HARD;                          
-      };
-      categoriesToSpawn = [SHAPE_GROUPS.EASY, rollCategory(), rollCategory()];
+       // Empty board or normal play
+       const rollCategory = () => {
+         const chance = Math.random();
+         if (chance < 0.30) return SHAPE_GROUPS.SMALL;       
+         if (chance < 0.60) return SHAPE_GROUPS.MEDIUM;
+         if (chance < 0.85) return SHAPE_GROUPS.LARGE;     
+         return SHAPE_GROUPS.WEIRD;                          
+       };
+       categoriesToSpawn = [SHAPE_GROUPS.SMALL, rollCategory(), rollCategory()];
     }
     
     categoriesToSpawn.sort(() => Math.random() - 0.5);
     const candidateIndices = categoriesToSpawn.map(group => group[Math.floor(Math.random() * group.length)]);
     const candidateShapes = candidateIndices.map(idx => BLOCK_SHAPES[idx]);
     
-    // คำนวณล่วงหน้า ถ้าไม่มีบอร์ดส่งมา (ตอนเริ่มเกม) หรือ เช็คแล้วว่ามีทางรอดแน่นอน ให้ใช้ชุดนี้เลย
+    // Look-ahead validation
     if (!grid || isTripletPlaceable(grid, candidateShapes)) {
       finalIndices = candidateIndices;
       break;
@@ -294,9 +315,10 @@ export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOT
     attempts++;
   }
   
-  // ตัวช่วยฉุกเฉิน (Fallback): ถ้าสุ่ม 30 รอบยังตัน แปลว่าบอร์ดแคบมาก ให้แจกบล็อกจิ๋วๆ 3 อันเพื่อยื้อชีวิต
+  // Ultimate Fallback: if 50 attempts fail, the board is effectively dead. 
+  // Give three 1x1 blocks as a last resort mercy.
   if (finalIndices.length === 0) {
-    finalIndices = [0, 0, 0]; // 0 คือบล็อก 1x1 รับประกันว่ารอดแน่นอน
+    finalIndices = [0, 0, 0]; 
   }
 
   for (let i = 0; i < TOTAL_BLOCKS; i++) {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Terminal, Palette, Microscope, ChevronRight, Sparkles, Cpu, Activity, Gamepad2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Curriculum = () => {
   const navigate = useNavigate();
@@ -87,12 +88,20 @@ const Curriculum = () => {
         </div>
 
         {/* Tab Content Display */}
-        <div className="bg-[#0b0114]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center animate__animated animate__fadeIn">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="bg-[#0b0114]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+        >
           
           {/* Content: Dev */}
           {activeTab === 'dev' && (
             <>
-              <div className="animate__animated animate__fadeInLeft">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+              >
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">FULL-STACK DEVELOPMENT</h3>
                 <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
                   เรียนรู้การสร้างนวัตกรรมดิจิทัลตั้งแต่พื้นฐาน C#, JavaScript ไปจนถึงการพัฒนา Web Application แบบครบวงจร
@@ -102,20 +111,25 @@ const Curriculum = () => {
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Web Dev (HTML/CSS/JS)</span>
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Database Management</span>
                 </div>
-              </div>
-              <div className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group animate__animated animate__fadeInRight">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+                className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden group"
+              >
                 <Terminal size={64} strokeWidth={1.5} className="text-[#c084fc] mb-4 opacity-80 group-hover:scale-110 group-hover:-translate-y-2 transition-all duration-500 animate-[bounce_3s_infinite]" />
                 <div className="font-mono text-[#c084fc] opacity-60 text-sm md:text-xl group-hover:opacity-100 transition-opacity duration-300">
                   &lt;System.Init /&gt;
                 </div>
-              </div>
+              </motion.div>
             </>
           )}
 
           {/* Content: Art */}
           {activeTab === 'art' && (
             <>
-              <div className="animate__animated animate__fadeInLeft">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+              >
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">DIGITAL ART & CREATIVE</h3>
                 <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
                   ถ่ายทอดจินตนาการผ่านเทคโนโลยีสมัยใหม่ ทั้งงานออกแบบ UX/UI, Graphic Design และสื่อมัลติมีเดีย
@@ -125,18 +139,23 @@ const Curriculum = () => {
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Figma / Ps / Ai</span>
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Multimedia Content</span>
                 </div>
-              </div>
-              <div className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative group overflow-hidden animate__animated animate__fadeInRight">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+                className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative group overflow-hidden"
+              >
                 <div className="absolute inset-0 bg-gradient-to-tr from-[#a855f7]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <Palette size={80} strokeWidth={1.5} className="text-[#c084fc] opacity-80 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 animate-[bounce_3s_infinite]" />
-              </div>
+              </motion.div>
             </>
           )}
 
           {/* Content: STEM */}
           {activeTab === 'stem' && (
             <>
-              <div className="animate__animated animate__fadeInLeft">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+              >
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">ADVANCED STEM LEARNING</h3>
                 <p className="text-gray-300 leading-relaxed text-sm md:text-base mb-6">
                   ปูพื้นฐานทางวิทยาศาสตร์และคณิตศาสตร์อย่างเข้มข้น เพื่อเตรียมพร้อมเข้าสู่มหาวิทยาลัยชั้นนำในสายเทคโนโลยี
@@ -146,15 +165,18 @@ const Curriculum = () => {
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Calculus</span>
                   <span className="px-4 py-2 bg-[#a855f7]/10 border border-[#a855f7]/50 rounded-lg text-xs md:text-sm text-[#c084fc] hover:bg-[#a855f7]/30 transition-colors cursor-default">Data Science</span>
                 </div>
-              </div>
-              <div className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative group overflow-hidden animate__animated animate__fadeInRight">
+              </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4 }}
+                className="h-48 md:h-64 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center relative group overflow-hidden"
+              >
                 <div className="absolute inset-0 bg-gradient-to-bl from-[#a855f7]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <Microscope size={80} strokeWidth={1.5} className="text-[#c084fc] opacity-80 group-hover:scale-110 group-hover:-rotate-12 transition-all duration-500 animate-[bounce_3s_infinite]" />
-              </div>
+              </motion.div>
             </>
           )}
 
-        </div>
+        </motion.div>
       </section>
 
       {/* --- Career Path Section --- */}

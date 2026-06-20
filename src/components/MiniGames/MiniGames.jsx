@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Gamepad2, Trophy, Filter, Loader2, Users } from 'lucide-react'; 
 import { supabase } from '../../supabaseClient'; 
 import { gamesData } from '../../data/gamesData'; // Import ข้อมูลเกมจากไฟล์ใหม่
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MiniGames = () => {
   const navigate = useNavigate();
@@ -39,7 +40,10 @@ const MiniGames = () => {
     .sort((a, b) => b.score - a.score);
 
   return (
-    <div className="min-h-screen p-6 md:p-10 font-['Orbitron'] text-white animate__animated animate__fadeIn max-w-[1200px] mx-auto">
+    <motion.div 
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+      className="min-h-screen p-6 md:p-10 font-['Orbitron'] text-white max-w-[1200px] mx-auto"
+    >
       
       {/* ----------------- ส่วน Header และ ปุ่มเปลี่ยน Tab ----------------- */}
       <div className="mb-10 border-b border-white/10">
@@ -67,8 +71,12 @@ const MiniGames = () => {
       </div>
 
       {/* ----------------- TAB 1: หน้าเลือกเกม (ปรับปรุงใหม่ใช้ .map) ----------------- */}
+      <AnimatePresence mode="wait">
       {activeTab === 'games' && (
-        <div className="animate__animated animate__fadeIn">
+        <motion.div 
+          key="games"
+          initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.3 }}
+        >
           <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">เลือกเกมที่คุณต้องการเล่น</p>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             
@@ -145,12 +153,15 @@ const MiniGames = () => {
             })}
 
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* ----------------- TAB 2: หน้า LEADERBOARD (คงเดิม) ----------------- */}
       {activeTab === 'leaderboard' && (
-        <div className="animate__animated animate__fadeIn">
+        <motion.div 
+          key="leaderboard"
+          initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+        >
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
             <p className="text-gray-400 font-['Rajdhani'] text-lg">หอเกียรติยศยอดฝีมือ (TOP PLAYERS)</p>
             <div className="flex items-center gap-2 bg-[#08050f]/60 p-1.5 rounded-xl border border-white/10 backdrop-blur-sm">
@@ -189,13 +200,14 @@ const MiniGames = () => {
               )}
             </div>
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
 
       {/* ----------------------------------------------------------- */}
       {/* ส่วน STYLE TAG สำหรับจัดการ CSS Hover แบบไดนามิก */}
       {/* ----------------------------------------------------------- */}
-      <style jsx global>{`
+      <style>{`
         /* เมื่อ hover ที่ card ให้เปลี่ยนสี border ตาม CSS Variable ที่ส่งมา */
         .game-card:hover {
           border-color: var(--hover-border-color) !important;
@@ -217,7 +229,7 @@ const MiniGames = () => {
         }
       `}</style>
 
-    </div>
+    </motion.div>
   );
 };
 

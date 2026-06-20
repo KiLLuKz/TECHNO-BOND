@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../supabaseClient';
 import Loader from './Loader';
-import 'animate.css';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const Verify = ({ onLoginSuccess}) => {
@@ -148,7 +148,12 @@ const Verify = ({ onLoginSuccess}) => {
             <span className="text-xl">{'<'}</span> BACK
         </button>
 
-        <div className="w-full max-w-md bg-[#08050f]/60 backdrop-blur-2xl border border-white/10 rounded-[20px] p-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative animate__animated animate__fadeInUp animate__faster overflow-hidden my-auto mt-12 md:mt-auto">
+        <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-md bg-[#08050f]/60 backdrop-blur-2xl border border-white/10 rounded-[20px] p-0 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden my-auto mt-12 md:mt-auto"
+        >
             
             <div className="px-5 py-4 flex items-center gap-2 border-b border-white/5 bg-white/5">
                 <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
@@ -172,13 +177,14 @@ const Verify = ({ onLoginSuccess}) => {
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-['Rajdhani'] font-medium">
                 <div>
                     <label className="text-[10px] tracking-widest text-[#b899ff] mb-1 block font-['Orbitron']">SCHOOL MAIL</label>
-                    <input 
+                    <motion.input 
                         type="email" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="12345@bpk.ac.th"
+                        animate={emailError ? { x: [-5, 5, -5, 5, 0], transition: { duration: 0.4 } } : {}}
                         className={`w-full bg-black/30 text-[#99eedd] px-4 py-3 rounded-lg border focus:outline-none transition-all ${
-                            emailError ? 'border-red-500 animate__animated animate__shakeX' : 'border-white/10'
+                            emailError ? 'border-red-500' : 'border-white/10'
                         }`}
                         required
                     />
@@ -200,26 +206,31 @@ const Verify = ({ onLoginSuccess}) => {
                     <>
                         <div>
                             <label className="text-[10px] tracking-widest text-[#b899ff] mb-1 block font-['Orbitron']">CONFIRM PASSWORD</label>
-                            <input 
+                            <motion.input 
                                 type="password" 
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 placeholder="••••••••"
+                                animate={passwordMatchError ? { x: [-5, 5, -5, 5, 0], transition: { duration: 0.4 } } : {}}
                                 className={`w-full bg-black/30 text-[#99eedd] px-4 py-3 rounded-lg border focus:outline-none ${
-                                    passwordMatchError ? 'border-red-500 animate__animated animate__shakeX' : 'border-white/10'
+                                    passwordMatchError ? 'border-red-500' : 'border-white/10'
                                 }`}
                                 required
                             />
                         </div>
 
-                        <div className="border border-amber-500/50 bg-amber-500/10 rounded-xl p-3 my-1 shadow-[0_0_10px_rgba(245,158,11,0.2)] animate__animated animate__pulse">
+                        <motion.div 
+                            animate={{ scale: [1, 1.02, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="border border-amber-500/50 bg-amber-500/10 rounded-xl p-3 my-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
+                        >
                             <p className=" font-bold text-[10px] text-amber-500 font-['Orbitron'] tracking-widest text-center flex items-center justify-center gap-2 mb-1">
                                 <span>⚠️</span> SECURITY NOTICE
                             </p>
                             <p className="text-sm md:text-[16px] text-amber-500/80 font-['Rajdhani'] text-center leading-tight">
                                 ระบบนี้ไม่ได้มีการป้องกันหนาแน่นมาก ห้ามใช้รหัสผ่านเดียวกับบัญชีสำคัญ(เช่น อีเมล,ธนาคาร) โดยเด็ดขาด
                             </p>
-                        </div>
+                        </motion.div>
                         
                         <div className="flex items-start gap-2 cursor-pointer mt-1" onClick={() => setSecurityChecked(!securityChecked)}>
                             <input 
@@ -235,7 +246,7 @@ const Verify = ({ onLoginSuccess}) => {
                     </>
                 )}
                 
-                {errorMsg && <div className="text-xs text-red-400 text-center font-['Orbitron'] animate__animated animate__headShake">{errorMsg}</div>}
+                {errorMsg && <motion.div animate={{ x: [-5, 5, -5, 5, 0] }} transition={{ duration: 0.4 }} className="text-xs text-red-400 text-center font-['Orbitron']">{errorMsg}</motion.div>}
                 {successMsg && <div className="text-xs text-[#99eedd] text-center font-['Orbitron']">{successMsg}</div>}
 
                 <button 
@@ -256,7 +267,7 @@ const Verify = ({ onLoginSuccess}) => {
                 </button>
                 </div>
             </div>
-        </div>
+        </motion.div>
         </div>
     );
 };

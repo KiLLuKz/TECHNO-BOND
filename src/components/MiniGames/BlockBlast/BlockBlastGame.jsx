@@ -4,6 +4,7 @@ import { drawGrid, drawBlock, getGridOffset, drawGhostBlock, findBestGridPlaceme
 import { BLOCK_SHAPES } from './blocks';
 import { useNavigate } from 'react-router-dom';
 import SystemAlert from "../../SystemAlert";
+import { motion } from 'framer-motion';
 
 import { supabase } from "../../../supabaseClient";
 
@@ -115,7 +116,8 @@ const BlockBlastGame = () => {
     offsetX: 0, offsetY: 0, startX: 0, startY: 0, 
     isDragging: false, clearingEffects: [], floatingTexts: [], 
     hadClearInRound: false, 
-    megaEffect: { active: false, phase: 0, progress: 0 } 
+    megaEffect: { active: false, phase: 0, progress: 0 },
+    particles: [], screenShake: 0
   });
 
   const performReset = () => {
@@ -161,12 +163,21 @@ const BlockBlastGame = () => {
     const gameLoop = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
+      // --- SCREEN SHAKE ---
+      ctx.save();
+      if (gameData.current.screenShake > 0) {
+          const shake = gameData.current.screenShake;
+          ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+          gameData.current.screenShake *= 0.85;
+          if (gameData.current.screenShake < 0.5) gameData.current.screenShake = 0;
+      }
+      
       drawGrid(ctx, canvas, gameData.current.grid);
 
       if (gameData.current.clearingEffects.length > 0) {
          drawClearingEffects(ctx, canvas, gameData.current.clearingEffects);
          gameData.current.clearingEffects = gameData.current.clearingEffects
-            .map(cell => ({ ...cell, opacity: cell.opacity - 0.08, scale: cell.scale - 0.05 }))
+            .map(cell => ({ ...cell, opacity: cell.opacity - 0.2, scale: cell.scale - 0.1 }))
             .filter(cell => cell.opacity > 0 && cell.scale > 0); 
       }
 
@@ -266,15 +277,47 @@ const BlockBlastGame = () => {
         }
       }
 
+      // --- PARTICLES ---
+      if (gameData.current.particles.length > 0) {
+         gameData.current.particles.forEach(p => {
+             ctx.save();
+             ctx.globalAlpha = Math.max(0, p.life);
+             ctx.fillStyle = p.color;
+             ctx.shadowBlur = 10; ctx.shadowColor = p.color;
+             ctx.fillRect(p.x, p.y, p.size, p.size);
+             ctx.restore();
+             
+             p.x += p.vx;
+             p.y += p.vy;
+             p.vy += 0.4; // gravity
+             p.life -= 0.02;
+         });
+         gameData.current.particles = gameData.current.particles.filter(p => p.life > 0);
+      }
+
       if (gameData.current.floatingTexts && gameData.current.floatingTexts.length > 0) {
         gameData.current.floatingTexts.forEach(ft => {
-            ctx.save(); ctx.globalAlpha = Math.max(0, ft.opacity); ctx.fillStyle = ft.color;
-            ctx.font = "bold 56px 'Orbitron', sans-serif"; ctx.textAlign = "center"; ctx.shadowBlur = 20; ctx.shadowColor = ft.color;
-            ctx.fillText(ft.text, ft.x, ft.y + ft.offsetY); ctx.shadowBlur = 0; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.lineWidth = 4; ctx.strokeText(ft.text, ft.x, ft.y + ft.offsetY); ctx.restore();
-            ft.offsetY -= 2; ft.opacity -= 0.012; 
+            ctx.save(); 
+            ctx.globalAlpha = Math.max(0, ft.opacity); 
+            ctx.fillStyle = ft.color;
+            ctx.font = `bold ${40 + ft.scale * 15}px 'Orbitron', sans-serif`; 
+            ctx.textAlign = "center"; 
+            ctx.shadowBlur = 20; ctx.shadowColor = ft.color;
+            ctx.fillText(ft.text, ft.x, ft.y + ft.offsetY); 
+            ctx.shadowBlur = 0; 
+            ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.lineWidth = 4; 
+            ctx.strokeText(ft.text, ft.x, ft.y + ft.offsetY); 
+            ctx.restore();
+            
+            ft.offsetY -= 1.5; 
+            ft.opacity -= 0.015; 
+            if(ft.scale < 1) ft.scale += 0.15;
         });
         gameData.current.floatingTexts = gameData.current.floatingTexts.filter(ft => ft.opacity > 0);
       }
+      
+      ctx.restore(); // END SCREEN SHAKE SAVE
+      
       animationFrameId = requestAnimationFrame(gameLoop);
     };
     const ctx = canvas.getContext("2d", { alpha: true });
@@ -301,7 +344,10 @@ const BlockBlastGame = () => {
         gameData.current.activeBlock = { ...block }; block.active = false; 
         gameData.current.startX = x; gameData.current.startY = y;
         const scaleRatio = CELL_SIZE / TRAY_BLOCK_SIZE;
-        gameData.current.offsetX = (blockWidth / 2) * scaleRatio; gameData.current.offsetY = (blockHeight / 2) * scaleRatio;
+        // Shift block UP so finger doesn't hide it
+        const liftOffset = isDesktop ? 30 : 100;
+        gameData.current.offsetX = (blockWidth / 2) * scaleRatio; 
+        gameData.current.offsetY = (blockHeight / 2) * scaleRatio + liftOffset;
         gameData.current.activeBlock.x = x - gameData.current.offsetX; gameData.current.activeBlock.y = y - gameData.current.offsetY;
         gameData.current.isDragging = true; playSound('grab', isMuted); 
       }
@@ -352,6 +398,23 @@ const BlockBlastGame = () => {
         gameData.current.clearingEffects = clearedCellsData; 
         gameData.current.hadClearInRound = true; 
 
+        // --- TRIGGER DOPAMINE EFFECTS ---
+        gameData.current.screenShake = linesCleared * 6 + (nextCombo * 3);
+        
+        const offset = getGridOffset(canvas);
+        clearedCellsData.forEach(cell => {
+            const cx = offset.x + cell.x * CELL_SIZE + CELL_SIZE/2;
+            const cy = offset.y + cell.y * CELL_SIZE + CELL_SIZE/2;
+            for(let i=0; i<6; i++) {
+                gameData.current.particles.push({
+                    x: cx, y: cy,
+                    vx: (Math.random() - 0.5) * 14,
+                    vy: (Math.random() - 0.5) * 14 - 3,
+                    life: 1, size: Math.random() * 8 + 4, color: cell.color
+                });
+            }
+        });
+
         let popText = ""; let popColor = "#99eedd";
         if (nextCombo > 1) { popText = `COMBO x${nextCombo}!`; popColor = "#FFD166"; } 
         else if (linesCleared >= 4) { popText = "AMAZING!"; popColor = "#F15BB5"; } 
@@ -361,7 +424,10 @@ const BlockBlastGame = () => {
         if (linesCleared >= 3) gameData.current.megaEffect = { active: true, phase: 1, progress: 0 };
 
         gameData.current.floatingTexts.push({
-            id: Date.now(), text: popText, x: activeBlock.x + ((activeBlock.shape[0].length * CELL_SIZE) / 2), y: activeBlock.y, opacity: 1, offsetY: 0, color: popColor
+            id: Date.now(), text: popText, 
+            x: activeBlock.x + ((activeBlock.shape[0].length * CELL_SIZE) / 2), 
+            y: activeBlock.y, 
+            opacity: 1, offsetY: 0, color: popColor, scale: 0
         });
         setTimeout(() => playSound('clear', isMuted, nextCombo), 100); 
       } else {
@@ -429,13 +495,16 @@ const BlockBlastGame = () => {
         </div>
 
       {gameOver && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl animate__animated animate__fadeIn">
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl"
+        >
           <div className="bg-[#110b1c] border border-indigo-500/30 p-8 rounded-3xl text-center w-[90%] max-w-[350px]">
             <h2 className="text-3xl font-bold text-white mb-2 font-['Orbitron']">OUT OF MOVES</h2>
             <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">FINAL SCORE <span className="text-[#99eedd] font-bold text-4xl block mt-2">{score}</span></p>
             <button onClick={performReset} className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-3 rounded-xl font-bold tracking-widest hover:bg-indigo-600/50 transition-all">TRY AGAIN</button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

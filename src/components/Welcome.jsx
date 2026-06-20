@@ -3,17 +3,18 @@ import React, { useState } from 'react';
 import Loader from './Loader';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
+import { motion } from 'framer-motion';
 
-// คอมโพเนนต์ปุ่มสไตล์ TECHNO GEN 8 (ปรับเป็นธีมสีม่วง Cyber Purple)
+// คอมโพเนนต์ปุ่มสไตล์ TECHNO GEN 8 (ปรับแก้สีเพื่อให้ตัดกับพื้นหลังสีม่วง)
 const ExploreButton = ({ text, onClick }) => (
   <button
     onClick={onClick}
     className="
       cursor-pointer relative z-10 font-['Orbitron'] font-bold text-sm md:text-base tracking-[0.2em] uppercase
-      text-white px-10 py-4 rounded-full transition-all duration-300 active:scale-95
-      bg-transparent border-2 border-[#a855f7]
-      shadow-[0_0_15px_rgba(168,85,247,0.4)]
-      hover:bg-[#a855f7] hover:text-[#060412] hover:shadow-[0_0_25px_rgba(168,85,247,0.7)]
+      text-[#99eedd] px-10 py-4 rounded-full transition-all duration-300 active:scale-95
+      bg-transparent border-2 border-[#99eedd]
+      shadow-[0_0_15px_rgba(153,238,221,0.4)]
+      hover:bg-[#99eedd] hover:text-[#060412] hover:shadow-[0_0_25px_rgba(153,238,221,0.7)]
       hover:-translate-y-0.5
     "
   >
@@ -75,16 +76,24 @@ const Welcome = () => {
       {/* ปรับแต่ง padding และจัดระเบียบ layout ให้รองรับทั้งแนวตั้งและแนวนอนอย่างสมบูรณ์ */}
       <main className="relative z-10 flex flex-col items-center justify-center w-full min-h-screen text-center px-4 py-12 md:px-12 max-w-5xl mx-auto box-border">
         
-        {/* คำคมด้านบน (ปรับเป็นสีม่วงอ่อน) */}
-        <p className="text-[#c084fc] text-xs md:text-sm tracking-[0.4em] font-bold mb-4 uppercase opacity-90 animate__animated animate__fadeIn">
+        {/* คำคมด้านบน (ปรับเป็นสีฟ้ามิ้นท์เพื่อให้ตัดกับพื้นหลังม่วง) */}
+        <motion.p 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 0.9, y: 0 }}
+          transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+          className="text-[#99eedd] text-xs md:text-sm tracking-[0.4em] font-bold mb-4 uppercase drop-shadow-[0_0_8px_rgba(153,238,221,0.5)]"
+        >
           " NOT HOPING TO WIN, BUT NEVER LOST "
-        </p>
+        </motion.p>
 
         {/* หัวข้อหลักปรับขนาดให้ใหญ่ขึ้นมาก (Fluid Text ตั้งแต่ text-4xl จนถึง lg:text-9xl) */}
-        {/* ฝัง Inline Style สำหรับสี Gradient แบบระบุตำแหน่งคัตออฟตามโจทย์ (to bottom, #fff 30%, #4f2ec3) */}
+        {/* ฝัง Inline Style สำหรับสี Gradient ให้ตัดกับพื้นหลัง (ใช้สีเดิมตามที่ผู้ใช้ร้องขอ) */}
         {/* ใช้ block และ whitespace-nowrap ครอบแต่ละบรรทัดเพื่อบังคับคำไม่ให้แตกกระจัดกระจายเวลาหมุนจอ */}
-        <h1 
-          className="font-['Orbitron'] text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter mb-6 uppercase bg-clip-text text-transparent select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] animate__animated animate__fadeInDown"
+        <motion.h1 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
+          className="font-['Orbitron'] text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter mb-6 uppercase bg-clip-text text-transparent select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
           style={{ 
             backgroundImage: 'linear-gradient(to bottom, #ffffff 65%, #4f2ec3 100%)',
             WebkitBackgroundClip: 'text',
@@ -93,24 +102,38 @@ const Welcome = () => {
         >
           <span className="block whitespace-nowrap">TECHNOLOGY</span>
           <span className="block whitespace-nowrap mt-1 md:mt-3">8th GEN</span>
-        </h1>
+        </motion.h1>
 
-        {/* หัวข้อย่อยแผนการเรียน (ปรับเป็นสีม่วงอ่อน) */}
-        <p className="text-sm sm:text-lg md:text-2xl font-semibold tracking-[0.25em] text-[#c084fc] mb-6 uppercase drop-shadow-sm">
+        {/* หัวข้อย่อยแผนการเรียน (ปรับเป็นสีเทาสว่างเพื่อให้อ่านง่าย) */}
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.0, ease: "easeOut" }}
+          className="text-sm sm:text-lg md:text-2xl font-semibold tracking-[0.25em] text-white mb-6 uppercase drop-shadow-md"
+        >
           Science · Mathematics · Technology
-        </p>
+        </motion.p>
 
         {/* รายละเอียดภาษาไทย */}
         {/* ใช้ break-keep และกำหนด max-w ให้พอดี เพื่อให้ข้อความภาษาไทยตัดคำสละสลวย ไม่ขาดครึ่งคำในมือถือ */}
-        <p className="text-sm md:text-base lg:text-lg text-gray-200 max-w-xl leading-relaxed mb-10 opacity-90 font-light px-2 break-keep">
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.9 }}
+          transition={{ duration: 1, delay: 1.3 }}
+          className="text-sm md:text-base lg:text-lg text-gray-300 max-w-xl leading-relaxed mb-10 font-light px-2 break-keep drop-shadow-sm"
+        >
           ก้าวย่างที่มั่นคงของรุ่นที่ 8 แห่งรั้วบางปะกอกวิทยาคม <br className="hidden sm:inline"/> 
           สืบทอดจิตวิญญาณแห่งนวัตกรรมและการสร้างสรรค์
-        </p>
+        </motion.p>
 
         {/* ปุ่ม Action */}
-        <div className="animate__animated animate__flipInX">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.7, ease: "easeOut" }}
+        >
           <ExploreButton text="ENTER SYSTEM" onClick={handleEnter} />
-        </div>
+        </motion.div>
 
       </main>
     </div>

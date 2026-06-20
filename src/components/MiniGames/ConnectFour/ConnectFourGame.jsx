@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const ROWS = 6;
 const COLS = 7;
@@ -144,7 +145,10 @@ const ConnectFourGame = () => {
       </div>
 
       {winner && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate__animated animate__fadeIn">
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+          className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        >
           <div className="bg-[#110b1c] border border-[#2EC4B6]/30 p-8 rounded-3xl text-center shadow-2xl transform transition-all hover:scale-105">
             <Trophy size={64} className={`mx-auto mb-4 ${winner === 1 ? 'text-[#FF6B6B]' : winner === 2 ? 'text-[#FFD166]' : 'text-gray-400'}`} />
             <h2 className="text-3xl font-bold text-white mb-6 font-['Orbitron'] tracking-widest">
@@ -154,7 +158,7 @@ const ConnectFourGame = () => {
               PLAY AGAIN
             </button>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Search, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
   const [viewMode, setViewMode] = useState('senior'); 
@@ -37,7 +38,12 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
   };
 
   return (
-    <div className="lg:col-span-4 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 md:p-8 shadow-xl animate__animated animate__fadeIn">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="lg:col-span-4 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-4 md:p-8 shadow-xl"
+    >
       
       <div className="flex flex-col gap-6 mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -133,7 +139,7 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
             )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

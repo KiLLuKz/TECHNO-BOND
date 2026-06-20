@@ -1,30 +1,33 @@
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import 'animate.css';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { supabase } from './supabaseClient';
 
+// --- Critical Initial Load Components ---
 import Welcome from './components/Welcome';
 import Footer from './components/Footer';
 import Verify from './components/Verify';
 import Background from './components/Background';
-import Curriculum from './components/Curriculum'
-import IdentityQuiz from './components/IdentityQuiz';
 import FloatingMenu from './components/FloatingMenu';
-import Homework from'./components/Homework';
-import J_Dashboard from './components/J_Dashboard';
-import S_Dashboard from './components/S_Dashboard';
-import { supabase } from './supabaseClient';
-
-import DashboardLayout from './components/DashboardLayout';
-import MiniGames from './components/MiniGames/MiniGames';
-import BlockBlastGame from './components/MiniGames/BlockBlast/BlockBlastGame';
-import ConnectFourGame from './components/MiniGames/ConnectFour/ConnectFourGame';
-import TicTacToe from './components/MiniGames/TicTacToe/TicTacToe';
-import Referee from './components/MiniGames/ChessGame/Referee/Referee';
-import ThaiCheckers from './components/MiniGames/ThaiCheckers/ThaiCheckersGame';
-import BattleShip from './components/MiniGames/BattleShip/BattleshipGame';
-import ShootEmUp from './components/MiniGames/ShootEmUp/ShootEmUp';
-import AdminDashboard from './components/AdminDashboard';
 import Loader from './components/Loader';
+
+// --- Lazy Loaded Components ---
+const Curriculum = lazy(() => import('./components/Curriculum'));
+const IdentityQuiz = lazy(() => import('./components/IdentityQuiz'));
+const Homework = lazy(() => import('./components/Homework'));
+const DashboardLayout = lazy(() => import('./components/DashboardLayout'));
+const J_Dashboard = lazy(() => import('./components/J_Dashboard'));
+const S_Dashboard = lazy(() => import('./components/S_Dashboard'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+
+// --- Minigames (Heavy logic, lazy loaded) ---
+const MiniGames = lazy(() => import('./components/MiniGames/MiniGames'));
+const BlockBlastGame = lazy(() => import('./components/MiniGames/BlockBlast/BlockBlastGame'));
+const ConnectFourGame = lazy(() => import('./components/MiniGames/ConnectFour/ConnectFourGame'));
+const TicTacToe = lazy(() => import('./components/MiniGames/TicTacToe/TicTacToe'));
+const Referee = lazy(() => import('./components/MiniGames/ChessGame/Referee/Referee'));
+const ThaiCheckers = lazy(() => import('./components/MiniGames/ThaiCheckers/ThaiCheckersGame'));
+const BattleShip = lazy(() => import('./components/MiniGames/BattleShip/BattleshipGame'));
+const ShootEmUp = lazy(() => import('./components/MiniGames/ShootEmUp/ShootEmUp'));
 
 const ConditionalFooter = () => {
   const location = useLocation();
@@ -38,40 +41,41 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
   const navigate = useNavigate();
 
   return (
-    <Routes>
-      <Route path="/" element={<Welcome />} />
-      <Route path="/verify" element={
-        <Verify 
-          onLoginSuccess={(role) => {
-            setUserRole(role);
-            navigate(role === 'junior' ? '/quiz' : '/dashboard');
-          }} 
-        />
-      } />
-      <Route path="/quiz" element={<IdentityQuiz />} />
-      <Route path="/curriculum" element={<Curriculum />} />
-      <Route path="homework" element={<Homework userRole={userRole} isAdmin={isAdmin} />} />
-      
-      {/* ส่วน Dashboard และหน้าย่อย (Nested Routes) */}
-      <Route path="/dashboard" element={
-        userRole ? <DashboardLayout /> : <div className="text-center mt-20 text-2xl font-['Orbitron']">ACCESS DENIED</div>
-      }>
-        <Route index element={userRole === 'junior' ? <J_Dashboard /> : <S_Dashboard />} />
+    <Suspense fallback={<Loader text="LOADING" />}>
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/verify" element={
+          <Verify 
+            onLoginSuccess={(role) => {
+              setUserRole(role);
+              navigate(role === 'junior' ? '/quiz' : '/dashboard');
+            }} 
+          />
+        } />
+        <Route path="/quiz" element={<IdentityQuiz />} />
+        <Route path="/curriculum" element={<Curriculum />} />
+        <Route path="homework" element={<Homework userRole={userRole} isAdmin={isAdmin} />} />
         
-        <Route path="minigames" element={<MiniGames />} />
-        <Route path="minigames/block-blast" element={<BlockBlastGame />} />
-        <Route path="minigames/connect-four" element={<ConnectFourGame />} /> 
-        <Route path="minigames/chess" element={<Referee />} />
-        <Route path="minigames/tic-tac-toe" element={<TicTacToe />} />
-        <Route path="minigames/thai-checkers" element={<ThaiCheckers />} />
-        <Route path="minigames/battleship" element={<BattleShip />} />
-        <Route path="minigames/shoot-em-up" element={<ShootEmUp />} />
+        {/* Dashboard Nested Routes */}
+        <Route path="/dashboard" element={
+          userRole ? <DashboardLayout /> : <div className="text-center mt-20 text-2xl font-['Orbitron']">ACCESS DENIED</div>
+        }>
+          <Route index element={userRole === 'junior' ? <J_Dashboard /> : <S_Dashboard />} />
+          
+          <Route path="minigames" element={<MiniGames />} />
+          <Route path="minigames/block-blast" element={<BlockBlastGame />} />
+          <Route path="minigames/connect-four" element={<ConnectFourGame />} /> 
+          <Route path="minigames/chess" element={<Referee />} />
+          <Route path="minigames/tic-tac-toe" element={<TicTacToe />} />
+          <Route path="minigames/thai-checkers" element={<ThaiCheckers />} />
+          <Route path="minigames/battleship" element={<BattleShip />} />
+          <Route path="minigames/shoot-em-up" element={<ShootEmUp />} />
+          
+          <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
+        </Route>
         
-        
-        <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
-      </Route>
-      
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 }
 export default function App() {

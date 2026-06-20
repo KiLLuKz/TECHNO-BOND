@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Users, Search, User, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,7 +25,12 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
   };
 
   return (
-    <div className="lg:col-span-4 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 md:p-8 shadow-xl animate__animated animate__fadeIn h-full flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="lg:col-span-4 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[24px] p-6 md:p-8 shadow-xl h-full flex flex-col"
+    >
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
             <h2 className="flex items-center gap-3 text-[#99eedd] text-xl font-bold tracking-widest">
                 <Users size={24} /> JUNIOR_DATABASE
@@ -110,7 +116,7 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
                 )}
             </div>
         </div>
-    </div>
+    </motion.div>
   );
 };
 

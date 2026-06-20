@@ -4,7 +4,7 @@ import { supabase } from '../supabaseClient';
 import * as api from '../api/seniorApi'; 
 import SystemAlert from './SystemAlert'; 
 import * as activityApi from '../api/activityApi';
-import 'animate.css';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import SeniorProfileBox from './Senior_Dashboard/SeniorProfileBox';
 import SeniorInboxBox from './Senior_Dashboard/SeniorInboxBox';
@@ -146,12 +146,20 @@ const S_Dashboard = () => {
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-10 font-['Orbitron'] text-white relative overflow-y-auto overflow-x-hidden w-full max-w-[100vw]">
       <SystemAlert isOpen={systemAlert.isOpen} type={systemAlert.type} title={systemAlert.title} message={systemAlert.message} confirmText={systemAlert.confirmText} onConfirm={systemAlert.onConfirm} onClose={() => setSystemAlert({ ...systemAlert, isOpen: false })} />
+      <AnimatePresence>
       {notification.isOpen && (
-        <div className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#d966ff] p-4 rounded-xl flex items-center gap-3 animate__animated animate__fadeInRight shadow-[0_0_15px_rgba(217,102,255,0.2)]">
+        <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#d966ff] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(217,102,255,0.2)]"
+        >
             <CheckCircle className="text-[#d966ff]" size={20} />
             <span className="text-sm font-['Rajdhani'] tracking-wider">{notification.message}</span>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
       
       <h1 className="text-2xl md:text-4xl text-[#d966ff] mb-6 md:mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(217,102,255,0.5)] break-words text-center md:text-left">
         SENIOR_CENTER

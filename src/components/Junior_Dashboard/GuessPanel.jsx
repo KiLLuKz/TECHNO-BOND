@@ -1,5 +1,6 @@
 import React from 'react';
 import { Target, CheckCircle, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const GuessPanel = ({ 
     isGameCleared, 
@@ -13,11 +14,14 @@ const GuessPanel = ({
   return (
     <div className="h-full lg:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-[#d966ff]/20 rounded-[20px] p-6 shadow-xl flex flex-col relative overflow-hidden">
       {isGameCleared && (
-         <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm z-10 flex flex-col items-center justify-center animate__animated animate__fadeIn">
+         <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-green-500/20 backdrop-blur-sm z-10 flex flex-col items-center justify-center"
+         >
              <CheckCircle size={48} className="text-green-400 mb-2 drop-shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
              <h2 className="text-2xl font-bold text-green-400 tracking-widest uppercase">CORRECT GUESS</h2>
              <p className="text-white text-sm font-['Rajdhani']">ยินดีด้วย! คุณตามหาพี่รหัสพบแล้ว</p>
-         </div>
+         </motion.div>
       )}
 
       <div className="flex justify-between items-start mb-4">
@@ -50,17 +54,23 @@ const GuessPanel = ({
       </div>
 
       {guessFeedback && !isGameCleared && (
-         <div className="mt-4 pt-3 border-t border-white/5 animate__animated animate__fadeIn">
+         <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+            className="mt-4 pt-3 border-t border-white/5"
+         >
              <p className="text-sm md:text-[16px] text-[#99eedd] font-['Rajdhani'] italic break-words">
                 " {guessFeedback} "
              </p>
-         </div>
+         </motion.div>
       )}
 
       {/* Timer Display */}
       {!canGuess && nextGuessDate && (
           <div className="mt-2 pt-2 border-t border-white/5">
-            <p className="text-[13px] md:text-[14px] text-red-400 font-['Chakra_Petch'] flex items-center gap-1 animate__animated animate__fadeIn">
+            <motion.p 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
+                className="text-[13px] md:text-[14px] text-red-400 font-['Chakra_Petch'] flex items-center gap-1"
+            >
                 <Lock size={10} /> 
                 {/* จุดที่แก้: ปรับคำอธิบายให้กระชับเข้ากับ placeholder */}
                 ระบบล็อค จนถึงวันที่: {nextGuessDate.toLocaleDateString('th-TH', { 
@@ -68,7 +78,7 @@ const GuessPanel = ({
                     month: 'long', 
                     day: 'numeric' 
                 })}
-            </p>
+            </motion.p>
           </div>
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; 
 import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +27,12 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
       </button>
 
       {isOpen && (
-        <div className="absolute top-16 right-0 w-56 bg-[#08050f]/90 backdrop-blur-xl border border-[#b464ff]/30 rounded-2xl p-2 animate__animated animate__fadeInDown animate__faster">
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="absolute top-16 right-0 w-56 bg-[#08050f]/90 backdrop-blur-xl border border-[#b464ff]/30 rounded-2xl p-2"
+        >
           
           <Link to="/" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-[#f0eaff] hover:bg-[#b464ff]/20 rounded-xl transition-all">
             <Home size={16} /> HOME
@@ -72,7 +78,7 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
               <LogOut size={16} /> LOGOUT
             </button>
           )}
-        </div>
+        </motion.div>
       )}
     </div>
   );

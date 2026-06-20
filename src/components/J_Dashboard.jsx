@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import 'animate.css';
+import { motion, AnimatePresence } from 'framer-motion';
 import * as api from '../api/juniorApi';
 import * as activityApi from '../api/activityApi';
 import { _allTeaseLines, _quizBank } from '../data/quizData';
@@ -207,12 +207,20 @@ const J_Dashboard = () => {
 
   return (
     <div className="min-h-screen p-4 sm:p-6 md:p-10 font-['Orbitron'] text-white relative overflow-y-auto overflow-x-hidden w-full max-w-[100vw]">
+      <AnimatePresence>
       {notification.isOpen && (
-        <div className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#99eedd] p-4 rounded-xl flex items-center gap-3 animate__animated animate__fadeInRight shadow-[0_0_15px_rgba(153,238,221,0.2)]">
+        <motion.div 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#99eedd] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(153,238,221,0.2)]"
+        >
             <CheckCircle className="text-[#99eedd]" size={20} />
             <span className="text-sm font-['Rajdhani'] tracking-wider">{notification.message}</span>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
       
       <h1 className="text-2xl md:text-4xl text-[#99eedd] mb-6 md:mb-8 text-center md:text-left tracking-wider">
         JUNIOR_OS v1.0
