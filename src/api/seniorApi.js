@@ -63,7 +63,7 @@ export const uploadAvatar = async (userId, file) => {
 };
 
 export const updateProfile = async (userId, profileData) => {
-    const { error } = await supabase.from('profiles').upsert({ id: userId, ...profileData });
+    const { error } = await supabase.from('profiles').upsert({ id: userId, user_id: userId, ...profileData });
     if (error) throw error;
 };
 

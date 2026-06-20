@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import * as api from '../api/seniorApi'; 
 import SystemAlert from './SystemAlert'; 
-import * as activityApi from '../api/activityApi';
 import { motion, AnimatePresence } from 'framer-motion';
+import ErrorBoundary from './common/ErrorBoundary';
 
-import SeniorProfileBox from './Senior_Dashboard/SeniorProfileBox';
-import SeniorInboxBox from './Senior_Dashboard/SeniorInboxBox';
-import SeniorClueController from './Senior_Dashboard/SeniorClueController';
-import JuniorDirectoryBox from './Senior_Dashboard/JuniorDirectoryBox';
-import { InboxModal, ClueModal } from './Senior_Dashboard/SeniorModals';
+import SeniorProfileTab from './Senior_Dashboard/SeniorProfileTab';
+import SeniorMissionsTab from './Senior_Dashboard/SeniorMissionsTab';
+import SeniorDirectoryTab from './Senior_Dashboard/SeniorDirectoryTab';
 import HomeworkHub from './Homework';
 import SeniorSidebar from './Senior_Dashboard/SeniorSidebar';
 import MiniGames from './MiniGames/MiniGames';
@@ -19,25 +16,12 @@ import AdminDashboard from './AdminDashboard';
 
 const S_Dashboard = ({ isAdmin }) => {
   const { tab } = useParams();
-  const [profile, setProfile] = useState({ username: '', avatar_url: '' });
-  const [clueData, setClueData] = useState(null);
   const [userEmail, setUserEmail] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [activityData, setActivityData] = useState(null);
   const [userId, setUserId] = useState(null);
-  const [allJuniors, setAllJuniors] = useState([]);
-  const [myJuniorIds, setMyJuniorIds] = useState([]);
+  const [loading, setLoading] = useState(true);
   
-  const [newClues, setNewClues] = useState({ clue_1: '', clue_2: '', clue_3: '' });
-  const [modal, setModal] = useState({ isOpen: false, content: '' });
-  const [inboxModal, setInboxModal] = useState(false);
   const [notification, setNotification] = useState({ isOpen: false, message: '' });
-  const [isSaving, setIsSaving] = useState(false);
-
   const [systemAlert, setSystemAlert] = useState({ isOpen: false, type: 'info', title: '', message: '', onConfirm: null, confirmText: 'CONFIRM' });
-
-  const [realMessages, setRealMessages] = useState([]);
-  const [realJuniors, setRealJuniors] = useState([]);
 
   const getDefaultAvatar = (role, identifier) => {
     if (!identifier) return 'https://avatar.iran.liara.run/public/boy?username=default';
@@ -53,99 +37,17 @@ const S_Dashboard = ({ isAdmin }) => {
     setTimeout(() => setNotification({ isOpen: false, message: '' }), 3000);
   };
 
-  const truncateText = (text) => text?.length > 25 ? text.substring(0, 25) + "..." : text;
-
-  const formatTime = (isoString) => {
-    return new Date(isoString).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' });
-  };
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
           setUserId(user.id);
           setUserEmail(user.email);
-          const currentStudentId = user.email.split('@')[0];
-          
-          try {
-              const prof = await api.fetchSeniorProfile(user.id, user.email);
-              setProfile(prof);
-              const clue = await api.fetchSeniorClues(user.email);
-              if (clue) setClueData(clue);
-              
-              // ดึงน้องทุกคนมา
-              const juniors = await api.fetchAllJuniors();
-              setAllJuniors(juniors);
-              
-              // กรอง ID ของน้องที่อยู่ในสายรหัสเราเพื่อทำ Highlight
-              const myIds = juniors
-                .filter(j => j.senior_student_id === currentStudentId)
-                .map(j => j.junior_id);
-              setMyJuniorIds(myIds);
-
-              const msgs = await api.fetchInboxMessages(user.email, juniors);
-              setRealMessages(msgs);
-          } catch (error) { console.error("Error:", error); }
-          setLoading(false);
       }
+      setLoading(false);
     };
-    fetchData();
+    fetchUser();
   }, []);
-
-  const handleUploadAvatar = async (event) => {
-    try {
-      const file = event.target.files[0];
-      if (!file) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      const publicUrl = await api.uploadAvatar(user.id, file);
-      await api.updateProfile(user.id, { avatar_url: publicUrl, username: profile.username, student_id: user.email.split('@')[0] });
-      setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
-      notify("SYSTEM: Avatar updated!");
-    } catch (error) { notify("ERROR: " + error.message); }
-  };
-
-  const handleUpdateProfile = async () => {
-    setIsSaving(true);
-    try {
-        const { data: { user } } = await supabase.auth.getUser();
-        await api.updateProfile(user.id, { username: profile.username, avatar_url: profile.avatar_url, student_id: user.email.split('@')[0] });
-        notify("SYSTEM: Profile saved!");
-    } catch (error) { notify("ERROR: " + error.message); }
-    setIsSaving(false);
-  };
-
-  const submitClue = async (clueField, clueValue) => {
-    if (!clueValue.trim()) return;
-    try {
-      await api.updateClue(userEmail, clueField, clueValue);
-      setClueData(prev => ({ ...prev, [clueField]: clueValue }));
-      setNewClues(prev => ({ ...prev, [clueField]: '' }));
-      notify(`SYSTEM: ${clueField.toUpperCase()} Uploaded!`);
-    } catch (error) { notify("ERROR: " + error.message); }
-  };
-
-  const handleResetClue = (clueField) => {
-    const columnMap = { clue_1: 'clue1_edit_count', clue_2: 'clue2_edit_count', clue_3: 'clue3_edit_count' };
-    const dbColumn = columnMap[clueField];
-    const currentCount = activityData ? activityData[dbColumn] : 0;
-    if (currentCount >= 5) {
-        setSystemAlert({ isOpen: true, type: 'error', title: 'QUOTA EXCEEDED', message: 'คุณลบคำใบ้นี้ครบ 5 ครั้งแล้ว', onConfirm: null });
-        return;
-    }
-    setSystemAlert({
-        isOpen: true, type: 'warning', title: 'CONFIRM DELETION', message: `ยืนยันการลบ ${clueField.toUpperCase()}? (เหลือสิทธิ์ ${5 - currentCount}/5)`, confirmText: 'CONFIRM DELETE',
-        onConfirm: async () => {
-            setSystemAlert(prev => ({ ...prev, isOpen: false }));
-            try {
-                await api.updateClue(userEmail, clueField, null);
-                await activityApi.updateActivity(userId, { [dbColumn]: currentCount + 1 });
-                setClueData(prev => ({ ...prev, [clueField]: null }));
-                setActivityData(prev => ({ ...prev, [dbColumn]: currentCount + 1 }));
-                notify(`SYSTEM: ${clueField.toUpperCase()} ล้างข้อมูลเรียบร้อย!`);
-            } catch (error) { notify("ERROR: " + error.message); }
-        }
-    });
-  };
 
   if (loading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-[#d966ff]" size={48} /></div>;
 
@@ -177,27 +79,34 @@ const S_Dashboard = ({ isAdmin }) => {
       <div className="w-full relative min-h-[500px]">
         <AnimatePresence mode="wait">
           {tab === 'profile' && (
-            <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full max-w-2xl mx-auto">
-              <SeniorProfileBox profile={profile} setProfile={setProfile} userEmail={userEmail} getDefaultAvatar={getDefaultAvatar} handleUploadAvatar={handleUploadAvatar} handleUpdateProfile={handleUpdateProfile} isSaving={isSaving}/>
+            <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <ErrorBoundary>
+                <SeniorProfileTab userId={userId} userEmail={userEmail} notify={notify} getDefaultAvatar={getDefaultAvatar} />
+              </ErrorBoundary>
             </motion.div>
           )}
           
           {tab === 'homework' && (
             <motion.div key="homework" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
-              <HomeworkHub userRole="senior" isAdmin={isAdmin} readOnly={!isAdmin} />
+              <ErrorBoundary>
+                <HomeworkHub userRole="senior" isAdmin={isAdmin} readOnly={!isAdmin} />
+              </ErrorBoundary>
             </motion.div>
           )}
 
           {tab === 'missions' && (
-            <motion.div key="missions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-              <div className="w-full"><SeniorInboxBox setInboxModal={setInboxModal} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/></div>
-              <div className="w-full"><SeniorClueController clueData={clueData} truncateText={truncateText} setModal={setModal} handleResetClue={handleResetClue} newClues={newClues} setNewClues={setNewClues} submitClue={submitClue}/></div>
+            <motion.div key="missions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <ErrorBoundary>
+                <SeniorMissionsTab userId={userId} userEmail={userEmail} notify={notify} setSystemAlert={setSystemAlert} getDefaultAvatar={getDefaultAvatar} />
+              </ErrorBoundary>
             </motion.div>
           )}
 
           {tab === 'directory' && (
             <motion.div key="directory" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
-              <JuniorDirectoryBox allJuniors={allJuniors} myJuniorIds={myJuniorIds} getDefaultAvatar={getDefaultAvatar} />
+              <ErrorBoundary>
+                <SeniorDirectoryTab userEmail={userEmail} getDefaultAvatar={getDefaultAvatar} />
+              </ErrorBoundary>
             </motion.div>
           )}
 
@@ -214,9 +123,6 @@ const S_Dashboard = ({ isAdmin }) => {
           )}
         </AnimatePresence>
       </div>
-      
-      <InboxModal isOpen={inboxModal} onClose={() => setInboxModal(false)} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/>
-      <ClueModal isOpen={modal.isOpen} content={modal.content} onClose={() => setModal({ isOpen: false, content: '' })} notify={notify}/>
       </div>
     </div>
   );

@@ -24,7 +24,7 @@ export const fetchQuizQuestions = async () => {
 };
 
 export const updateProfile = async (id, profileData) => {
-    const { error } = await supabase.from('profiles').upsert({ id, ...profileData });
+    const { error } = await supabase.from('profiles').upsert({ id, user_id: id, ...profileData });
     if (error) throw error;
 };
 

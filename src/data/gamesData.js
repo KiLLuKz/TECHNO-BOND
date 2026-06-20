@@ -1,4 +1,4 @@
-import { Gamepad2, Users, Crown, Rocket, Anchor, X} from 'lucide-react';
+import { Gamepad2, Users, Crown, Rocket, Anchor, X, Toolbox} from 'lucide-react';
 
 export const gamesData = [
   {
@@ -78,6 +78,19 @@ export const gamesData = [
     tagGradient: 'from-[#86ACFF] to-[#2200FF]',
     tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
     players: 'Single player & Classic'
+  },
+  {
+    id: 'cozy-rpg',
+    title: "COZY RPG",
+    desc: 'กำลังพัฒนา... ด้วย Unity',
+    image: null,
+    IconComponent: Toolbox,
+    tag: 'WIP',
+    colorTheme: '#ff0000',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#EF4444] to-[#B91C1C]',
+    tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
+    players: 'Multiplayer - Farming & PVE'
   },
   {
     id: 'chess',
