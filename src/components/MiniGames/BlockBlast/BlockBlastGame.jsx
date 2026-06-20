@@ -23,7 +23,7 @@ const saveScore = async (finalScore) => {
         await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
       }
     } else {
-      await supabase.from('leaderboard').insert([{ username: username, score: finalScore, game_slug: gameSlug }]);
+      await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
     }
   } catch (error) {
     console.error("Error saving score:", error);
@@ -502,7 +502,10 @@ const BlockBlastGame = () => {
           <div className="bg-[#110b1c] border border-indigo-500/30 p-8 rounded-3xl text-center w-[90%] max-w-[350px]">
             <h2 className="text-3xl font-bold text-white mb-2 font-['Orbitron']">OUT OF MOVES</h2>
             <p className="text-gray-400 mb-6 font-['Rajdhani'] text-lg">FINAL SCORE <span className="text-[#99eedd] font-bold text-4xl block mt-2">{score}</span></p>
-            <button onClick={performReset} className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-3 rounded-xl font-bold tracking-widest hover:bg-indigo-600/50 transition-all">TRY AGAIN</button>
+            <div className="flex flex-col gap-3">
+              <button onClick={performReset} className="w-full bg-indigo-600/30 border border-indigo-500 text-indigo-300 py-3 rounded-xl font-bold tracking-widest hover:bg-indigo-600/50 transition-all">TRY AGAIN</button>
+              <button onClick={() => navigate('/dashboard/minigames')} className="w-full bg-white/5 border border-white/10 text-gray-300 py-3 rounded-xl font-bold tracking-widest hover:bg-white/10 transition-all">EXIT</button>
+            </div>
           </div>
         </motion.div>
       )}

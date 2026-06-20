@@ -14,3 +14,5 @@ Whenever you are working in this workspace, you **MUST** strictly follow the gui
 4. **Performance Rules**: 
    - Enforce **Code Splitting**: All new heavy components or routes must be loaded via `React.lazy()` and `<Suspense>`.
    - **Canvas Optimization**: Do not use `useState` inside a 60FPS Canvas loop; use `useRef` to bypass React's render cycle for game logic.
+4. **Answer Rules**: 
+   - If you can Answer in Thai Languages

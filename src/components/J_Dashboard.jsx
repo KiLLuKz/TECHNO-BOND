@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as api from '../api/juniorApi';
@@ -14,8 +15,11 @@ import BonusPanel from './Junior_Dashboard/BonusPanel';
 import QuizModal from './Junior_Dashboard/QuizModal';
 import ClueModal from './Junior_Dashboard/ClueModal';
 import SeniorDirectoryBox from './Junior_Dashboard/SeniorDirectoryBox';
+import JuniorSidebar from './Junior_Dashboard/JuniorSidebar';
+import MiniGames from './MiniGames/MiniGames';
 
-const J_Dashboard = () => {
+const J_Dashboard = ({ isAdmin }) => {
+  const { tab } = useParams();
   const [activityData, setActivityData] = useState(null);
   const [userId, setUserId] = useState(null);
   const [clueData, setClueData] = useState(null);
@@ -206,58 +210,88 @@ const J_Dashboard = () => {
     : true;
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-10 font-['Orbitron'] text-white relative overflow-y-auto overflow-x-hidden w-full max-w-[100vw]">
-      <AnimatePresence>
-      {notification.isOpen && (
-        <motion.div 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-            className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#99eedd] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(153,238,221,0.2)]"
-        >
-            <CheckCircle className="text-[#99eedd]" size={20} />
-            <span className="text-sm font-['Rajdhani'] tracking-wider">{notification.message}</span>
-        </motion.div>
-      )}
-      </AnimatePresence>
+    <div className="flex w-full min-h-[100dvh] font-['Orbitron'] text-white">
+      <JuniorSidebar activeTab={tab} isAdmin={isAdmin} />
       
-      <h1 className="text-2xl md:text-4xl text-[#99eedd] mb-6 md:mb-8 text-center md:text-left tracking-wider">
-        JUNIOR_OS v1.0
-      </h1>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 w-full">
-        {/* --- ปรับแก้: ใช้ clueData.junior_id --- */}
-        <div className="h-full w-full overflow-hidden">
-            <ProfileBox 
-                profile={profile} 
-                setProfile={setProfile} 
-                handleUploadAvatar={handleUploadAvatar} 
-                handleUpdateProfile={handleUpdateProfile} 
-                isSaving={isSaving} 
-                defaultAvatar={getDefaultAvatar('junior', clueData?.junior_id)}
-            />
-        </div>
-        <div className="h-full w-full overflow-hidden"><SeniorClueBoard clueData={clueData} isClue2Unlocked={isClue2Unlocked} isClue3Unlocked={isClue3Unlocked} setModal={setModal} truncateClue={truncateClue} /></div>
-        <div className="h-full w-full overflow-hidden sm:col-span-2 lg:col-span-1"><TransmissionBox messagesLeft={messagesLeft} messageText={messageText} setMessageText={setMessageText} handleSendMessage={handleSendMessage} hasSeniorEmail={!!clueData?.senior_student_id} /></div>
+      <div className="flex-1 w-full p-4 sm:p-6 md:p-10 relative overflow-x-hidden">
+        <AnimatePresence>
+        {notification.isOpen && (
+          <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed bottom-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#99eedd] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(153,238,221,0.2)]"
+          >
+              <CheckCircle className="text-[#99eedd]" size={20} />
+              <span className="text-sm font-['Rajdhani'] tracking-wider">{notification.message}</span>
+          </motion.div>
+        )}
+        </AnimatePresence>
+        
+        <h1 className="text-2xl md:text-4xl text-[#99eedd] mb-6 md:mb-8 text-center md:text-left tracking-wider">
+          JUNIOR_OS v1.0
+        </h1>
+        
+        <AnimatePresence mode="wait">
+          {tab === 'profile' && (
+            <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="space-y-6">
+              <div className="grid grid-cols-1 w-full max-w-2xl mx-auto">
+                <div className="h-full w-full overflow-hidden">
+                    <ProfileBox 
+                        profile={profile} 
+                        setProfile={setProfile} 
+                        handleUploadAvatar={handleUploadAvatar} 
+                        handleUpdateProfile={handleUpdateProfile} 
+                        isSaving={isSaving} 
+                        defaultAvatar={getDefaultAvatar('junior', clueData?.junior_id)}
+                    />
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'missions' && (
+            <motion.div key="missions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-stretch">
+                <div className="h-full w-full overflow-hidden">
+                    <SeniorClueBoard clueData={clueData} isClue2Unlocked={isClue2Unlocked} isClue3Unlocked={isClue3Unlocked} setModal={setModal} truncateClue={truncateClue} />
+                </div>
+                <div className="h-full w-full overflow-hidden">
+                    <TransmissionBox messagesLeft={messagesLeft} messageText={messageText} setMessageText={setMessageText} handleSendMessage={handleSendMessage} hasSeniorEmail={!!clueData?.senior_student_id} />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full items-stretch">
+                <div className="h-full w-full overflow-hidden"><GuessPanel isGameCleared={isGameCleared} canGuess={canGuess} guessInput={guessInput} setGuessInput={setGuessInput} handleGuessSubmit={handleGuessSubmit} guessFeedback={guessFeedback}/></div>
+                <div className="h-full w-full overflow-hidden"><BonusPanel isQuizPassed={isQuizPassed} startQuiz={startQuiz} canPlayQuiz={canPlayQuiz} /></div>
+              </div>
+            </motion.div>
+          )}
+          
+          {tab === 'directory' && (
+            <motion.div key="directory" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="space-y-6">
+              <div className="grid grid-cols-1 w-full">
+                <div className="w-full overflow-hidden">
+                    <SeniorDirectoryBox 
+                        seniors={allSeniors} 
+                        getDefaultAvatar={getDefaultAvatar} 
+                    />
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {tab === 'minigames' && (
+            <motion.div key="minigames" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <MiniGames />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        
+        <QuizModal isOpen={quizModal} onClose={() => setQuizModal(false)} quizState={quizState} startQuiz={startQuiz} randomizedBank={randomizedBank} selectedOption={selectedOption} isAnswerCorrect={isAnswerCorrect} handleAnswer={handleAnswer} />
+        <ClueModal isOpen={modal.isOpen} content={modal.content} onClose={() => setModal({ isOpen: false, content: '' })} notify={notify} />
       </div>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4 w-full items-stretch">
-        <div className="h-full w-full overflow-hidden"><GuessPanel isGameCleared={isGameCleared} canGuess={canGuess} guessInput={guessInput} setGuessInput={setGuessInput} handleGuessSubmit={handleGuessSubmit} guessFeedback={guessFeedback}/></div>
-        <div className="h-full w-full overflow-hidden"><BonusPanel isQuizPassed={isQuizPassed} startQuiz={startQuiz} canPlayQuiz={canPlayQuiz} /></div>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-4 w-full">
-        <div className="w-full overflow-hidden">
-            <SeniorDirectoryBox 
-                seniors={allSeniors} 
-                getDefaultAvatar={getDefaultAvatar} 
-            />
-        </div>
-      </div>
-      
-      <QuizModal isOpen={quizModal} onClose={() => setQuizModal(false)} quizState={quizState} startQuiz={startQuiz} randomizedBank={randomizedBank} selectedOption={selectedOption} isAnswerCorrect={isAnswerCorrect} handleAnswer={handleAnswer} />
-      <ClueModal isOpen={modal.isOpen} content={modal.content} onClose={() => setModal({ isOpen: false, content: '' })} notify={notify} />
     </div>
   );
 };

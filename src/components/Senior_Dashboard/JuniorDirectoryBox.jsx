@@ -5,6 +5,16 @@ import { motion } from 'framer-motion';
 const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', bounce: 0.4 } }
+  };
+
   const filteredJuniors = allJuniors.filter(jr => {
     const term = searchTerm.toLowerCase();
     return (jr.junior_student_id && jr.junior_student_id.toLowerCase().includes(term)) ||
@@ -61,11 +71,11 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
                         <th className="pb-4 pl-4 font-normal">Status</th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <motion.tbody variants={containerVariants} initial="hidden" animate="visible">
                     {filteredJuniors.map((jr) => {
                         const isMyJunior = myJuniorIds.includes(jr.junior_id);
                         return (
-                        <tr key={jr.junior_id} className={`border-b transition-colors ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'border-white/5 hover:bg-white/5'}`}>
+                        <motion.tr variants={itemVariants} key={jr.junior_id} className={`border-b transition-colors ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'border-white/5 hover:bg-white/5'}`}>
                             <td className="py-4 pl-4 font-bold text-[#d966ff]">{jr.junior_student_id}</td>
                             <td className="py-4 pl-6">
                                 <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden border border-white/10">
@@ -82,20 +92,20 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
                                     </span>
                                 )}
                             </td>
-                        </tr>
+                        </motion.tr>
                         );
                     })}
-                    </tbody>
+                    </motion.tbody>
                 </table>
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden flex flex-col gap-3">
+            <motion.div variants={containerVariants} initial="hidden" animate="visible" className="md:hidden flex flex-col gap-3">
                 {filteredJuniors.length > 0 ? (
                     filteredJuniors.map(jr => {
                         const isMyJunior = myJuniorIds.includes(jr.junior_id);
                         return (
-                            <div key={jr.junior_id} className={`p-4 rounded-xl border flex items-center gap-4 ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'bg-white/5 border-white/5'}`}>
+                            <motion.div variants={itemVariants} key={jr.junior_id} className={`p-4 rounded-xl border flex items-center gap-4 ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'bg-white/5 border-white/5'}`}>
                                 <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-white/10">
                                     {jr.avatar_url && <img src={jr.avatar_url} className="w-full h-full object-cover" alt="" />}
                                 </div>
@@ -108,13 +118,13 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
                                     <div className="text-[#99eedd] text-sm font-bold">{jr.junior_nickname || '-'}</div>
                                     <div>{renderUsername(jr.username)}</div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )
                     })
                 ) : (
                     <div className="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>
                 )}
-            </div>
+            </motion.div>
         </div>
     </motion.div>
   );

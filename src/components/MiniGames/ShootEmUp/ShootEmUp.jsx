@@ -16,7 +16,7 @@ const saveScore = async (finalScore) => {
     if (existingData) {
       if (finalScore > existingData.score) await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
     } else {
-      await supabase.from('leaderboard').insert([{ username: username, score: finalScore, game_slug: gameSlug }]);
+      await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
     }
   } catch (error) { console.error("Error saving score:", error); }
 };
@@ -66,7 +66,7 @@ const ShootEmUp = () => {
     vh: 800 // Virtual Height, will be dynamic based on screen
   });
 
-  const touchState = useRef({ isDragging: false, startX: 0, startY: 0, initialPlayerX: 0, initialPlayerY: 0 });
+  const touchState = useRef({ isDragging: false, startX: 0, startY: 0, deltaX: 0, deltaY: 0, virtualStartX: 0, virtualStartY: 0 });
   const buffRef = useRef(0);
   const audioCtx = useRef(null);
   const drawScale = useRef(1);
@@ -77,8 +77,8 @@ const ShootEmUp = () => {
       const canvas = canvasRef.current;
       const container = containerRef.current;
       if (canvas && container) {
-        // หักลบ pt-[80px] หรือขนาด Header
-        const containerHeight = container.clientHeight - 80; 
+        // ใช้ความสูงเต็มของ Container
+        const containerHeight = container.clientHeight; 
         
         // จำกัดความกว้างสูงสุดไว้ที่ 600px ป้องกันภาพแตก/ยืดแนวนอนเวลาเล่นบน PC
         const containerWidth = Math.min(container.clientWidth, 600);
@@ -267,11 +267,32 @@ const ShootEmUp = () => {
       const moveUp = state.keys['ArrowUp'] || state.keys['KeyW'];
       const moveDown = state.keys['ArrowDown'] || state.keys['KeyS'];
 
-      const spd = 7;
+      const spd = hasBuff ? 10 : 7;
       if (moveLeft && state.player.x > 0) state.player.x -= spd;
       if (moveRight && state.player.x < W - state.player.width) state.player.x += spd;
       if (moveUp && state.player.y > 0) state.player.y -= spd;
       if (moveDown && state.player.y < H - state.player.height) state.player.y += spd;
+
+      // Mobile Virtual Joystick logic
+      if (touchState.current.isDragging) {
+        const maxDrag = 50; 
+        let vx = (touchState.current.deltaX / maxDrag) * spd;
+        let vy = (touchState.current.deltaY / maxDrag) * spd;
+        
+        const speedMagnitude = Math.hypot(vx, vy);
+        if (speedMagnitude > spd) {
+            vx = (vx / speedMagnitude) * spd;
+            vy = (vy / speedMagnitude) * spd;
+        }
+        
+        state.player.x += vx;
+        state.player.y += vy;
+        
+        if (state.player.x < 0) state.player.x = 0;
+        if (state.player.x > W - state.player.width) state.player.x = W - state.player.width;
+        if (state.player.y < 0) state.player.y = 0;
+        if (state.player.y > H - state.player.height) state.player.y = H - state.player.height;
+      }
 
       // Auto Fire Logic based on Weapon Level
       if (state.frame % fireRate === 0) {
@@ -584,6 +605,41 @@ const ShootEmUp = () => {
           ctx.restore();
       }
 
+      // Virtual Joystick UI
+      if (touchState.current.isDragging && touchState.current.virtualStartX !== undefined) {
+        ctx.save();
+        const jx = touchState.current.virtualStartX;
+        const jy = touchState.current.virtualStartY;
+        
+        // base circle
+        ctx.beginPath(); ctx.arc(jx, jy, 40, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)'; ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'; ctx.lineWidth = 2; ctx.stroke();
+
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const rect = canvas.getBoundingClientRect();
+          const scaleX = VIRTUAL_WIDTH / rect.width;
+          const scaleY = state.vh / rect.height;
+          
+          let knobDX = touchState.current.deltaX * scaleX;
+          let knobDY = touchState.current.deltaY * scaleY;
+          
+          const maxDist = 40;
+          const dist = Math.hypot(knobDX, knobDY);
+          if (dist > maxDist) {
+            knobDX = (knobDX / dist) * maxDist;
+            knobDY = (knobDY / dist) * maxDist;
+          }
+
+          // knob
+          ctx.beginPath(); ctx.arc(jx + knobDX, jy + knobDY, 15, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(126, 207, 255, 0.4)'; ctx.fill();
+          ctx.strokeStyle = 'rgba(126, 207, 255, 0.8)'; ctx.stroke();
+        }
+        ctx.restore();
+      }
+
       // Floating Texts
       state.floatingTexts.forEach(f => {
           ctx.globalAlpha = Math.max(0, f.life);
@@ -622,37 +678,37 @@ const ShootEmUp = () => {
     const touch = e.touches[0];
     touchState.current.startX = touch.clientX;
     touchState.current.startY = touch.clientY;
-    touchState.current.initialPlayerX = gameState.current.player.x;
-    touchState.current.initialPlayerY = gameState.current.player.y;
+    touchState.current.deltaX = 0;
+    touchState.current.deltaY = 0;
+
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = VIRTUAL_WIDTH / rect.width;
+      const scaleY = gameState.current.vh / rect.height;
+      touchState.current.virtualStartX = (touch.clientX - rect.left) * scaleX;
+      touchState.current.virtualStartY = (touch.clientY - rect.top) * scaleY;
+    }
   };
   
   const handleTouchMove = (e) => {
     if(!started || gameOver || !touchState.current.isDragging) return;
     const touch = e.touches[0];
-    const dx = touch.clientX - touchState.current.startX;
-    const dy = touch.clientY - touchState.current.startY;
-    
-    const scale = 1 / drawScale.current;
-    
-    let newX = touchState.current.initialPlayerX + (dx * scale);
-    let newY = touchState.current.initialPlayerY + (dy * scale);
-    
-    newX = Math.max(0, Math.min(VIRTUAL_WIDTH - gameState.current.player.width, newX));
-    newY = Math.max(0, Math.min(gameState.current.vh - gameState.current.player.height, newY));
-    
-    gameState.current.player.x = newX;
-    gameState.current.player.y = newY;
+    touchState.current.deltaX = touch.clientX - touchState.current.startX;
+    touchState.current.deltaY = touch.clientY - touchState.current.startY;
   };
   
   const handleTouchEnd = () => {
     touchState.current.isDragging = false;
+    touchState.current.deltaX = 0;
+    touchState.current.deltaY = 0;
   };
 
   const hpColor = hp > 60 ? '#44e88a' : hp > 30 ? '#ffa500' : '#ff4444';
   const expProgress = level >= 5 ? 100 : (exp / EXP_TABLE[level]) * 100;
 
   return (
-    <div ref={containerRef} className="relative w-full h-[100dvh] bg-[#060412] font-['Orbitron'] select-none overflow-hidden flex justify-center pt-[80px]">
+    <div ref={containerRef} className="relative w-full h-[100dvh] bg-[#060412] font-['Orbitron'] select-none overflow-hidden flex justify-center">
       
       {/* ---------------- CANVAS LAYER ---------------- */}
       <canvas 
@@ -685,40 +741,64 @@ const ShootEmUp = () => {
           )}
       </AnimatePresence>
 
-      {/* ---------------- HUD OVERLAY ---------------- */}
-      <div className="absolute top-[80px] left-0 w-full z-10 px-4 py-4 md:px-8 pointer-events-none">
-        <div className="w-full max-w-[600px] mx-auto flex flex-col gap-2 pointer-events-auto">
-            <div className="flex justify-between items-start">
-                <div className="flex items-center gap-3">
-                    <div className="flex flex-col gap-2">
-                        <button onClick={() => navigate('/dashboard/minigames')} className="bg-black/40 hover:bg-white/20 p-2 md:p-3 rounded-xl border border-white/10 text-white backdrop-blur-sm transition-all flex items-center justify-center">
-                            <ArrowLeft size={24} />
-                        </button>
-                        <button onClick={() => setIsMuted(m => !m)} className="bg-black/40 hover:bg-white/20 p-2 md:p-3 rounded-xl border border-white/10 text-white backdrop-blur-sm transition-all flex items-center justify-center">
-                            {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-                        </button>
-                    </div>
+      {/* ---------------- TOP HUD OVERLAY ---------------- */}
+      <div className="absolute top-0 left-0 w-full z-10 px-4 py-4 md:px-8 pointer-events-none flex justify-center">
+        <div className="w-full max-w-[600px] flex justify-between items-start pointer-events-auto">
+            {/* Left: Buttons */}
+            <div className="flex gap-2">
+                <button onClick={() => navigate('/dashboard/minigames')} className="bg-black/40 hover:bg-white/20 p-2 md:p-3 rounded-xl border border-white/10 text-white backdrop-blur-sm transition-all flex items-center justify-center">
+                    <ArrowLeft size={24} />
+                </button>
+                <button onClick={() => setIsMuted(m => !m)} className="bg-black/40 hover:bg-white/20 p-2 md:p-3 rounded-xl border border-white/10 text-white backdrop-blur-sm transition-all flex items-center justify-center">
+                    {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                </button>
+            </div>
 
-                    <div className="flex flex-col items-start bg-black/40 px-4 py-3 rounded-xl border border-white/10 backdrop-blur-sm h-[96px] justify-center">
-                        <span className="text-[10px] md:text-xs text-[#7ecfff] tracking-widest uppercase">Score</span>
-                        <span className="text-xl md:text-2xl font-bold text-[#ffe066] leading-none drop-shadow-[0_0_8px_rgba(255,224,102,0.5)]">
-                            {formatScore(score)}
-                        </span>
-                    </div>
+            {/* Right: Score & Level on same line */}
+            <div className="flex gap-4 bg-black/40 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-sm items-center">
+                <div className="flex flex-col items-end">
+                    <span className="text-[10px] md:text-xs text-[#7ecfff] tracking-widest uppercase">Score</span>
+                    <span className="text-lg md:text-xl font-bold text-[#ffe066] leading-none drop-shadow-[0_0_8px_rgba(255,224,102,0.5)]">
+                        {formatScore(score)}
+                    </span>
                 </div>
-
-                <div className="flex flex-col items-end bg-black/40 px-4 py-3 rounded-xl border border-white/10 backdrop-blur-sm h-[96px] justify-center">
+                <div className="w-[1px] h-8 bg-white/20 mx-1"></div>
+                <div className="flex flex-col items-end">
                     <span className="text-[10px] md:text-xs text-[#d966ff] tracking-widest uppercase flex items-center gap-1">
                         <Star size={12}/> Level
                     </span>
-                    <span className="text-xl md:text-2xl font-bold text-white leading-none drop-shadow-[0_0_8px_rgba(217,102,255,0.5)]">
+                    <span className="text-lg md:text-xl font-bold text-white leading-none drop-shadow-[0_0_8px_rgba(217,102,255,0.5)]">
                         {level >= 5 ? 'MAX' : level}
                     </span>
                 </div>
             </div>
+        </div>
+      </div>
+
+      {/* ---------------- BOTTOM HUD OVERLAY ---------------- */}
+      <div className="absolute bottom-0 left-0 w-full z-10 px-4 py-6 md:px-8 pointer-events-none flex justify-center bg-gradient-to-t from-[#060412]/80 to-transparent">
+        <div className="w-full max-w-[600px] flex flex-col gap-2 pointer-events-auto">
+            {/* Status Text */}
+            <div className="h-4 px-2 flex justify-start items-center w-full gap-4 mb-1">
+            {healTextUI && (
+                <span className="text-[#FF1493] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-[bounce_0.5s_infinite] drop-shadow-[0_0_8px_#FF1493]">
+                    <Heart size={12}/> +50 HP
+                </span>
+            )}
+            {buffTimeUI > 0 && (
+                <span className="text-[#3CFF00] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-pulse drop-shadow-[0_0_8px_#3CFF00]">
+                    <Zap size={12}/> SPEED: {buffTimeUI}s
+                </span>
+            )}
+            {shieldActiveUI && (
+                <span className="text-[#4ECDC4] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-pulse drop-shadow-[0_0_8px_#4ECDC4]">
+                    <ShieldAlert size={12}/> SHIELD ACTIVE
+                </span>
+            )}
+            </div>
 
             {/* HP Bar */}
-            <div className="flex items-center gap-3 px-2 mt-1">
+            <div className="flex items-center gap-3 px-2">
                 <span className="text-gray-300 text-[10px] md:text-xs font-bold w-8 drop-shadow-md">HP</span>
                 <div className="flex-1 h-2.5 bg-black/60 rounded-full overflow-hidden border border-white/20 relative backdrop-blur-sm">
                     <div className="h-full rounded-full transition-all duration-300" style={{ width: `${Math.max(0, hp)}%`, backgroundColor: hpColor, boxShadow: `0 0 10px ${hpColor}` }} />
@@ -736,25 +816,6 @@ const ShootEmUp = () => {
                    {level >= 5 ? 'MAX' : `${Math.floor(expProgress)}%`}
                 </span>
             </div>
-            
-            {/* Status Text */}
-            <div className="h-4 px-2 flex justify-start items-center w-full mt-1 gap-4">
-            {healTextUI && (
-                <span className="text-[#FF1493] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-[bounce_0.5s_infinite] drop-shadow-[0_0_8px_#FF1493]">
-                    <Heart size={12}/> +50 HP
-                </span>
-            )}
-            {buffTimeUI > 0 && (
-                <span className="text-[#3CFF00] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-pulse drop-shadow-[0_0_8px_#3CFF00]">
-                    <Zap size={12}/> SPEED: {buffTimeUI}s
-                </span>
-            )}
-            {shieldActiveUI && (
-                <span className="text-[#4ECDC4] text-[10px] md:text-xs font-bold flex items-center gap-1 animate-pulse drop-shadow-[0_0_8px_#4ECDC4]">
-                    <ShieldAlert size={12}/> SHIELD ACTIVE
-                </span>
-            )}
-            </div>
         </div>
       </div>
 
@@ -765,7 +826,7 @@ const ShootEmUp = () => {
           <h1 className="text-3xl md:text-4xl font-bold text-[#7ecfff] tracking-[0.2em] mb-4 text-center">STARFIGHTER</h1>
           <div className="text-gray-300 text-sm tracking-wider text-center leading-loose mb-10 font-['Rajdhani'] bg-black/40 px-6 py-4 rounded-xl border border-white/10 pointer-events-auto">
             <span className="text-white font-bold">W A S D / Arrows :</span> Move <br/> 
-            <span className="text-[#4ECDC4] font-bold">Touch & Drag :</span> Move (Auto-Fire) <br/> 
+            <span className="text-[#4ECDC4] font-bold">Touch & Drag :</span> Virtual Joystick (Auto-Fire) <br/> 
             <span className="text-[#ffe066] font-bold mt-2 inline-block">Defeat enemies to Level Up!</span>
           </div>
           <button onClick={() => setStarted(true)} className="px-10 py-4 bg-[#7ecfff]/10 border-2 border-[#7ecfff] text-[#7ecfff] rounded-xl hover:bg-[#7ecfff]/30 transition-all font-bold tracking-[0.3em] shadow-[0_0_20px_rgba(126,207,255,0.4)] text-lg pointer-events-auto">
@@ -789,9 +850,14 @@ const ShootEmUp = () => {
              <p className="text-gray-500 text-sm tracking-wider">Reached Wave {wave}</p>
           </div>
 
-          <button onClick={restart} className="px-10 py-4 bg-[#7ecfff]/10 border-2 border-[#7ecfff] text-[#7ecfff] rounded-xl hover:bg-[#7ecfff]/30 transition-all font-bold tracking-[0.3em] text-lg shadow-[0_0_15px_rgba(126,207,255,0.3)] pointer-events-auto relative z-[60]">
-            TRY AGAIN
-          </button>
+          <div className="flex flex-col gap-4 w-full max-w-sm">
+            <button onClick={restart} className="w-full py-4 bg-[#7ecfff]/10 border-2 border-[#7ecfff] text-[#7ecfff] rounded-xl hover:bg-[#7ecfff]/30 transition-all font-bold tracking-[0.3em] text-lg shadow-[0_0_15px_rgba(126,207,255,0.3)] pointer-events-auto relative z-[60]">
+              TRY AGAIN
+            </button>
+            <button onClick={() => navigate('/dashboard/minigames')} className="w-full py-4 bg-white/5 border-2 border-white/20 text-white rounded-xl hover:bg-white/10 transition-all font-bold tracking-[0.3em] text-lg shadow-[0_0_15px_rgba(255,255,255,0.1)] pointer-events-auto relative z-[60]">
+              EXIT
+            </button>
+          </div>
         </motion.div>
       )}
 

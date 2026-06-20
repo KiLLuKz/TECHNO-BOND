@@ -1,7 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Terminal, Palette, Microscope, ChevronRight, Sparkles, Cpu, Activity, Gamepad2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate, useInView } from 'framer-motion';
+
+const AnimatedNumber = ({ from = 0, to, duration = 2, suffix = '' }) => {
+  const count = useMotionValue(from);
+  const rounded = useTransform(count, (latest) => Math.round(latest) + suffix);
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+
+  useEffect(() => {
+    if (inView) {
+      animate(count, to, { duration: duration });
+    }
+  }, [inView, count, to, duration]);
+
+  return <motion.span ref={ref}>{rounded}</motion.span>;
+};
 
 const Curriculum = () => {
   const navigate = useNavigate();
@@ -20,7 +35,13 @@ const Curriculum = () => {
         </div>
         
         {/* เนื้อหาหลัก */}
-        <h1 className="relative z-10 text-3xl md:text-5xl lg:text-6xl font-bold tracking-wider leading-tight mb-6 break-keep" data-aos="zoom-out">
+        <motion.h1 
+          initial={{ opacity: 0, scale: 0.8 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative z-10 text-3xl md:text-5xl lg:text-6xl font-bold tracking-wider leading-tight mb-6 break-keep"
+        >
           วิทยาศาสตร์ · คณิตศาสตร์ · <br className="md:hidden"/>
           <span 
             className="text-transparent bg-clip-text drop-shadow-[0_0_15px_rgba(168,85,247,0.4)]"
@@ -28,38 +49,65 @@ const Curriculum = () => {
           >
             เทคโนโลยี
           </span>
-        </h1>
-        <p className="relative z-10 text-gray-400 text-sm md:text-lg tracking-widest uppercase max-w-2xl" data-aos="fade-up" data-aos-delay="300">
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="relative z-10 text-gray-400 text-sm md:text-lg tracking-widest uppercase max-w-2xl"
+        >
           Beyond traditional learning. We build the creators of tomorrow.
-        </p>
+        </motion.p>
       </section>
 
       {/* --- Stats Bento Grid --- */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-6 max-w-7xl mx-auto mt-10">
-        <div className="lg:col-span-2 bg-gradient-to-br from-[#7b2cbf]/20 to-[#a855f7]/10 backdrop-blur-md border border-[#a855f7]/30 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_10px_40px_rgba(168,85,247,0.3)] group" data-aos="fade-right">
-          <h2 className="font-['Orbitron'] text-5xl md:text-6xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">100%</h2>
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+        }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-6 max-w-7xl mx-auto mt-10"
+      >
+        <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="lg:col-span-2 bg-gradient-to-br from-[#7b2cbf]/20 to-[#a855f7]/10 backdrop-blur-md border border-[#a855f7]/30 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_10px_40px_rgba(168,85,247,0.3)] group">
+          <h2 className="font-['Orbitron'] text-5xl md:text-6xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">
+            <AnimatedNumber from={1} to={100} suffix="%" />
+          </h2>
           <p className="text-gray-300 tracking-wider text-sm md:text-base uppercase group-hover:text-white transition-colors">University Admission</p>
-        </div>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:border-[#a855f7]/50 hover:shadow-[0_10px_30px_rgba(168,85,247,0.2)] group" data-aos="fade-up" data-aos-delay="200">
-          <h2 className="font-['Orbitron'] text-5xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">4+</h2>
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:border-[#a855f7]/50 hover:shadow-[0_10px_30px_rgba(168,85,247,0.2)] group">
+          <h2 className="font-['Orbitron'] text-5xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">
+            <AnimatedNumber from={1} to={4} suffix="+" />
+          </h2>
           <p className="text-gray-300 tracking-wider text-sm uppercase group-hover:text-white transition-colors">Core Tech Skills</p>
-        </div>
-        <div className="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:border-[#a855f7]/50 hover:shadow-[0_10px_30px_rgba(168,85,247,0.2)] group" data-aos="fade-up" data-aos-delay="400">
-          <h2 className="font-['Orbitron'] text-5xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">10+</h2>
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="bg-white/5 backdrop-blur-md border border-white/10 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:border-[#a855f7]/50 hover:shadow-[0_10px_30px_rgba(168,85,247,0.2)] group">
+          <h2 className="font-['Orbitron'] text-5xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">
+            <AnimatedNumber from={1} to={10} suffix="+" />
+          </h2>
           <p className="text-gray-300 tracking-wider text-sm uppercase group-hover:text-white transition-colors">Awards Won</p>
-        </div>
-        <div className="sm:col-span-2 lg:col-span-4 bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-[30px] text-center transition-all duration-500 hover:border-[#a855f7]/50 hover:bg-white/10 group" data-aos="fade-up" data-aos-delay="600">
+        </motion.div>
+        <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }} className="sm:col-span-2 lg:col-span-4 bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-[30px] text-center transition-all duration-500 hover:border-[#a855f7]/50 hover:bg-white/10 group">
           <h2 className="font-['Orbitron'] text-3xl md:text-4xl text-[#c084fc] mb-2 font-bold tracking-widest flex items-center justify-center gap-3">
             <Sparkles className="text-[#a855f7] opacity-0 group-hover:opacity-100 transition-opacity duration-500" size={28} />
             GEN 8
             <Sparkles className="text-[#a855f7] opacity-0 group-hover:opacity-100 transition-opacity duration-500" size={28} />
           </h2>
           <p className="text-gray-400 tracking-wider text-sm uppercase">Legacy Continues</p>
-        </div>
-      </section>
+        </motion.div>
+      </motion.section>
 
       {/* --- Interactive Features Section --- */}
-      <section className="max-w-6xl mx-auto mt-24 p-6 md:p-12 bg-[radial-gradient(circle_at_center,#4f2ec3_0%,transparent_100%)] border border-white/5 rounded-[40px]" data-aos="fade-up">
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="max-w-6xl mx-auto mt-24 p-6 md:p-12 bg-[radial-gradient(circle_at_center,#4f2ec3_0%,transparent_100%)] border border-white/5 rounded-[40px]"
+      >
         <div className="text-center mb-10">
           <h2 className="font-['Orbitron'] text-3xl md:text-4xl font-bold tracking-widest text-white mb-4">CORE COMPETENCIES</h2>
           <div className="w-20 h-1 bg-[#a855f7] mx-auto rounded-full"></div>
@@ -177,17 +225,26 @@ const Curriculum = () => {
           )}
 
         </motion.div>
-      </section>
+      </motion.section>
 
       {/* --- Career Path Section --- */}
-      <section className="max-w-4xl mx-auto mt-32 px-6">
-        <div className="text-center mb-16" data-aos="fade-down">
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+        }}
+        className="max-w-4xl mx-auto mt-32 px-6"
+      >
+        <motion.div variants={{ hidden: { opacity: 0, y: -20 }, visible: { opacity: 1, y: 0 } }} className="text-center mb-16">
           <h2 className="text-3xl font-bold tracking-widest text-white mb-2">เส้นทางความสำเร็จ</h2>
           <p className="text-gray-400">Career Paths after Graduation</p>
-        </div>
+        </motion.div>
 
         <div className="space-y-6">
-          <div className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2" data-aos="fade-right">
+          <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2">
             <div className="flex items-center justify-between w-full md:w-auto">
               <div className="font-['Orbitron'] text-4xl md:text-5xl font-black text-white/20 group-hover:text-[#a855f7]/40 transition-colors">01</div>
               <Cpu size={32} className="text-[#c084fc] md:hidden" />
@@ -196,9 +253,9 @@ const Curriculum = () => {
               <h3 className="text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Engineering & AI <Cpu size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
               <p className="text-gray-400 text-sm md:text-base">KMUTT, Chula, KMITL — Computer, Software, Robotics</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2" data-aos="fade-right" data-aos-delay="150">
+          <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2">
             <div className="flex items-center justify-between w-full md:w-auto">
               <div className="font-['Orbitron'] text-4xl md:text-5xl font-black text-white/20 group-hover:text-[#a855f7]/40 transition-colors">02</div>
               <Activity size={32} className="text-[#c084fc] md:hidden" />
@@ -207,9 +264,9 @@ const Curriculum = () => {
               <h3 className="text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Medicine & Health-Tech <Activity size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
               <p className="text-gray-400 text-sm md:text-base">ผสมผสานวิทยาศาสตร์การแพทย์กับนวัตกรรมดิจิทัล</p>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2" data-aos="fade-right" data-aos-delay="300">
+          <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="group flex flex-col md:flex-row items-start md:items-center gap-6 p-6 md:p-8 bg-white/5 border-l-4 border-[#a855f7] rounded-r-3xl transition-all hover:bg-white/10 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:-translate-x-2">
             <div className="flex items-center justify-between w-full md:w-auto">
               <div className="font-['Orbitron'] text-4xl md:text-5xl font-black text-white/20 group-hover:text-[#a855f7]/40 transition-colors">03</div>
               <Gamepad2 size={32} className="text-[#c084fc] md:hidden" />
@@ -218,12 +275,18 @@ const Curriculum = () => {
               <h3 className="text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Digital Content Creator <Gamepad2 size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
               <p className="text-gray-400 text-sm md:text-base">Game Dev, Animation, และ Tech YouTuber</p>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* --- Call to Action (CTA) --- */}
-      <section className="flex justify-center mt-32 mb-10 px-6" data-aos="zoom-in">
+      <motion.section 
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.8 }}
+        className="flex justify-center mt-32 mb-10 px-6"
+      >
         <div className="bg-white/5 backdrop-blur-xl border border-[#a855f7]/30 p-10 md:p-16 rounded-[40px] text-center w-full max-w-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] hover:border-[#a855f7]/60 transition-colors duration-500">
           <h2 className="font-['Orbitron'] text-2xl md:text-4xl font-bold text-white mb-4 tracking-widest">READY TO JOIN THE LEGACY?</h2>
           <p className="text-gray-400 mb-10">เตรียมพบกับก้าวย่างของ GEN 9 ในปีการศึกษาหน้า</p>
@@ -235,7 +298,7 @@ const Curriculum = () => {
             <ChevronRight className="group-hover:translate-x-1 transition-transform" size={20} />
           </button>
         </div>
-      </section>
+      </motion.section>
 
     </div>
   );

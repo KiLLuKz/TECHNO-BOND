@@ -1,5 +1,6 @@
 import React from 'react';
-import { MessageSquare, Maximize2, Clock, User } from 'lucide-react'; // 1. เพิ่ม User icon
+import { MessageSquare, Maximize2, Clock, User } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const SeniorInboxBox = ({ 
     setInboxModal, 
@@ -7,6 +8,16 @@ const SeniorInboxBox = ({
     getDefaultAvatar, 
     formatTime 
 }) => {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', bounce: 0.4 } }
+  };
+
   return (
     <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col h-[300px]">
       <div className="flex justify-between items-center mb-4">
@@ -20,12 +31,12 @@ const SeniorInboxBox = ({
               <Maximize2 size={12}/> EXPAND
           </button>
       </div>
-      <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-[#7eb8ff]/20">
+      <motion.div variants={containerVariants} initial="hidden" animate="visible" className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-[#7eb8ff]/20">
         {realMessages.length === 0 && (
             <p className="text-xs text-gray-500 text-center mt-10">NO TRANSMISSIONS YET</p>
         )}
         {realMessages.map((msg) => (
-          <div key={msg.id} className="flex items-start gap-3 bg-black/40 border border-white/5 rounded-lg p-3">
+          <motion.div variants={itemVariants} key={msg.id} className="flex items-start gap-3 bg-black/40 border border-white/5 rounded-lg p-3">
             {/* 2. ปรับการแสดงผลรูป Profile */}
             <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden flex-shrink-0 bg-[#08050f] flex items-center justify-center">
                 {msg.avatar_url ? (
@@ -54,9 +65,9 @@ const SeniorInboxBox = ({
                     {msg.message}
                 </p>
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 };

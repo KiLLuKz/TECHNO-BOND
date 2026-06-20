@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -60,9 +60,10 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
         <Route path="/dashboard" element={
           userRole ? <DashboardLayout /> : <div className="text-center mt-20 text-2xl font-['Orbitron']">ACCESS DENIED</div>
         }>
-          <Route index element={userRole === 'junior' ? <J_Dashboard /> : <S_Dashboard />} />
+          <Route index element={<Navigate to="/dashboard/profile" replace />} />
+          <Route path=":tab" element={userRole === 'junior' ? <J_Dashboard isAdmin={isAdmin} /> : <S_Dashboard isAdmin={isAdmin} />} />
           
-          <Route path="minigames" element={<MiniGames />} />
+
           <Route path="minigames/block-blast" element={<BlockBlastGame />} />
           <Route path="minigames/connect-four" element={<ConnectFourGame />} /> 
           <Route path="minigames/chess" element={<Referee />} />
@@ -71,7 +72,7 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
           <Route path="minigames/battleship" element={<BattleShip />} />
           <Route path="minigames/shoot-em-up" element={<ShootEmUp />} />
           
-          <Route path="admin" element={isAdmin ? <AdminDashboard /> : <div className="p-10 text-center text-white">ACCESS DENIED</div>} />
+
         </Route>
         
       </Routes>
@@ -147,7 +148,7 @@ export default function App() {
 
   return (
     <Router>
-      <div className="relative min-h-screen text-white flex flex-col">
+      <div className="relative min-h-[100dvh] text-white flex flex-col">
         <Background />
         <FloatingMenu userRole={userRole} isAdmin={isAdmin} onLogout={handleLogout} /> 
         <main className="flex-grow flex flex-col">

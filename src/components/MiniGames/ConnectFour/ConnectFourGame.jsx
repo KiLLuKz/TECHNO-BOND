@@ -154,9 +154,14 @@ const ConnectFourGame = () => {
             <h2 className="text-3xl font-bold text-white mb-6 font-['Orbitron'] tracking-widest">
               {winner === 'draw' ? 'DRAW!' : `PLAYER ${winner} WINS`}
             </h2>
-            <button onClick={resetGame} className="w-full bg-[#2EC4B6]/20 border border-[#2EC4B6] text-[#4ECDC4] py-3 px-8 rounded-xl font-bold tracking-widest hover:bg-[#2EC4B6]/40 transition-all hover:shadow-[0_0_20px_rgba(46,196,182,0.4)]">
-              PLAY AGAIN
-            </button>
+            <div className="flex flex-col gap-3">
+              <button onClick={resetGame} className="w-full bg-[#2EC4B6]/20 border border-[#2EC4B6] text-[#4ECDC4] py-3 px-8 rounded-xl font-bold tracking-widest hover:bg-[#2EC4B6]/40 transition-all hover:shadow-[0_0_20px_rgba(46,196,182,0.4)]">
+                PLAY AGAIN
+              </button>
+              <button onClick={() => navigate('/dashboard/minigames')} className="w-full bg-white/5 border border-white/10 text-white py-3 px-8 rounded-xl font-bold tracking-widest hover:bg-white/10 transition-all">
+                EXIT
+              </button>
+            </div>
           </div>
         </motion.div>
       )}

@@ -5,6 +5,16 @@ import { motion } from 'framer-motion';
 const SeniorDirectoryBox = ({ seniors }) => {
   const [searchTerm, setSearchTerm] = useState('');
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', bounce: 0.4 } }
+  };
+
   const filteredSeniors = seniors.filter(sr => {
     const term = searchTerm.toLowerCase();
     return (sr.senior_student_id && sr.senior_student_id.toLowerCase().includes(term)) ||
@@ -71,14 +81,14 @@ const SeniorDirectoryBox = ({ seniors }) => {
                             <th className="pb-4 pl-4 font-normal">Username</th>
                         </tr>
                     </thead>
-                    <tbody className="font-['Rajdhani']">
+                    <motion.tbody variants={containerVariants} initial="hidden" animate="visible" className="font-['Rajdhani']">
                         {seniors.length === 0 ? (
-                            <tr><td colSpan="5" className="py-10 text-center text-gray-500 text-sm">กำลังดึงข้อมูลพี่รหัส...</td></tr>
+                            <motion.tr variants={itemVariants}><td colSpan="5" className="py-10 text-center text-gray-500 text-sm">กำลังดึงข้อมูลพี่รหัส...</td></motion.tr>
                         ) : filteredSeniors.length === 0 ? (
-                            <tr><td colSpan="5" className="py-10 text-center text-gray-500 text-sm">ไม่พบข้อมูลที่ค้นหา</td></tr>
+                            <motion.tr variants={itemVariants}><td colSpan="5" className="py-10 text-center text-gray-500 text-sm">ไม่พบข้อมูลที่ค้นหา</td></motion.tr>
                         ) : (
                             filteredSeniors.map((sr) => (
-                                <tr key={sr.senior_id} className="border-b border-white/5 hover:bg-white/10 transition-colors">
+                                <motion.tr variants={itemVariants} key={sr.senior_id} className="border-b border-white/5 hover:bg-white/10 transition-colors">
                                     <td className="py-4 pl-4">
                                         <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border-2 border-white/10">
                                             {sr.avatar_url ? <img src={sr.avatar_url} className="w-full h-full object-cover" alt="avatar" /> : <User size={20} className="text-gray-400" />}
@@ -88,18 +98,18 @@ const SeniorDirectoryBox = ({ seniors }) => {
                                     <td className="py-4 pl-6 text-gray-300 font-bold">{sr.senior_full_name || '-'}</td>
                                     <td className="py-4 pl-6 text-[#99eedd] font-bold">{sr.senior_nickname || '-'}</td>
                                     <td className="py-4 pl-4 text-gray-400">{renderUsername(sr.username)}</td>
-                                </tr>
+                                </motion.tr>
                             ))
                         )}
-                    </tbody>
+                    </motion.tbody>
                 </table>
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden flex flex-col gap-3">
+            <motion.div variants={containerVariants} initial="hidden" animate="visible" className="md:hidden flex flex-col gap-3">
                 {filteredSeniors.length > 0 ? (
                     filteredSeniors.map(sr => (
-                        <div key={sr.senior_id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-center gap-4">
+                        <motion.div variants={itemVariants} key={sr.senior_id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-center gap-4">
                             <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-white/10">
                                 {sr.avatar_url && <img src={sr.avatar_url} className="w-full h-full object-cover" alt="" />}
                             </div>
@@ -109,12 +119,12 @@ const SeniorDirectoryBox = ({ seniors }) => {
                                 <div className="text-[#99eedd] text-sm font-bold">{sr.senior_nickname || '-'}</div>
                                 <div>{renderUsername(sr.username)}</div>
                             </div>
-                        </div>
+                        </motion.div>
                     ))
                 ) : (
-                    <div className="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>
+                    <motion.div variants={itemVariants} className="text-center py-10 text-gray-500">ไม่พบข้อมูล</motion.div>
                 )}
-            </div>
+            </motion.div>
         </div>
     </motion.div>
   );

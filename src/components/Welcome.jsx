@@ -39,7 +39,7 @@ const Welcome = () => {
       } else {
         navigate('/verify');
       }
-    }, 2500);
+    }, 500);
   };
 
   return (
@@ -62,7 +62,7 @@ const Welcome = () => {
         </video>
         
         {/* แผ่นสีดำโปร่งแสงปรับลดเพื่อรักษามิติ */}
-        <div className="absolute inset-0 bg-black/30"></div>
+        <div className="absolute inset-0 bg-black/55"></div>
         
         {/* 🔥 เพิ่ม Gradient สีม่วงจากล่างขึ้นบน (Transparency เบาๆ ทับวิดีโอ) */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#41086D]/40 via-[#4f2ec3]/20 to-transparent"></div>
@@ -93,7 +93,7 @@ const Welcome = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
-          className="font-['Orbitron'] text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter mb-6 uppercase bg-clip-text text-transparent select-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)]"
+          className="font-['Orbitron'] text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black leading-none tracking-tighter mb-6 uppercase bg-clip-text text-transparent select-none drop-shadow-[0_10px_25px_rgba(0,0,0,0.9)]"
           style={{ 
             backgroundImage: 'linear-gradient(to bottom, #ffffff 65%, #4f2ec3 100%)',
             WebkitBackgroundClip: 'text',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Loader2, CheckCircle } from 'lucide-react';
+import { useParams } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import * as api from '../api/seniorApi'; 
 import SystemAlert from './SystemAlert'; 
@@ -11,8 +12,13 @@ import SeniorInboxBox from './Senior_Dashboard/SeniorInboxBox';
 import SeniorClueController from './Senior_Dashboard/SeniorClueController';
 import JuniorDirectoryBox from './Senior_Dashboard/JuniorDirectoryBox';
 import { InboxModal, ClueModal } from './Senior_Dashboard/SeniorModals';
+import HomeworkHub from './Homework';
+import SeniorSidebar from './Senior_Dashboard/SeniorSidebar';
+import MiniGames from './MiniGames/MiniGames';
+import AdminDashboard from './AdminDashboard';
 
-const S_Dashboard = () => {
+const S_Dashboard = ({ isAdmin }) => {
+  const { tab } = useParams();
   const [profile, setProfile] = useState({ username: '', avatar_url: '' });
   const [clueData, setClueData] = useState(null);
   const [userEmail, setUserEmail] = useState('');
@@ -144,8 +150,11 @@ const S_Dashboard = () => {
   if (loading) return <div className="flex justify-center items-center h-screen"><Loader2 className="animate-spin text-[#d966ff]" size={48} /></div>;
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 md:p-10 font-['Orbitron'] text-white relative overflow-y-auto overflow-x-hidden w-full max-w-[100vw]">
-      <SystemAlert isOpen={systemAlert.isOpen} type={systemAlert.type} title={systemAlert.title} message={systemAlert.message} confirmText={systemAlert.confirmText} onConfirm={systemAlert.onConfirm} onClose={() => setSystemAlert({ ...systemAlert, isOpen: false })} />
+    <div className="flex w-full min-h-[100dvh] font-['Orbitron'] text-white">
+      <SeniorSidebar activeTab={tab} isAdmin={isAdmin} />
+      
+      <div className="flex-1 w-full p-4 sm:p-6 md:p-10 relative overflow-x-hidden">
+        <SystemAlert isOpen={systemAlert.isOpen} type={systemAlert.type} title={systemAlert.title} message={systemAlert.message} confirmText={systemAlert.confirmText} onConfirm={systemAlert.onConfirm} onClose={() => setSystemAlert({ ...systemAlert, isOpen: false })} />
       <AnimatePresence>
       {notification.isOpen && (
         <motion.div 
@@ -153,7 +162,7 @@ const S_Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#d966ff] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(217,102,255,0.2)]"
+            className="fixed bottom-6 right-6 z-50 bg-[#08050f]/90 backdrop-blur-md border border-[#d966ff] p-4 rounded-xl flex items-center gap-3 shadow-[0_0_15px_rgba(217,102,255,0.2)]"
         >
             <CheckCircle className="text-[#d966ff]" size={20} />
             <span className="text-sm font-['Rajdhani'] tracking-wider">{notification.message}</span>
@@ -161,25 +170,54 @@ const S_Dashboard = () => {
       )}
       </AnimatePresence>
       
-      <h1 className="text-2xl md:text-4xl text-[#d966ff] mb-6 md:mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(217,102,255,0.5)] break-words text-center md:text-left">
+      <h1 className="text-2xl md:text-4xl text-[#d966ff] mb-6 md:mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(217,102,255,0.5)] text-center md:text-left">
         SENIOR_CENTER
       </h1>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
-        <div className="w-full overflow-hidden"><SeniorProfileBox profile={profile} setProfile={setProfile} userEmail={userEmail} getDefaultAvatar={getDefaultAvatar} handleUploadAvatar={handleUploadAvatar} handleUpdateProfile={handleUpdateProfile} isSaving={isSaving}/></div>
-        <div className="w-full overflow-hidden"><SeniorInboxBox setInboxModal={setInboxModal} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/></div>
-        <div className="w-full overflow-hidden sm:col-span-2"><SeniorClueController clueData={clueData} truncateText={truncateText} setModal={setModal} handleResetClue={handleResetClue} newClues={newClues} setNewClues={setNewClues} submitClue={submitClue}/></div>
-        <div className="w-full overflow-hidden sm:col-span-2 lg:col-span-4">
-        <JuniorDirectoryBox 
-            allJuniors={allJuniors} 
-            myJuniorIds={myJuniorIds} 
-            getDefaultAvatar={getDefaultAvatar} 
-            />
-        </div>
+
+      <div className="w-full relative min-h-[500px]">
+        <AnimatePresence mode="wait">
+          {tab === 'profile' && (
+            <motion.div key="profile" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full max-w-2xl mx-auto">
+              <SeniorProfileBox profile={profile} setProfile={setProfile} userEmail={userEmail} getDefaultAvatar={getDefaultAvatar} handleUploadAvatar={handleUploadAvatar} handleUpdateProfile={handleUpdateProfile} isSaving={isSaving}/>
+            </motion.div>
+          )}
+          
+          {tab === 'homework' && (
+            <motion.div key="homework" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <HomeworkHub userRole="senior" isAdmin={isAdmin} readOnly={!isAdmin} />
+            </motion.div>
+          )}
+
+          {tab === 'missions' && (
+            <motion.div key="missions" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+              <div className="w-full"><SeniorInboxBox setInboxModal={setInboxModal} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/></div>
+              <div className="w-full"><SeniorClueController clueData={clueData} truncateText={truncateText} setModal={setModal} handleResetClue={handleResetClue} newClues={newClues} setNewClues={setNewClues} submitClue={submitClue}/></div>
+            </motion.div>
+          )}
+
+          {tab === 'directory' && (
+            <motion.div key="directory" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <JuniorDirectoryBox allJuniors={allJuniors} myJuniorIds={myJuniorIds} getDefaultAvatar={getDefaultAvatar} />
+            </motion.div>
+          )}
+
+          {tab === 'minigames' && (
+            <motion.div key="minigames" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <MiniGames />
+            </motion.div>
+          )}
+
+          {tab === 'admin' && isAdmin && (
+            <motion.div key="admin" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+              <AdminDashboard />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       
       <InboxModal isOpen={inboxModal} onClose={() => setInboxModal(false)} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/>
       <ClueModal isOpen={modal.isOpen} content={modal.content} onClose={() => setModal({ isOpen: false, content: '' })} notify={notify}/>
+      </div>
     </div>
   );
 };

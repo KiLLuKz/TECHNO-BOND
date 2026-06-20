@@ -499,7 +499,10 @@ export default function BattleshipGame() {
           <div className="bg-[#110b1c] p-12 rounded-[50px] text-center border border-[#4ECDC4]/30 shadow-[0_0_50px_rgba(78,205,196,0.2)] max-w-md w-full">
             <Crown size={100} className="mx-auto mb-6 text-[#FFD166] drop-shadow-lg" />
             <h2 className="text-5xl font-bold text-[#4ECDC4] mb-10">PLAYER {winner} WINS!</h2>
-            <button onClick={() => window.location.reload()} className="w-full bg-[#4ECDC4] text-black py-5 rounded-2xl font-bold text-xl hover:bg-[#2EC4B6] transition-all">PLAY AGAIN</button>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => window.location.reload()} className="w-full bg-[#4ECDC4] text-black py-5 rounded-2xl font-bold text-xl hover:bg-[#2EC4B6] transition-all">PLAY AGAIN</button>
+              <button onClick={() => navigate('/dashboard/minigames')} className="w-full bg-white/5 border border-white/20 text-white py-5 rounded-2xl font-bold text-xl hover:bg-white/10 transition-all">EXIT</button>
+            </div>
           </div>
         </div>
       )}

@@ -114,7 +114,8 @@ export default function ThaiCheckersGame() {
     if (p1Count === 0 || p2Count === 0 || !hasAnyMove) {
       const winner = (p1Count === 0 || (turn === 1 && !hasAnyMove)) ? 2 : 1;
       setAlertState({
-        isOpen: true, type: 'success', title: 'GAME OVER!', message: `PLAYER ${winner} WINS THE MATCH!`, onConfirm: handleRestart
+        isOpen: true, type: 'success', title: 'GAME OVER!', message: `PLAYER ${winner} WINS THE MATCH!`, 
+        onConfirm: handleRestart, confirmText: 'PLAY AGAIN', cancelText: 'CLOSE'
       });
       return;
     }

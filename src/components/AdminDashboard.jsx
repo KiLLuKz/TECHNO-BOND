@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldAlert, RefreshCw, MessageSquare, BookOpen } from 'lucide-react';
+import { ShieldAlert, RefreshCw, MessageSquare, BookOpen, BrainCircuit } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import UnifiedDirectoryBox from './Admin_Dashboard/UnifiedDirectoryBox';
 import Loader from './Loader';
@@ -78,6 +78,7 @@ const AdminDashboard = () => {
       if (action === 'RESET_COOLDOWNS') updateData = { last_guess_at: null };
       else if (action === 'RESET_MESSAGES') updateData = { daily_messages_count: 0 };
       else if (action === 'RESET_QUOTAS') updateData = { clue1_edit_count: 0, clue2_edit_count: 0, clue3_edit_count: 0 };
+      else if (action === 'RESET_QUIZ') updateData = { quiz_start_time: null };
 
       const { error } = await supabase
         .from('user_activity_states')
@@ -121,10 +122,11 @@ const AdminDashboard = () => {
         </h1>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <ResetCard title="Guess Cooldown" icon={RefreshCw} action="RESET_COOLDOWNS" desc="รีเซ็ตสิทธิ์การเดา" onReset={handleReset} />
         <ResetCard title="Message Limits" icon={MessageSquare} action="RESET_MESSAGES" desc="รีเซ็ตโควตาข้อความรายวัน" onReset={handleReset} />
         <ResetCard title="Reset Clue Limits" icon={BookOpen} action="RESET_QUOTAS" desc="รีเซ็ตโควตาการลบคำใบ้" onReset={handleReset} />
+        <ResetCard title="Quiz Cooldown" icon={BrainCircuit} action="RESET_QUIZ" desc="รีเซ็ตสิทธิ์การทำควิซ" onReset={handleReset} />
       </div>
 
       <UnifiedDirectoryBox seniors={seniors} juniors={juniors} />

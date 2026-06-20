@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; 
-import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, BookOpen } from 'lucide-react';
+import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, NotebookTabs } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
@@ -16,6 +16,10 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
     onLogout();
     setIsOpen(false);
   };
+
+  // 🛡️ ซ่อน Floating Menu แบบสมบูรณ์ ถ้าอยู่ในหน้า Dashboard (เพื่อหลีกทางให้ Sidebar)
+  const hideFloatingMenu = location.pathname.startsWith('/dashboard');
+  if (hideFloatingMenu) return null;
 
   return (
     <div className="fixed top-8 right-8 z-50">
@@ -39,15 +43,8 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
           </Link>
           
           <Link to="/curriculum" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-[#f0eaff] hover:bg-[#b464ff]/20 rounded-xl transition-all">
-            <BookOpen size={16} /> CURRICULUM
+            <NotebookTabs size={16} /> CURRICULUM
           </Link>
-
-          {/* 🔥 เพิ่มปุ่มลัดไป HOMEWORK HUB เฉพาะ Senior หรือ Admin ตรงนี้ */}
-          {isSeniorOrAdmin && (
-            <Link to="/homework" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm  hover:bg-[#b464ff]/20 rounded-xl transition-all ">
-              <BookOpen size={16} /> HOMEWORK HUB
-            </Link>
-          )}
           
           <Link 
             to={isLoggedIn ? "/dashboard" : "/verify"} 
@@ -58,20 +55,7 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
             {isLoggedIn ? 'DASHBOARD' : 'LOGIN/REGISTER'}
           </Link>
 
-          {/* Sub-menu สำหรับ Dashboard */}
-          {isDashboardPage && isLoggedIn && (
-            <div className="pl-6 border-l border-[#b464ff]/30 ml-4 mb-2 mt-2">
-              <Link to="/dashboard/minigames" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-2 text-xs text-[#99eedd] hover:text-white transition-all">
-                <Gamepad2 size={14} /> MINI GAMES
-              </Link>
-              
-              {isAdmin && (
-                <Link to="/dashboard/admin" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-2 text-xs text-[#ff4d4d] hover:text-white transition-all">
-                  <ShieldAlert size={14} /> ADMIN PANEL
-                </Link>
-              )}
-            </div>
-          )}
+
 
           {isLoggedIn && (
             <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#ff7ec8] hover:bg-[#ff7ec8]/20 rounded-xl transition-all mt-2 border-t border-[#b464ff]/20">

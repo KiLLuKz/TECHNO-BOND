@@ -29,10 +29,26 @@ const SeniorProfileBox = ({ profile, setProfile, userEmail, getDefaultAvatar, ha
         </div>
         
         <input 
-            className="bg-black/30 border border-white/10 rounded-lg p-2 text-center text-sm w-full text-[#d966ff] mb-3 focus:outline-none focus:border-[#d966ff]/50 transition-colors" 
+            className="bg-black/30 border border-white/10 rounded-lg p-2 text-center text-sm w-full text-[#d966ff] mb-4 focus:outline-none focus:border-[#d966ff]/50 transition-colors" 
             value={profile.username} 
             onChange={(e) => setProfile({...profile, username: e.target.value})} 
+            placeholder="Username"
         />
+
+        {/* --- EXP / LEVEL / CURRENCY Placeholder --- */}
+        <div className="w-full bg-black/40 border border-white/10 rounded-xl p-4 mb-4 flex flex-col gap-3">
+           <div className="flex justify-between items-center text-xs tracking-widest font-bold">
+               <span className="text-[#ffe066]">LV. 1</span>
+               <span className="text-[#4ECDC4]">0 ฿</span>
+           </div>
+           <div className="w-full bg-black/60 h-2 rounded-full overflow-hidden border border-white/5 relative">
+               <div className="h-full bg-[#ffe066] w-[10%] shadow-[0_0_10px_#ffe066]"></div>
+           </div>
+           <div className="text-[10px] text-gray-500 text-right tracking-widest font-['Rajdhani']">
+               10 / 100 EXP
+           </div>
+        </div>
+        {/* ------------------------------------------ */}
         
         {/* เพิ่ม mt-auto เพื่อดันปุ่ม Save ลงล่างสุดของช่อง */}
         <button 
