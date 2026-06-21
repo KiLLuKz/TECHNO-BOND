@@ -73,7 +73,7 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
       </div>
 
       {/* Box 3: Account Info & Reset Password (Bottom Full Width) */}
-      <div className="md:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col gap-3">
+      <div className="col-span-full bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col gap-3">
           <h3 className="text-[#99eedd] tracking-widest font-bold text-xs mb-1">ACCOUNT INFORMATION</h3>
           
           <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">

@@ -47,7 +47,7 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
   if (loading) return <ProfileSkeleton />;
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       <ProfileBox 
         profile={profile} 
         setProfile={setProfile} 

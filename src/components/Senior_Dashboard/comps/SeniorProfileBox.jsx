@@ -73,7 +73,7 @@ const SeniorProfileBox = ({ profile, setProfile, userEmail, getDefaultAvatar, ha
       </div>
 
       {/* Account Info Box */}
-      <div className="bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col gap-3">
+      <div className="col-span-full bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 flex flex-col gap-3">
           <h3 className="text-[#d966ff] tracking-widest font-bold text-xs mb-1">ACCOUNT INFORMATION</h3>
           
           <div className="flex justify-between items-center bg-black/40 p-3 rounded-lg border border-white/5">
