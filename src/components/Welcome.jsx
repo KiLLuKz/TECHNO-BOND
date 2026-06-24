@@ -64,7 +64,7 @@ const Welcome = () => {
         {/* แผ่นสีดำโปร่งแสงปรับลดเพื่อรักษามิติ */}
         <div className="absolute inset-0 bg-black/55"></div>
         
-        {/* 🔥 เพิ่ม Gradient สีม่วงจากล่างขึ้นบน (Transparency เบาๆ ทับวิดีโอ) */}
+        {/* เพิ่ม Gradient สีม่วงจากล่างขึ้นบน (Transparency เบาๆ ทับวิดีโอ) */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#41086D]/40 via-[#4f2ec3]/20 to-transparent"></div>
         
         {/* เส้น Grid Lines */}

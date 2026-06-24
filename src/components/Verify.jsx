@@ -3,7 +3,7 @@ import { supabase } from '../supabaseClient';
 import Loader from './Loader';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
 const Verify = ({ onLoginSuccess}) => {
     const navigate = useNavigate();
@@ -328,8 +328,8 @@ const Verify = ({ onLoginSuccess}) => {
                                     transition={{ repeat: Infinity, duration: 2 }}
                                     className="border border-amber-500/50 bg-amber-500/10 rounded-xl p-3 my-1 shadow-[0_0_10px_rgba(245,158,11,0.2)]"
                                 >
-                                    <p className=" font-bold text-[10px] text-amber-500 font-['Orbitron'] tracking-widest text-center flex items-center justify-center gap-2 mb-1">
-                                        <span>⚠️</span> SECURITY NOTICE
+                                    <p className="font-bold text-[10px] text-amber-500 font-['Orbitron'] tracking-widest text-center flex items-center justify-center gap-2 mb-1">
+                                        <AlertTriangle size={14} className="text-amber-500" /> SECURITY NOTICE
                                     </p>
                                     <p className="text-sm md:text-[16px] text-amber-500/80 font-['Rajdhani'] text-center leading-tight">
                                         ระบบนี้ไม่ได้มีการป้องกันหนาแน่นมาก ห้ามใช้รหัสผ่านเดียวกับบัญชีสำคัญโดยเด็ดขาด

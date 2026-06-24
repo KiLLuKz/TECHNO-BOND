@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RotateCcw, Crown } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Crown, Bot, User, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SystemAlert from "../../SystemAlert"; 
 
@@ -22,6 +22,117 @@ export default function ThaiCheckersGame() {
   const [alertState, setAlertState] = useState({ 
     isOpen: false, type: 'info', title: '', message: '', onConfirm: null 
   });
+
+  const [gameMode, setGameMode] = useState('pvp');
+  const [screen, setScreen] = useState('menu');
+
+  // AI Logic
+  useEffect(() => {
+    if (gameMode === 'ai' && turn === 2 && !alertState.isOpen && board.some(r => r.some(c => c !== null))) {
+      const timer = setTimeout(() => {
+        playAITurn();
+      }, 600);
+      return () => clearTimeout(timer);
+    }
+  }, [turn, gameMode, alertState.isOpen, mandatoryJumpers, board]);
+
+  const playAITurn = () => {
+    let pieces = [];
+    if (mandatoryJumpers.length > 0) {
+      pieces = [...mandatoryJumpers];
+    } else {
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (board[r][c] && board[r][c].player === 2) {
+             const moves = calculateValidMoves(r, c, board, false);
+             if (moves.length > 0) pieces.push({ r, c });
+          }
+        }
+      }
+    }
+
+    if (pieces.length === 0) return;
+
+    const simulateMove = (startR, startC, move, currentBoard) => {
+      let b = currentBoard.map(row => [...row]);
+      let r = move.r;
+      let c = move.c;
+      let piece = { ...b[startR][startC] };
+      
+      b[r][c] = piece;
+      b[startR][startC] = null;
+      let jumpsMade = 0;
+      let promoted = false;
+
+      if (move.type === 'jump') {
+        b[move.jumpR][move.jumpC] = null;
+        jumpsMade++;
+        if (!piece.isKing && r === SIZE - 1) {
+          piece.isKing = true;
+          promoted = true;
+        }
+        
+        if (!promoted) {
+           let nextJumps = calculateValidMoves(r, c, b, true).filter(m => m.type === 'jump');
+           while (nextJumps.length > 0) {
+             let next = nextJumps[0];
+             b[next.r][next.c] = piece;
+             b[r][c] = null;
+             b[next.jumpR][next.jumpC] = null;
+             jumpsMade++;
+             r = next.r;
+             c = next.c;
+             if (!piece.isKing && r === SIZE - 1) {
+                piece.isKing = true;
+                break;
+             }
+             nextJumps = calculateValidMoves(r, c, b, true).filter(m => m.type === 'jump');
+           }
+        }
+      } else {
+        if (!piece.isKing && r === SIZE - 1) {
+          piece.isKing = true;
+        }
+      }
+
+      let score = jumpsMade * 10; 
+      if (!piece.isKing) score += (r - startR); 
+      if (piece.isKing) score += 5;
+      score += Math.random() * 2;
+      return { finalBoard: b, score };
+    };
+
+    let bestScore = -Infinity;
+    let bestBoard = null;
+
+    for (let p of pieces) {
+      const moves = calculateValidMoves(p.r, p.c, board, mandatoryJumpers.length > 0);
+      for (let m of moves) {
+        const { finalBoard, score } = simulateMove(p.r, p.c, m, board);
+        if (score > bestScore) {
+          bestScore = score;
+          bestBoard = finalBoard;
+        }
+      }
+    }
+
+    if (bestBoard) {
+      if (Math.random() < 0.2) {
+         const randomPiece = pieces[Math.floor(Math.random() * pieces.length)];
+         const randomMoves = calculateValidMoves(randomPiece.r, randomPiece.c, board, mandatoryJumpers.length > 0);
+         const randomMove = randomMoves[Math.floor(Math.random() * randomMoves.length)];
+         const { finalBoard } = simulateMove(randomPiece.r, randomPiece.c, randomMove, board);
+         setBoard(finalBoard);
+      } else {
+         setBoard(bestBoard);
+      }
+      setSelected(null);
+      setValidMoves([]);
+      setMustJumpPiece(null);
+      setMandatoryJumpers([]);
+      setTurn(1);
+    }
+  };
 
   // สร้างกระดานเริ่มต้น (เพิ่ม id ประจำตัวให้หมากแต่ละตัว เพื่อใช้ทำ Animation สไลด์)
   function initializeBoard() {
@@ -124,6 +235,8 @@ export default function ThaiCheckersGame() {
   }, [turn, board]); 
 
   const handleCellClick = (r, c) => {
+    if (gameMode === 'ai' && turn === 2) return; // Block interaction on AI's turn
+
     // 1. เลือกหมาก
     if (board[r][c] && board[r][c].player === turn) {
       if (mustJumpPiece && (r !== mustJumpPiece.r || c !== mustJumpPiece.c)) return;
@@ -196,14 +309,48 @@ export default function ThaiCheckersGame() {
     });
   });
 
+  if (screen === 'menu') {
+    return (
+      <div className="w-full min-h-[100dvh] flex flex-col items-center justify-center p-4 font-['Orbitron'] text-white overflow-hidden">
+        <h1 className="text-4xl md:text-5xl font-bold tracking-widest text-[#d966ff] mb-12 drop-shadow-[0_0_15px_rgba(217,102,255,0.5)]">
+          THAI CHECKERS
+        </h1>
+        <div className="flex flex-col gap-4 w-full max-w-sm">
+          <button 
+            onClick={() => { setGameMode('ai'); setScreen('game'); handleRestart(); }}
+            className="flex items-center justify-center gap-3 p-4 bg-[#d966ff]/10 hover:bg-[#d966ff]/20 border border-[#d966ff]/50 rounded-2xl transition-all group"
+          >
+            <Bot size={28} className="text-[#d966ff] group-hover:scale-110 transition-transform" />
+            <span className="text-xl font-bold tracking-widest text-[#d966ff]">VS AI</span>
+          </button>
+          <button 
+            onClick={() => { setGameMode('pvp'); setScreen('game'); handleRestart(); }}
+            className="flex items-center justify-center gap-3 p-4 bg-[#4ECDC4]/10 hover:bg-[#4ECDC4]/20 border border-[#4ECDC4]/50 rounded-2xl transition-all group"
+          >
+            <Users size={28} className="text-[#4ECDC4] group-hover:scale-110 transition-transform" />
+            <span className="text-xl font-bold tracking-widest text-[#4ECDC4]">VS PLAYER</span>
+          </button>
+        </div>
+        <button onClick={() => navigate('/dashboard/minigames')} className="mt-8 text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
+          <ArrowLeft size={18} /> BACK
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full min-h-[100dvh] flex flex-col items-center p-2 md:p-6 font-['Orbitron'] text-white overflow-hidden mt-25 md:mt-0">
       <SystemAlert {...alertState} onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))} />
 
       {/* Header */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-4 md:mb-4 p-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl shadow-lg">
-        <button onClick={() => navigate('/dashboard/minigames')} className="p-2 hover:bg-white/10 rounded-full transition-all"><ArrowLeft /></button>
-        <h1 className="text-lg md:text-2xl font-bold text-[#4ECDC4] tracking-widest">THAI CHECKERS</h1>
+        <button onClick={() => setScreen('menu')} className="p-2 hover:bg-white/10 rounded-full transition-all"><ArrowLeft /></button>
+        <div className="flex flex-col items-center">
+          <h1 className="text-lg md:text-2xl font-bold text-[#4ECDC4] tracking-widest">THAI CHECKERS</h1>
+          <span className="text-xs text-gray-400 font-bold tracking-widest flex items-center gap-1">
+            {gameMode === 'ai' ? <><Bot size={12}/> VS AI</> : <><Users size={12}/> VS PLAYER</>}
+          </span>
+        </div>
         <button onClick={() => {
           setAlertState({ isOpen: true, type: 'warning', title: 'RESTART GAME', message: 'Do you want to reset the board?', onConfirm: handleRestart });
         }} className="p-2 hover:bg-white/10 rounded-full transition-all"><RotateCcw /></button>

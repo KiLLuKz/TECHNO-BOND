@@ -66,7 +66,7 @@ const J_Dashboard = ({ isAdmin }) => {
         )}
         </AnimatePresence>
         
-        <h1 className="text-2xl md:text-4xl text-[#99eedd] mb-6 md:mb-8 text-center md:text-left tracking-wider">
+        <h1 className="text-2xl md:text-4xl text-[#99eedd] mb-6 md:mb-8 tracking-widest drop-shadow-[0_0_10px_rgba(153,238,221,0.5)] text-center md:text-left">
           JUNIOR_OS v1.0
         </h1>
         

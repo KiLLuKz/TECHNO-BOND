@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, CheckCircle, RefreshCw, Target, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -6,6 +6,14 @@ const QuizModal = ({
     isOpen, onClose, quizState, startQuiz, randomizedBank, 
     selectedOption, isAnswerCorrect, handleAnswer 
 }) => {
+    useEffect(() => {
+        const handleEsc = (e) => {
+            if (e.key === 'Escape' && quizState.step === 'intro') onClose();
+        };
+        if (isOpen) window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, [isOpen, onClose, quizState.step]);
+
   if (!isOpen) return null;
 
   // คำนวณ Progress (10 ข้อ)

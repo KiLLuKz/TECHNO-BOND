@@ -57,7 +57,7 @@ const MiniGames = () => {
               activeTab === 'games' ? 'border-[#99eedd] text-[#99eedd]' : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            🕹️ GAMES
+            <Gamepad2 size={20} className="inline mr-2 -mt-1" /> GAMES
           </button>
           <button 
             onClick={() => setActiveTab('leaderboard')}
@@ -65,7 +65,7 @@ const MiniGames = () => {
               activeTab === 'leaderboard' ? 'border-[#d966ff] text-[#d966ff]' : 'border-transparent text-gray-500 hover:text-gray-300'
             }`}
           >
-            🏆 LEADERBOARD
+            <Trophy size={20} className="inline mr-2 -mt-1" /> LEADERBOARD
           </button>
         </div>
       </div>

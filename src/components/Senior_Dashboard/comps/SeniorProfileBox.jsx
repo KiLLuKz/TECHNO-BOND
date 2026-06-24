@@ -46,7 +46,7 @@ const SeniorProfileBox = ({ profile, setProfile, userEmail, getDefaultAvatar, ha
         </div>
         
         <input 
-            className="bg-black/30 border border-white/10 rounded-lg p-2 text-center text-sm w-full text-[#d966ff] mb-3 focus:outline-none focus:border-[#d966ff]/50 transition-colors" 
+            className="bg-black/30 border border-white/10 rounded-lg p-2 text-center text-sm w-full text-[#d966ff] mb-3 focus:outline-none focus:border-[#d966ff]/50 focus:shadow-[0_0_10px_rgba(217,102,255,0.2)] transition-all" 
             value={profile.username} 
             onChange={(e) => setProfile({...profile, username: e.target.value})} 
         />
@@ -54,7 +54,7 @@ const SeniorProfileBox = ({ profile, setProfile, userEmail, getDefaultAvatar, ha
         <button 
             onClick={handleUpdateProfile} 
             disabled={isSaving} 
-            className="w-full py-2 mt-auto bg-[#d966ff]/10 border border-[#d966ff]/30 rounded-lg text-xs hover:bg-[#d966ff]/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+            className="w-full py-2 mt-auto bg-[#d966ff]/10 border border-[#d966ff]/30 rounded-lg text-xs hover:bg-[#d966ff]/20 hover:shadow-[0_0_10px_rgba(217,102,255,0.2)] flex items-center justify-center gap-2 transition-all active:scale-95"
         >
             <Save size={14} /> {isSaving ? 'SAVING...' : 'SAVE PROFILE'}
         </button>

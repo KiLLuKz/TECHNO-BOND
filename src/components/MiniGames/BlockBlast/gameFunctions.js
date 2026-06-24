@@ -226,7 +226,7 @@ export function canPlaceAnyBlock({ grid, availableBlocks }) {
 }
 
 // -------------------------------------------------------------
-// 🔥 Look-Ahead Algorithm: ป้องกันการสุ่มบล็อกที่วางไม่ได้ 100%
+// Look-Ahead Algorithm: ป้องกันการสุ่มบล็อกที่วางไม่ได้ 100%
 // -------------------------------------------------------------
 function checkSequence(grid, shapes) {
   if (shapes.length === 0) return true; 
@@ -279,7 +279,7 @@ export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOT
   while (attempts < 50) {
     let categoriesToSpawn = [];
     
-    // 🔥 Smart RNG / Mercy Logic based on board density
+    // Smart RNG / Mercy Logic based on board density
     if (filledCells > 45) {
        // Board is extremely full (Over 70%)
        // SECRET TO ADDICTION: Still give LARGE blocks! 

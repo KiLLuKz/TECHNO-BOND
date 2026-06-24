@@ -3,6 +3,14 @@ import { supabase } from '../../supabaseClient';
 import { KeyRound, X } from 'lucide-react';
 
 const ResetPasswordModal = ({ isOpen, onClose, userEmail, notify }) => {
+  useEffect(() => {
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);

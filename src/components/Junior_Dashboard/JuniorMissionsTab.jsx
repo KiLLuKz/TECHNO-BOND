@@ -86,7 +86,7 @@ const JuniorMissionsTab = ({ userId, userEmail, notify }) => {
       if (normalize(guessInput) === normalize(clueData.senior_nickname)) {
           await activityApi.updateActivity(userId, { is_guessed: true });
           setIsGameCleared(true);
-          setGuessFeedback('✅ CORRECT PROTOCOL!');
+          setGuessFeedback('[SUCCESS]: CORRECT PROTOCOL!');
           notify('SYSTEM: MISSION ACCOMPLISHED!');
       } else {
           const randomTease = _allTeaseLines[Math.floor(Math.random() * _allTeaseLines.length)];

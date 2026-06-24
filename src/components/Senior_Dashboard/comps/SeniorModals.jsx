@@ -1,8 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, MessageSquare, Clock, Clipboard, User } from 'lucide-react'; // 1. เพิ่ม User icon
 
 // Modal สำหรับ Inbox
 export const InboxModal = ({ isOpen, onClose, realMessages, getDefaultAvatar, formatTime }) => {
+  useEffect(() => {
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
@@ -56,6 +64,14 @@ export const InboxModal = ({ isOpen, onClose, realMessages, getDefaultAvatar, fo
 
 // Modal สำหรับแสดงคำใบ้เต็ม (ส่วนนี้ยังใช้ดีไซน์เดิมได้เลยครับ)
 export const ClueModal = ({ isOpen, content, onClose, notify }) => {
+  useEffect(() => {
+    const handleEsc = (e) => {
+        if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>

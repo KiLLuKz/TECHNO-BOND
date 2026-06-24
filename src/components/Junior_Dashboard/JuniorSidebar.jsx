@@ -71,7 +71,7 @@ const JuniorSidebar = ({ activeTab, isAdmin }) => {
             </Link>
 
             <Link to="/dashboard/minigames" className={`flex items-center gap-4 px-3 py-3 rounded-xl transition-all font-['Orbitron'] tracking-widest text-sm text-gray-400 hover:bg-white/5 hover:text-white whitespace-nowrap ${!isExpanded && 'justify-center'}`} title="MINI GAMES">
-                <Gamepad2 size={20} className="text-[#ff7ec8] shrink-0" />
+                <Gamepad2 size={20} className="text-[#99eedd] shrink-0" />
                 {isExpanded && <span>MINI GAMES</span>}
             </Link>
 

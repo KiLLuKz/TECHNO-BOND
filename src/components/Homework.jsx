@@ -21,7 +21,7 @@ export default function HomeworkHub({ userRole, isAdmin, readOnly = false }) {
   // Alert State
   const [alert, setAlert] = useState({ isOpen: false, title: '', message: '', type: 'info', onConfirm: null, confirmText: '' });
 
-  // 🛡️ เช็คสิทธิ์การเข้าถึงระบบ (Senior หรือ Admin เท่านั้น)
+  // เช็คสิทธิ์การเข้าถึงระบบ (Senior หรือ Admin เท่านั้น)
   const isAllowed = userRole === 'senior' || isAdmin;
 
   useEffect(() => {

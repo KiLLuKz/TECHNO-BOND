@@ -28,6 +28,8 @@ const Referee = lazy(() => import('./components/MiniGames/ChessGame/Referee/Refe
 const ThaiCheckers = lazy(() => import('./components/MiniGames/ThaiCheckers/ThaiCheckersGame'));
 const BattleShip = lazy(() => import('./components/MiniGames/BattleShip/BattleshipGame'));
 const ShootEmUp = lazy(() => import('./components/MiniGames/ShootEmUp/ShootEmUp'));
+const FlappyDrone = lazy(() => import('./components/MiniGames/FlappyDrone/FlappyDrone'));
+const SystemDefender = lazy(() => import('./components/MiniGames/SystemDefender/SystemDefender'));
 
 const ConditionalFooter = () => {
   const location = useLocation();
@@ -71,6 +73,8 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
           <Route path="minigames/thai-checkers" element={<ThaiCheckers />} />
           <Route path="minigames/battleship" element={<BattleShip />} />
           <Route path="minigames/shoot-em-up" element={<ShootEmUp />} />
+          <Route path="minigames/flappy-drone" element={<FlappyDrone />} />
+          <Route path="minigames/system-defender" element={<SystemDefender />} />
           
 
         </Route>

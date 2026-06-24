@@ -17,7 +17,7 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
     setIsOpen(false);
   };
 
-  // 🛡️ ซ่อน Floating Menu แบบสมบูรณ์ ถ้าอยู่ในหน้า Dashboard (เพื่อหลีกทางให้ Sidebar)
+  // ซ่อน Floating Menu แบบสมบูรณ์ ถ้าอยู่ในหน้า Dashboard (เพื่อหลีกทางให้ Sidebar)
   const hideFloatingMenu = location.pathname.startsWith('/dashboard');
   if (hideFloatingMenu) return null;
 

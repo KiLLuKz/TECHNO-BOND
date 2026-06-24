@@ -1,4 +1,4 @@
-import { Gamepad2, Users, Crown, Rocket, Anchor, X, Toolbox} from 'lucide-react';
+import { Gamepad2, Users, Crown, Rocket, Anchor, X, Toolbox, Plane, Crosshair } from 'lucide-react';
 
 export const gamesData = [
   {
@@ -67,12 +67,38 @@ export const gamesData = [
     players: '2 Players'
   },
   {
+    id: 'flappy-drone',
+    title: 'FLAPPY DRONE',
+    desc: 'บังคับโดรนหลบสิ่งกีดขวางในโลก Cyberpunk ท้าทายความเร็วและสะสมคะแนนไต่อันดับ!',
+    image: null,
+    IconComponent: Plane,
+    tag: 'ALPHA-TEST',
+    colorTheme: '#4ECDC4',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
+    tagTextColor: '#ffffff',
+    players: 'Single Player'
+  },
+  {
+    id: 'system-defender',
+    title: 'SYSTEM DEFENDER',
+    desc: 'สวมบทบาทเป็นป้อมปืนปกป้องระบบจากมัลแวร์ที่บุกเข้ามาทุกทิศทาง ยิงให้แหลก!',
+    image: null,
+    IconComponent: Crosshair,
+    tag: 'ALPHA-TEST',
+    colorTheme: '#ff3366',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
+    tagTextColor: '#ffffff',
+    players: 'Single Player'
+  },
+  {
     id: 'shoot-em-up',
     title: "SHOOT'EM UP",
     desc: 'กำลังพัฒนา...',
     image: null,
     IconComponent: Rocket,
-    tag: 'ALPHA TEST',
+    tag: 'ALPHA-TEST',
     colorTheme: '#00f7ff',
     textColor: '#e5e7eb',
     tagGradient: 'from-[#86ACFF] to-[#2200FF]',

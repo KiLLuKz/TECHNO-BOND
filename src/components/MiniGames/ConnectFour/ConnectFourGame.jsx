@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, RotateCcw, Trophy, Bot, User, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -13,6 +13,8 @@ const ConnectFourGame = () => {
   const [currentPlayer, setCurrentPlayer] = useState(1); 
   const [winner, setWinner] = useState(null); 
   const [winningCells, setWinningCells] = useState([]);
+  const [gameMode, setGameMode] = useState('pvp');
+  const [screen, setScreen] = useState('menu');
 
   const getLowestEmptyRow = (currentBoard, col) => {
     for (let row = ROWS - 1; row >= 0; row--) {
@@ -41,26 +43,192 @@ const ConnectFourGame = () => {
     return null;
   };
 
-  const handleDrop = (col) => {
-    if (winner) return; 
+  useEffect(() => {
+    if (gameMode === 'ai' && currentPlayer === 2 && !winner) {
+      const timer = setTimeout(() => {
+        const bestCol = getBestMoveConnectFour(board);
+        if (bestCol !== -1) {
+          executeDrop(bestCol, 2);
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [currentPlayer, gameMode, winner, board]);
 
+  const getBestMoveConnectFour = (currentBoard) => {
+    const validLocations = [];
+    for (let c = 0; c < COLS; c++) {
+      if (currentBoard[0][c] === null) validLocations.push(c);
+    }
+
+    if (validLocations.length === 0) return -1;
+
+    // 20% chance to make a random move to ensure it's beatable
+    if (Math.random() < 0.2) {
+       return validLocations[Math.floor(Math.random() * validLocations.length)];
+    }
+
+    const evaluateWindow = (window, player) => {
+      let score = 0;
+      let opp = player === 1 ? 2 : 1;
+      let countP = window.filter(c => c === player).length;
+      let countE = window.filter(c => c === null).length;
+      let countO = window.filter(c => c === opp).length;
+
+      if (countP === 4) score += 100;
+      else if (countP === 3 && countE === 1) score += 5;
+      else if (countP === 2 && countE === 2) score += 2;
+
+      if (countO === 3 && countE === 1) score -= 4; // Block opponent
+
+      return score;
+    };
+
+    const scorePosition = (b, player) => {
+      let score = 0;
+      // Score center column (prioritize middle)
+      let centerArray = [];
+      for(let r=0; r<ROWS; r++) centerArray.push(b[r][3]);
+      let centerCount = centerArray.filter(c => c === player).length;
+      score += centerCount * 3;
+
+      // Horizontal
+      for (let r = 0; r < ROWS; r++) {
+        let rowArray = b[r];
+        for (let c = 0; c < COLS - 3; c++) {
+          let window = rowArray.slice(c, c + 4);
+          score += evaluateWindow(window, player);
+        }
+      }
+      // Vertical
+      for (let c = 0; c < COLS; c++) {
+        let colArray = [];
+        for (let r = 0; r < ROWS; r++) colArray.push(b[r][c]);
+        for (let r = 0; r < ROWS - 3; r++) {
+          let window = colArray.slice(r, r + 4);
+          score += evaluateWindow(window, player);
+        }
+      }
+      // Diagonals
+      for (let r = 0; r < ROWS - 3; r++) {
+        for (let c = 0; c < COLS - 3; c++) {
+          let window = [b[r][c], b[r+1][c+1], b[r+2][c+2], b[r+3][c+3]];
+          score += evaluateWindow(window, player);
+        }
+      }
+      for (let r = 3; r < ROWS; r++) {
+        for (let c = 0; c < COLS - 3; c++) {
+          let window = [b[r][c], b[r-1][c+1], b[r-2][c+2], b[r-3][c+3]];
+          score += evaluateWindow(window, player);
+        }
+      }
+      return score;
+    };
+
+    const checkWinForMinimax = (b, player) => {
+      // Horizontal
+      for (let c = 0; c < COLS - 3; c++) {
+        for (let r = 0; r < ROWS; r++) {
+          if (b[r][c] === player && b[r][c+1] === player && b[r][c+2] === player && b[r][c+3] === player) return true;
+        }
+      }
+      // Vertical
+      for (let c = 0; c < COLS; c++) {
+        for (let r = 0; r < ROWS - 3; r++) {
+          if (b[r][c] === player && b[r+1][c] === player && b[r+2][c] === player && b[r+3][c] === player) return true;
+        }
+      }
+      // Diagonals
+      for (let c = 0; c < COLS - 3; c++) {
+        for (let r = 0; r < ROWS - 3; r++) {
+          if (b[r][c] === player && b[r+1][c+1] === player && b[r+2][c+2] === player && b[r+3][c+3] === player) return true;
+        }
+      }
+      for (let c = 0; c < COLS - 3; c++) {
+        for (let r = 3; r < ROWS; r++) {
+          if (b[r][c] === player && b[r-1][c+1] === player && b[r-2][c+2] === player && b[r-3][c+3] === player) return true;
+        }
+      }
+      return false;
+    };
+
+    const minimax = (boardState, depth, alpha, beta, isMaximizing) => {
+      let isTerminal = checkWinForMinimax(boardState, 1) || checkWinForMinimax(boardState, 2) || validLocations.length === 0;
+      
+      if (depth === 0 || isTerminal) {
+        if (isTerminal) {
+          if (checkWinForMinimax(boardState, 2)) return { score: 1000000 };
+          else if (checkWinForMinimax(boardState, 1)) return { score: -1000000 };
+          else return { score: 0 };
+        } else {
+          return { score: scorePosition(boardState, 2) };
+        }
+      }
+
+      if (isMaximizing) {
+        let value = -Infinity;
+        let column = validLocations[0];
+        for (let c of validLocations) {
+          const row = getLowestEmptyRow(boardState, c);
+          if (row === -1) continue;
+          let tempBoard = boardState.map(r => [...r]);
+          tempBoard[row][c] = 2;
+          let newScore = minimax(tempBoard, depth - 1, alpha, beta, false).score;
+          if (newScore > value) {
+            value = newScore;
+            column = c;
+          }
+          alpha = Math.max(alpha, value);
+          if (alpha >= beta) break;
+        }
+        return { column, score: value };
+      } else {
+        let value = Infinity;
+        let column = validLocations[0];
+        for (let c of validLocations) {
+          const row = getLowestEmptyRow(boardState, c);
+          if (row === -1) continue;
+          let tempBoard = boardState.map(r => [...r]);
+          tempBoard[row][c] = 1;
+          let newScore = minimax(tempBoard, depth - 1, alpha, beta, true).score;
+          if (newScore < value) {
+            value = newScore;
+            column = c;
+          }
+          beta = Math.min(beta, value);
+          if (alpha >= beta) break;
+        }
+        return { column, score: value };
+      }
+    };
+
+    const { column } = minimax(currentBoard, 3, -Infinity, Infinity, true); 
+    return column !== undefined ? column : validLocations[0];
+  };
+
+  const executeDrop = (col, player) => {
     const row = getLowestEmptyRow(board, col);
     if (row === -1) return; 
 
     const newBoard = board.map(r => [...r]);
-    newBoard[row][col] = currentPlayer;
+    newBoard[row][col] = player;
     setBoard(newBoard);
 
-    const winCells = checkWin(newBoard, row, col, currentPlayer);
+    const winCells = checkWin(newBoard, row, col, player);
     
     if (winCells) {
-      setWinner(currentPlayer);
+      setWinner(player);
       setWinningCells(winCells);
     } else if (newBoard.flat().every(cell => cell !== null)) {
       setWinner('draw'); 
     } else {
-      setCurrentPlayer(currentPlayer === 1 ? 2 : 1);
+      setCurrentPlayer(player === 1 ? 2 : 1);
     }
+  };
+
+  const handleDrop = (col) => {
+    if (winner || (gameMode === 'ai' && currentPlayer === 2)) return; 
+    executeDrop(col, currentPlayer);
   };
 
   const resetGame = () => {
@@ -71,6 +239,36 @@ const ConnectFourGame = () => {
   };
 
   const isWinningCell = (r, c) => winningCells.some(cell => cell.r === r && cell.c === c);
+
+  if (screen === 'menu') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 font-['Orbitron'] text-white relative overflow-hidden isolate">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+        <h1 className="text-4xl md:text-5xl font-bold tracking-widest text-[#4ECDC4] mb-12 drop-shadow-[0_0_15px_rgba(78,205,196,0.5)]">
+          CONNECT-4
+        </h1>
+        <div className="flex flex-col gap-4 w-full max-w-sm">
+          <button 
+            onClick={() => { setGameMode('ai'); setScreen('game'); resetGame(); }}
+            className="flex items-center justify-center gap-3 p-4 bg-[#FFD166]/10 hover:bg-[#FFD166]/20 border border-[#FFD166]/50 rounded-2xl transition-all group"
+          >
+            <Bot size={28} className="text-[#FFD166] group-hover:scale-110 transition-transform" />
+            <span className="text-xl font-bold tracking-widest text-[#FFD166]">VS AI</span>
+          </button>
+          <button 
+            onClick={() => { setGameMode('pvp'); setScreen('game'); resetGame(); }}
+            className="flex items-center justify-center gap-3 p-4 bg-[#FF6B6B]/10 hover:bg-[#FF6B6B]/20 border border-[#FF6B6B]/50 rounded-2xl transition-all group"
+          >
+            <Users size={28} className="text-[#FF6B6B] group-hover:scale-110 transition-transform" />
+            <span className="text-xl font-bold tracking-widest text-[#FF6B6B]">VS PLAYER</span>
+          </button>
+        </div>
+        <button onClick={() => navigate('/dashboard/minigames')} className="mt-8 text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
+          <ArrowLeft size={18} /> BACK
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen  text-white font-['Orbitron'] flex flex-col items-center pt-8 md:pt-12 px-4 relative overflow-hidden isolate">
@@ -91,13 +289,16 @@ const ConnectFourGame = () => {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
       <div className="w-full max-w-4xl flex items-center justify-between mb-8 z-10 mt-15 md:mt-0">
-        <button onClick={() => navigate('/dashboard/minigames')} className="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-all backdrop-blur-md">
+        <button onClick={() => setScreen('menu')} className="bg-white/5 hover:bg-white/10 p-3 rounded-xl border border-white/10 transition-all backdrop-blur-md">
           <ArrowLeft size={24} />
         </button>
 
         <div className="flex flex-col items-center">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-[#4ECDC4] to-[#2EC4B6] drop-shadow-lg">
-            CONNECT-4
+          <h1 className="text-3xl md:text-4xl font-bold tracking-widest text-[#4ECDC4] drop-shadow-lg flex flex-col items-center">
+            <span>CONNECT-4</span>
+            <span className="text-xs text-gray-400 font-bold tracking-widest flex items-center gap-1 mt-2">
+                {gameMode === 'ai' ? <><Bot size={12}/> VS AI</> : <><Users size={12}/> VS PLAYER</>}
+             </span>
           </h1>
           {!winner ? (
             <div className="flex items-center gap-3 mt-4 bg-white/5 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md">

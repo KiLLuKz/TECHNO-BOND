@@ -135,10 +135,10 @@ const AdminDashboard = () => {
 };
 
 const ResetCard = ({ title, icon: Icon, action, desc, onReset }) => (
-    <div className="bg-white/5 border border-white/10 p-6 rounded-2xl hover:border-red-500/50 transition-all duration-300">
+    <div className="bg-white/5 border border-white/10 p-6 rounded-2xl hover:border-red-500/50 hover:shadow-[0_0_15px_rgba(239,68,68,0.15)] transition-all duration-300 flex flex-col h-full">
         <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><Icon size={20} className="text-red-500" /> {title}</h2>
-        <p className="text-sm text-gray-400 mb-4">{desc}</p>
-        <button onClick={() => onReset(action)} className="w-full bg-red-600/10 border border-red-600/50 text-red-400 py-3 rounded-lg hover:bg-red-600 hover:text-white transition-all font-bold">RESET NOW</button>
+        <p className="text-sm text-gray-400 mb-6 font-['Rajdhani'] flex-grow">{desc}</p>
+        <button onClick={() => onReset(action)} className="mt-auto w-full bg-red-600/10 border border-red-600/50 text-red-400 py-3 rounded-lg hover:bg-red-600 hover:text-white hover:shadow-[0_0_15px_rgba(220,38,38,0.3)] transition-all font-bold active:scale-95">RESET NOW</button>
     </div>
 );
 
