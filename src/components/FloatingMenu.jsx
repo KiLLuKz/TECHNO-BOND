@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom'; 
-import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, NotebookTabs } from 'lucide-react';
+import { Menu, X, Home, LayoutDashboard, KeyRound, LogOut, Gamepad2, ShieldAlert, NotebookTabs, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
@@ -44,6 +44,10 @@ const FloatingMenu = ({ userRole, isAdmin, onLogout }) => {
           
           <Link to="/curriculum" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-[#f0eaff] hover:bg-[#b464ff]/20 rounded-xl transition-all">
             <NotebookTabs size={16} /> CURRICULUM
+          </Link>
+          
+          <Link to="/students" onClick={() => setIsOpen(false)} className="flex items-center gap-3 px-4 py-3 text-sm text-[#f0eaff] hover:bg-[#b464ff]/20 rounded-xl transition-all">
+            <Users size={16} /> STUDENTS
           </Link>
           
           <Link 

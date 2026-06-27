@@ -81,21 +81,21 @@ export default function FlappyDrone() {
     const isMobile = window.innerWidth < 768;
     gameRef.current = {
       drone: { 
-        x: isMobile ? window.innerWidth * 0.25 : window.innerWidth * 0.35, 
+        x: isMobile ? window.innerWidth * 0.2 : window.innerWidth * 0.35, // ขยับมาซ้ายอีกนิดบนมือถือ
         y: canvasRef.current?.height / 2 || 350, 
-        velocity: isMobile ? -5.5 : -6.5, 
-        gravity: isMobile ? 0.15 : 0.2, 
-        jump: isMobile ? -5.5 : -6.5, 
-        radius: 15 
+        velocity: isMobile ? -4.5 : -6.5, 
+        gravity: isMobile ? 0.12 : 0.2, 
+        jump: isMobile ? -4.5 : -6.5, 
+        radius: isMobile ? 12 : 15 
       },
       pipes: [],
       particles: [],
       frame: 0,
       score: 0,
-      speed: isMobile ? 3 : 3.5,
-      pipeWidth: 60,
-      pipeGap: isMobile ? 180 : 200,
-      pipeSpawnFrames: isMobile ? 90 : 100,
+      speed: isMobile ? 1.8 : 3.5, // ช้าลงมากบนมือถือ
+      pipeWidth: isMobile ? 45 : 60, // เสาเล็กลงหน่อย
+      pipeGap: isMobile ? 220 : 200, // ช่องว่างกว้างขึ้น
+      pipeSpawnFrames: isMobile ? 120 : 100, // ปล่อยเสาถี่น้อยลง (แต่สัมพันธ์กับความเร็วที่ช้าลง)
     };
     setScore(0);
     setGameState('playing');
