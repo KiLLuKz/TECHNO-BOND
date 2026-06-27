@@ -80,19 +80,6 @@ export const gamesData = [
     players: 'Single Player'
   },
   {
-    id: 'system-defender',
-    title: 'SYSTEM DEFENDER',
-    desc: 'สวมบทบาทเป็นป้อมปืนปกป้องระบบจากมัลแวร์ที่บุกเข้ามาทุกทิศทาง ยิงให้แหลก!',
-    image: null,
-    IconComponent: Crosshair,
-    tag: 'ALPHA-TEST',
-    colorTheme: '#ff3366',
-    textColor: '#e5e7eb',
-    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
-    tagTextColor: '#ffffff',
-    players: 'Single Player'
-  },
-  {
     id: 'shoot-em-up',
     title: "SHOOT'EM UP",
     desc: 'กำลังพัฒนา...',
@@ -104,6 +91,19 @@ export const gamesData = [
     tagGradient: 'from-[#86ACFF] to-[#2200FF]',
     tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
     players: 'Single player & Classic'
+  },
+  {
+    id: 'system-defender',
+    title: 'SYSTEM DEFENDER',
+    desc: 'สวมบทบาทเป็นป้อมปืนปกป้องระบบจากมัลแวร์ที่บุกเข้ามาทุกทิศทาง ยิงให้แหลก!',
+    image: null,
+    IconComponent: Crosshair,
+    tag: 'WIP',
+    colorTheme: '#ff3366',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#EF4444] to-[#B91C1C]',
+    tagTextColor: '#ffffff',
+    players: 'Single Player'
   },
   {
     id: 'cozy-rpg',
