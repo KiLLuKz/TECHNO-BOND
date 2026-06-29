@@ -18,7 +18,7 @@ const StudentList = () => {
           senior_id: '3',
           senior_student_id: '37213',
           senior_nickname: 'ตาต้า', 
-          senior_full_name: 'นาย พรพิพัฒน์ ตั้งวิโรจน์กุล',
+          senior_full_name: 'พรพิพัฒน์ ตั้งวิโรจน์กุล',
           username: '37213',
           avatar_url: null,
           senior_photo_url: '/assets/student_3.jpg' // Hardcoded Image Path
