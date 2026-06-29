@@ -17,7 +17,7 @@ const StudentList = () => {
         const hardcodedStudent = {
           senior_id: '3',
           senior_student_id: '37213',
-          senior_nickname: 'พรพิพัฒน์', 
+          senior_nickname: 'ตาต้า', 
           senior_full_name: 'นาย พรพิพัฒน์ ตั้งวิโรจน์กุล',
           username: '37213',
           avatar_url: null,
