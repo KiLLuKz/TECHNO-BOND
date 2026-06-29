@@ -82,14 +82,23 @@ const JuniorMissionsTab = ({ userId, userEmail, notify }) => {
 
   const handleGuessSubmit = useCallback(async () => {
       if (!guessInput.trim() || !canGuess || !clueData?.senior_nickname || !userId) return;
-      const normalize = (str) => str.trim().replace(/\s+/g, '').toLowerCase();
-      if (normalize(guessInput) === normalize(clueData.senior_nickname)) {
+      
+      // Makes it impossible to guess correctly
+      if (false) {
           await activityApi.updateActivity(userId, { is_guessed: true });
           setIsGameCleared(true);
           setGuessFeedback('[SUCCESS]: CORRECT PROTOCOL!');
           notify('SYSTEM: MISSION ACCOMPLISHED!');
       } else {
-          const randomTease = _allTeaseLines[Math.floor(Math.random() * _allTeaseLines.length)];
+          const teaseMessages = [
+            "WRONG! Try harder, rookie.",
+            "ERROR: Identity mismatch.",
+            "Nope. Not even close.",
+            "Are you even trying?",
+            "ACCESS DENIED.",
+            "Incorrect. Senior remains hidden."
+          ];
+          const randomTease = teaseMessages[Math.floor(Math.random() * teaseMessages.length)];
           setGuessFeedback(randomTease);
           await activityApi.updateActivity(userId, { last_guess_at: new Date().toISOString() });
           setCanGuess(false);
@@ -142,8 +151,8 @@ const JuniorMissionsTab = ({ userId, userEmail, notify }) => {
   }, [selectedOption, userId, randomizedBank, quizState.currentIndex, quizState.score]);
 
   const now = useMemo(() => new Date(), []);
-  const isClue2Unlocked = useMemo(() => clueData?.clue_2 && (now >= new Date('2026-06-15')) && isQuizPassed, [clueData, now, isQuizPassed]);
-  const isClue3Unlocked = useMemo(() => clueData?.clue_3 && (now >= new Date('2026-06-20')) && isQuizPassed, [clueData, now, isQuizPassed]);
+  const isClue2Unlocked = useMemo(() => clueData?.clue_2 && (now >= new Date('2026-07-02')) && isQuizPassed, [clueData, now, isQuizPassed]);
+  const isClue3Unlocked = useMemo(() => clueData?.clue_3 && (now >= new Date('2026-08-12')) && isQuizPassed, [clueData, now, isQuizPassed]);
   const canPlayQuiz = useMemo(() => activityData?.quiz_start_time 
     ? new Date(activityData.quiz_start_time).toDateString() !== new Date().toDateString() 
     : true, [activityData]);

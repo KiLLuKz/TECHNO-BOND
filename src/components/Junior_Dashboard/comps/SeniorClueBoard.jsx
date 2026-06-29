@@ -37,7 +37,7 @@ const SeniorClueBoard = ({ clueData, isClue2Unlocked, isClue3Unlocked, setModal,
              <span>
                 {isClue2Unlocked ? truncateClue(clueData.clue_2) : 
                  !clueData?.clue_2 ? "Waiting for transmission..." : 
-                 "Requires: June 15th + Passed Quest"}
+                 "Requires: July 2nd + Passed Quiz"}
              </span>
           </div>
           {!isClue2Unlocked && <Lock size={16} />}
@@ -53,7 +53,7 @@ const SeniorClueBoard = ({ clueData, isClue2Unlocked, isClue3Unlocked, setModal,
              <span>
                 {isClue3Unlocked ? truncateClue(clueData.clue_3) : 
                  !clueData?.clue_3 ? "Waiting for transmission..." : 
-                 "Requires: June 20th + Passed Quest"}
+                 "Requires: August 12th + Passed Quest"}
              </span>
           </div>
           {!isClue3Unlocked && <Lock size={16} />}
