@@ -5,6 +5,24 @@
   ],
   "headers": [
     {
+      "source": "/(.*).wasm",
+      "headers": [ { "key": "Content-Type", "value": "application/wasm" } ]
+    },
+    {
+      "source": "/(.*).br",
+      "headers": [
+        { "key": "Content-Encoding", "value": "br" },
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    },
+    {
+      "source": "/(.*).gz",
+      "headers": [
+        { "key": "Content-Encoding", "value": "gzip" },
+        { "key": "Content-Type", "value": "application/octet-stream" }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
