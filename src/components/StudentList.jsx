@@ -12,7 +12,8 @@ const StudentList = () => {
     const loadStudents = async () => {
       try {
         const seniors = await fetchAllSeniors();
-        
+
+        // --- Hardcode Student No. 3 ---
         const hardcodedStudent = {
           senior_id: '3',
           senior_student_id: '37213',
@@ -20,12 +21,13 @@ const StudentList = () => {
           senior_full_name: 'นาย พรพิพัฒน์ ตั้งวิโรจน์กุล',
           username: '37213',
           avatar_url: null,
+          senior_photo_url: '/assets/student_3.jpg' // Hardcoded Image Path
         };
-        // Ensure no duplicate if they ever get added to the DB later
+        
         if (!seniors.some(s => String(s.senior_id) === '3')) {
           seniors.push(hardcodedStudent);
         }
-        // -------------------------------------
+        // ------------------------------
 
         // Sort by student ID (เลขที่)
         seniors.sort((a, b) => {
@@ -111,13 +113,20 @@ const StudentList = () => {
               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(126, 207, 255, 0.4)" }}
               className="relative aspect-[3/4] rounded-xl overflow-hidden group cursor-pointer border border-[#7ecfff]/30 shadow-lg"
             >
-              {/* Abstract Placeholder Background */}
+              {/* Background Image or Placeholder */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#060412] to-[#1a1a2e] flex items-center justify-center transition-transform duration-500 group-hover:scale-110">
-                 {/* Lucide User Icon as Placeholder */}
-                 <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-[#7ecfff]/50 mb-10">
-                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                 </svg>
+                 {student.senior_photo_url ? (
+                   <img 
+                     src={student.senior_photo_url} 
+                     alt={student.senior_nickname} 
+                     className="w-full h-full object-cover"
+                   />
+                 ) : (
+                   <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-[#7ecfff]/50 mb-10">
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                   </svg>
+                 )}
               </div>
 
               {/* Dark Gradient Overlay (Bottom-up for text readability) */}

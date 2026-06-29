@@ -46,6 +46,22 @@ export const sendJuniorMessage = async (senderStudentId, receiverStudentId, mess
     if (error) throw error;
 };
 
+export const uploadSeniorPhoto = async (seniorStudentId, file) => {
+    const fileName = `official_${seniorStudentId}_${Date.now()}.${file.name.split('.').pop()}`;
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
+    if (uploadError) throw uploadError;
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    return publicUrl;
+};
+
+export const updateSeniorPhotoUrl = async (seniorStudentId, photoUrl) => {
+    // Update all pairing rows for this senior
+    const { error } = await supabase.from('pairing_data')
+        .update({ senior_photo_url: photoUrl })
+        .eq('senior_student_id', seniorStudentId);
+    if (error) throw error;
+};
+
 export const fetchAllSeniors = async () => {
     // 1. ดึงรายการ pairing_data ทั้งหมด
     const { data: allPairs, error } = await supabase.from('pairing_data').select('*');
@@ -63,6 +79,7 @@ export const fetchAllSeniors = async () => {
             uniqueSeniorsMap.set(pair.senior_id, {
                 ...pair,
                 avatar_url: p?.avatar_url || null,
+                senior_photo_url: pair.senior_photo_url || null, // New field from DB
                 username: p?.username || 'Not Registered'
             });
         }

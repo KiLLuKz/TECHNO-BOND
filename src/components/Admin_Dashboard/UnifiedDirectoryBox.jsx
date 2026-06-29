@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Search, User } from 'lucide-react';
+import { Users, Search, User, Camera } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
+const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
   const [viewMode, setViewMode] = useState('senior'); 
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -86,26 +86,41 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
                 <th className="pb-4 pl-4 font-normal">Real Name</th>
                 <th className="pb-4 pl-4 font-normal">Nickname</th>
                 <th className="pb-4 pl-4 font-normal">Username</th>
+                {viewMode === 'senior' && <th className="pb-4 pr-4 font-normal text-right">Actions</th>}
                 </tr>
             </thead>
             <tbody className="font-['Rajdhani'] text-base">
                 {filteredData.map((item) => (
                     <tr key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
                         <td className="py-4 pl-2">
-                        <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border border-white/10">
+                        <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border border-white/10 relative group cursor-pointer">
                             {item.avatar_url ? <img src={item.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-gray-400" />}
                         </div>
                         </td>
                         <td className="py-4 pl-4 text-[#d966ff] font-['Orbitron'] font-bold">
                             {viewMode === 'senior' ? item.senior_student_id : item.junior_student_id}
                         </td>
-                        <td className="py-4 pl-4 text-gray-200 font-bold">
+                        <td className="py-4 pl-4 text-gray-200 font-bold font-['Chakra_Petch']">
                             {viewMode === 'senior' ? (item.senior_full_name || '-') : (item.junior_full_name || '-')}
                         </td>
-                        <td className="py-4 pl-4 text-[#99eedd] font-bold">
+                        <td className="py-4 pl-4 text-[#99eedd] font-bold font-['Chakra_Petch']">
                             {viewMode === 'senior' ? (item.senior_nickname || '-') : (item.junior_nickname || '-')}
                         </td>
                         <td className="py-4 pl-4">{renderUsername(item.username)}</td>
+                        {viewMode === 'senior' && (
+                          <td className="py-4 pr-4 text-right">
+                             <button 
+                               onClick={() => onUploadClick(item)}
+                               className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-2 font-['Orbitron'] ml-auto transition-colors border ${
+                                 item.senior_photo_url 
+                                 ? "bg-[#99eedd]/10 text-[#99eedd] hover:bg-[#99eedd]/30 border-[#99eedd]/40" 
+                                 : "bg-[#7ecfff]/20 text-[#7ecfff] hover:bg-[#7ecfff]/40 border-[#7ecfff]/50"
+                               }`}
+                             >
+                               <Camera size={14} /> {item.senior_photo_url ? "EDIT PHOTO" : "ADD PHOTO"}
+                             </button>
+                          </td>
+                        )}
                     </tr>
                 ))}
             </tbody>
@@ -113,29 +128,45 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [] }) => {
         </div>
 
         {/* Card View (Mobile) */}
-        <div className="md:hidden flex flex-col gap-3">
-            {filteredData.length > 0 ? (
-                filteredData.map(item => (
-                    <div key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-white/10">
-                            {item.avatar_url && <img src={item.avatar_url} className="w-full h-full object-cover" alt="" />}
+        <div className="md:hidden flex flex-col gap-4">
+            {filteredData.map((item) => (
+                <div key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="bg-black/20 border border-white/10 rounded-xl p-4 flex flex-col gap-3 relative">
+                    <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border border-white/10 shrink-0">
+                            {item.avatar_url ? <img src={item.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-gray-400" />}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="text-[#d966ff] font-['Orbitron'] font-bold text-sm">
-                                {viewMode === 'senior' ? item.senior_student_id : item.junior_student_id}
-                            </div>
-                            <div className="text-gray-200 font-bold truncate">
-                                {viewMode === 'senior' ? (item.senior_full_name || '-') : (item.junior_full_name || '-')}
-                            </div>
-                            <div className="text-[#99eedd] text-sm font-bold">
+                        <div className="flex flex-col">
+                            <span className="text-[#d966ff] font-['Orbitron'] font-bold">
+                                ID: {viewMode === 'senior' ? item.senior_student_id : item.junior_student_id}
+                            </span>
+                            <span className="font-['Chakra_Petch'] text-lg text-[#99eedd]">
                                 {viewMode === 'senior' ? (item.senior_nickname || '-') : (item.junior_nickname || '-')}
-                            </div>
-                            <div>{renderUsername(item.username)}</div>
+                            </span>
                         </div>
                     </div>
-                ))
-            ) : (
-                <div className="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>
+                    <div className="flex flex-col gap-1">
+                        <span className="text-gray-400 text-sm font-['Chakra_Petch']">
+                            {viewMode === 'senior' ? (item.senior_full_name || '-') : (item.junior_full_name || '-')}
+                        </span>
+                        <div>{renderUsername(item.username)}</div>
+                    </div>
+                    
+                    {viewMode === 'senior' && (
+                        <button 
+                           onClick={() => onUploadClick(item)}
+                           className={`absolute top-4 right-4 p-2 rounded-full transition-colors border z-10 ${
+                             item.senior_photo_url 
+                             ? "bg-[#99eedd]/10 text-[#99eedd] hover:bg-[#99eedd]/30 border-[#99eedd]/40" 
+                             : "bg-[#7ecfff]/20 text-[#7ecfff] hover:bg-[#7ecfff]/40 border-[#7ecfff]/50"
+                           }`}
+                        >
+                           <Camera size={16} />
+                        </button>
+                    )}
+                </div>
+            ))}
+            {filteredData.length === 0 && (
+                <div className="text-center py-10 text-gray-500 font-['Chakra_Petch']">ไม่พบข้อมูล</div>
             )}
         </div>
       </div>

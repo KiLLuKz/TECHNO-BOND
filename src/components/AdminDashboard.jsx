@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, RefreshCw, MessageSquare, BookOpen, BrainCircuit } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import UnifiedDirectoryBox from './Admin_Dashboard/UnifiedDirectoryBox';
+import ImageCropperModal from './Admin_Dashboard/ImageCropperModal';
 import Loader from './Loader';
 import SystemAlert from './SystemAlert'; 
 
@@ -12,6 +13,11 @@ const AdminDashboard = () => {
   
   const [alertState, setAlertState] = useState({ 
     isOpen: false, type: 'info', title: '', message: '', onConfirm: null 
+  });
+
+  const [cropperState, setCropperState] = useState({
+    isOpen: false,
+    senior: null
   });
 
   useEffect(() => {
@@ -36,6 +42,7 @@ const AdminDashboard = () => {
             senior_student_id: pair.senior_student_id,
             senior_nickname: pair.senior_nickname,
             senior_full_name: pair.senior_full_name,
+            senior_photo_url: pair.senior_photo_url,
             ...(profile || {}), // ถ้าไม่มี profile ให้ใช้ข้อมูลจาก pair แทน
             id: profile ? profile.id : pair.senior_id
           });
@@ -43,22 +50,28 @@ const AdminDashboard = () => {
       });
       
       // 3. จัดกลุ่ม Juniors (น้องรหัสทุกคนตาม pairing_data)
-      const juniorsWithProfile = allPairs.map(pair => {
-        const profile = allProfiles.find(p => String(p.student_id) === String(pair.junior_student_id));
-        return { 
-            ...pair, 
-            ...(profile || {}),
-            // เพื่อให้สอดคล้องกับ UnifiedDirectoryBox
-            junior_id: pair.junior_id,
-            junior_student_id: pair.junior_student_id,
-            junior_full_name: pair.junior_full_name 
-        };
-      });
+      const juniorsWithProfile = allPairs
+        .filter(pair => pair.junior_student_id !== '00000')
+        .map(pair => {
+          const profile = allProfiles.find(p => String(p.student_id) === String(pair.junior_student_id));
+          return { 
+              ...pair, 
+              ...(profile || {}),
+              // เพื่อให้สอดคล้องกับ UnifiedDirectoryBox
+              junior_id: pair.junior_id,
+              junior_student_id: pair.junior_student_id,
+              junior_full_name: pair.junior_full_name 
+          };
+        });
 
       setSeniors(Array.from(seniorMap.values()));
       setJuniors(juniorsWithProfile);
     }
     setLoading(false);
+  };
+
+  const handleUploadClick = (senior) => {
+    setCropperState({ isOpen: true, senior });
   };
 
   // ... (ฟังก์ชัน handleReset และ executeReset เหมือนเดิม ไม่ต้องเปลี่ยน)
@@ -129,7 +142,23 @@ const AdminDashboard = () => {
         <ResetCard title="Quiz Cooldown" icon={BrainCircuit} action="RESET_QUIZ" desc="รีเซ็ตสิทธิ์การทำควิซ" onReset={handleReset} />
       </div>
 
-      <UnifiedDirectoryBox seniors={seniors} juniors={juniors} />
+      <UnifiedDirectoryBox seniors={seniors} juniors={juniors} onUploadClick={handleUploadClick} />
+      
+      <ImageCropperModal
+        isOpen={cropperState.isOpen}
+        senior={cropperState.senior}
+        onClose={() => setCropperState({ isOpen: false, senior: null })}
+        onUploadSuccess={() => {
+          fetchAdminData();
+          setAlertState({
+            isOpen: true,
+            type: 'success',
+            title: 'UPLOAD SUCCESS',
+            message: 'อัปโหลดรูปภาพสำเร็จแล้ว!',
+            onConfirm: null 
+          });
+        }}
+      />
     </div>
   );
 };

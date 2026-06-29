@@ -174,6 +174,7 @@ const MiniGames = () => {
                 <option value="all" className="bg-[#110b1c]">ALL GAMES</option>
                 <option value="block-blast" className="bg-[#110b1c]">BLOCK BLAST</option>
                 <option value="shoot-em-up" className="bg-[#110b1c]">SHOOT'EM UP</option>
+                <option value="flappy_drone" className="bg-[#110b1c]">FLAPPY DRONE</option>
               </select>
             </div>
           </div>

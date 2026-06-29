@@ -74,7 +74,7 @@ const Curriculum = () => {
       >
         <motion.div variants={{ hidden: { opacity: 0, x: -20 }, visible: { opacity: 1, x: 0 } }} className="lg:col-span-2 bg-gradient-to-br from-[#7b2cbf]/20 to-[#a855f7]/10 backdrop-blur-md border border-[#a855f7]/30 p-10 rounded-[30px] text-center transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_10px_40px_rgba(168,85,247,0.3)] group">
           <h2 className="font-['Orbitron'] text-5xl md:text-6xl text-[#c084fc] mb-3 font-bold group-hover:scale-110 transition-transform duration-500">
-            <AnimatedNumber from={1} to={100} suffix="%" />
+            <AnimatedNumber from={1} to={100} suffix="%?" />
           </h2>
           <p className="text-gray-300 tracking-wider text-sm md:text-base uppercase group-hover:text-white transition-colors">University Admission</p>
         </motion.div>
@@ -291,10 +291,10 @@ const Curriculum = () => {
           <h2 className="font-['Orbitron'] text-2xl md:text-4xl font-bold text-white mb-4 tracking-widest">READY TO JOIN THE LEGACY?</h2>
           <p className="text-gray-400 mb-10">เตรียมพบกับก้าวย่างของ GEN 9 ในปีการศึกษาหน้า</p>
           <button 
-            onClick={() => navigate('/portfolio')} 
+            onClick={() => navigate('/students')} 
             className="group px-10 py-4 bg-transparent border-2 border-[#a855f7] text-[#c084fc] font-['Orbitron'] font-bold tracking-widest rounded-full transition-all duration-300 hover:bg-[#a855f7] hover:text-white hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] hover:-translate-y-1 flex items-center gap-3 mx-auto"
           >
-            VIEW PERFORMANCE
+            VIEW MEMBER
             <ChevronRight className="group-hover:translate-x-1 transition-transform" size={20} />
           </button>
         </div>
