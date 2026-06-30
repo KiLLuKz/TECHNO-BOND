@@ -80,33 +80,43 @@ const Verify = ({ onLoginSuccess}) => {
                 if (password !== confirmPassword) { setErrorMsg('ERROR: รหัสผ่านไม่ตรงกัน'); setPasswordMatchError(true); setIsLoading(false); return; }
                 if (password.length < 6) { setErrorMsg('ERROR: รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); setIsLoading(false); return; }
                 if (!securityChecked) { setErrorMsg('ERR: กรุณายอมรับเงื่อนไขความปลอดภัย'); setIsLoading(false); return; }
-
-                const { data: juniorData } = await supabase.from('pairing_data').select('junior_student_id').eq('junior_student_id', studentId.trim()).maybeSingle();
-                const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').eq('senior_student_id', studentId.trim()).maybeSingle();
-
-                if (!juniorData && !seniorData) { 
-                    setErrorMsg(`ACCESS DENIED: ไม่พบรหัสนักเรียน ${studentId} ในระบบจับคู่`); 
-                    setIsLoading(false); return; 
+            
+                // 🛡️ ปรับปรุงจุดนี้: เช็คข้อมูลให้ยืดหยุ่นขึ้น (ใช้ .trim() และเช็คทั้ง Senior/Junior)
+                const cleanId = studentId.trim();
+                
+                // เช็คในตาราง pairing_data
+                const { data: seniorData, error: sErr } = await supabase
+                    .from('pairing_data')
+                    .select('senior_student_id')
+                    .eq('senior_student_id', cleanId)
+                    .maybeSingle();
+            
+                const { data: juniorData, error: jErr } = await supabase
+                    .from('pairing_data')
+                    .select('junior_student_id')
+                    .eq('junior_student_id', cleanId)
+                    .maybeSingle();
+            
+                // 💡 ถ้าคิวอยากบังคับว่าต้องมีชื่ออยู่ในระบบจับคู่ถึงจะสมัครได้ ให้ใช้เงื่อนไขนี้:
+                if (!seniorData && !juniorData) {
+                    setErrorMsg(`ACCESS DENIED: รหัสนักเรียน ${cleanId} ไม่พบในระบบจับคู่ (ตรวจสอบข้อมูลกับ Admin)`);
+                    setIsLoading(false);
+                    return;
                 }
-
+            
+                // 🚀 ถ้าผ่านเงื่อนไขแล้ว ค่อยไปสมัครสมาชิก
                 const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
                 
                 if (signUpError) {
-                    if (signUpError.message.toLowerCase().includes('already registered') || signUpError.message.toLowerCase().includes('already exists')) {
-                        throw new Error('บัญชีนี้มีอยู่ในระบบแล้ว กรุณาไปหน้าเข้าสู่ระบบ หรือรีเซ็ตรหัสผ่าน');
+                    if (signUpError.message.includes('already registered')) {
+                        throw new Error('บัญชีนี้มีอยู่แล้ว ไปหน้าเข้าสู่ระบบได้เลย');
                     }
                     throw signUpError;
                 }
-
-                // Supabase might return null user if already registered and email confirmations are ON (prevent email enumeration)
-                // But usually it throws an error if user already exists
-                if (authData?.user?.identities?.length === 0) {
-                    throw new Error('บัญชีนี้มีอยู่ในระบบแล้ว กรุณาไปหน้าเข้าสู่ระบบ หรือรีเซ็ตรหัสผ่าน');
-                }
-
+            
                 setSuccessMsg('SYSTEM: รหัสยืนยัน (OTP) ถูกส่งไปยังอีเมลแล้ว');
                 setTimeout(() => switchMode('verify_otp_signup'), 1500);
-            } 
+            }
             else if (mode === 'verify_otp_signup') {
                 const token = otp.join('');
                 if (token.length < 6) { setErrorMsg('ERROR: กรุณากรอกรหัส 6 หลักให้ครบ'); setIsLoading(false); return; }
