@@ -5,6 +5,7 @@ import UnifiedDirectoryBox from './Admin_Dashboard/UnifiedDirectoryBox';
 import ImageCropperModal from './Admin_Dashboard/ImageCropperModal';
 import Loader from './Loader';
 import SystemAlert from './SystemAlert'; 
+import { uploadSeniorPhoto, updateSeniorPhotoUrl } from '../api/juniorApi';
 
 const AdminDashboard = () => {
   const [seniors, setSeniors] = useState([]);
@@ -87,18 +88,24 @@ const AdminDashboard = () => {
 
   const executeReset = async (action) => {
     try {
-      let updateData = {};
-      if (action === 'RESET_COOLDOWNS') updateData = { last_guess_at: null };
-      else if (action === 'RESET_MESSAGES') updateData = { daily_messages_count: 0 };
-      else if (action === 'RESET_QUOTAS') updateData = { clue1_edit_count: 0, clue2_edit_count: 0, clue3_edit_count: 0 };
-      else if (action === 'RESET_QUIZ') updateData = { quiz_start_time: null };
+      if (action === 'RESET_QUOTAS') {
+        const { error } = await supabase
+          .from('pairing_data')
+          .update({ clue1_edit_count: 0, clue2_edit_count: 0, clue3_edit_count: 0 })
+          .not('senior_student_id', 'is', null);
+        if (error) throw error;
+      } else {
+        let updateData = {};
+        if (action === 'RESET_COOLDOWNS') updateData = { last_guess_at: null };
+        else if (action === 'RESET_MESSAGES') updateData = { daily_messages_count: 0 };
+        else if (action === 'RESET_QUIZ') updateData = { quiz_start_time: null };
 
-      const { error } = await supabase
-        .from('user_activity_states')
-        .update(updateData)
-        .not('user_id', 'is', null);
-
-      if (error) throw error;
+        const { error } = await supabase
+          .from('user_activity_states')
+          .update(updateData)
+          .not('user_id', 'is', null);
+        if (error) throw error;
+      }
       
       setAlertState({
         isOpen: true,
@@ -146,8 +153,14 @@ const AdminDashboard = () => {
       
       <ImageCropperModal
         isOpen={cropperState.isOpen}
-        senior={cropperState.senior}
         onClose={() => setCropperState({ isOpen: false, senior: null })}
+        description={cropperState.senior ? `อัปโหลดรูปภาพของ ${cropperState.senior.senior_full_name} (${cropperState.senior.senior_nickname})` : ''}
+        aspectRatio={3/4}
+        uploadFunction={async (file) => {
+          if (!cropperState.senior) return;
+          const publicUrl = await uploadSeniorPhoto(cropperState.senior.senior_student_id, file);
+          await updateSeniorPhotoUrl(cropperState.senior.senior_student_id, publicUrl);
+        }}
         onUploadSuccess={() => {
           fetchAdminData();
           setAlertState({

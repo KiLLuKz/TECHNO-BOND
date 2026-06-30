@@ -113,6 +113,7 @@ export default function App() {
           .from('pairing_data') 
           .select('senior_student_id')
           .eq('senior_student_id', studentId)
+          .limit(1)
           .maybeSingle();
         
         setUserRole(seniorData ? 'senior' : 'junior');

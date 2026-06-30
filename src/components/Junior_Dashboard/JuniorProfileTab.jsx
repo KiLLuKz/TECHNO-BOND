@@ -24,9 +24,8 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
     if (userId && userEmail) fetchData();
   }, [userId, userEmail]);
 
-  const handleUploadAvatar = useCallback(async (event) => {
+  const handleUploadAvatar = useCallback(async (file) => {
     try {
-      const file = event.target.files[0];
       if (!file) return;
       const publicUrl = await api.uploadAvatar(userId, file);
       await api.updateProfile(userId, { avatar_url: publicUrl, username: profile.username, student_id: profile.student_id });

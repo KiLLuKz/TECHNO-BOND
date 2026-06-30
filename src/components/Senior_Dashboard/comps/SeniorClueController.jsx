@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Terminal, Maximize2, RefreshCw, Send } from 'lucide-react';
 
 const SeniorClueController = ({ 
@@ -6,14 +6,20 @@ const SeniorClueController = ({
     truncateText, 
     setModal, 
     handleResetClue, 
-    newClues, 
-    setNewClues, 
     submitClue 
 }) => {
+  const [newClues, setNewClues] = useState({ clue1: '', clue2: '', clue3: '' });
+  const juniorId = clueData?.junior_student_id || 'UNKNOWN';
+
+  const onSubmit = (clueField, stateKey) => {
+      submitClue(clueField, newClues[stateKey], juniorId);
+      setNewClues(prev => ({ ...prev, [stateKey]: '' }));
+  };
+
   return (
-    <div className="lg:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 shadow-xl flex flex-col">
+    <div className="lg:col-span-2 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 shadow-xl flex flex-col mb-6">
       <h2 className="flex items-center gap-2 text-[#d966ff] mb-6 font-bold tracking-widest">
-          <Terminal size={18} /> CLUE_CONTROLLER
+          <Terminal size={18} /> CLUE_CONTROLLER [JUNIOR: {juniorId}]
       </h2>
       <div className="space-y-4 flex-1">
         {['clue_1', 'clue_2', 'clue_3'].map((clueField, idx) => {
@@ -32,8 +38,8 @@ const SeniorClueController = ({
                       <Maximize2 size={16} />
                   </button>
                   <button 
-                      onClick={() => handleResetClue(clueField)} 
-                      title="Reset (Max 5/day)" 
+                      onClick={() => handleResetClue(clueField, juniorId, clueData)} 
+                      title="Reset Clue" 
                       className="p-1.5 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
                   >
                       <RefreshCw size={14} className="text-red-400" />
@@ -51,7 +57,7 @@ const SeniorClueController = ({
                     onChange={(e) => setNewClues({...newClues, [stateKey]: e.target.value})} 
                 />
                 <button 
-                    onClick={() => submitClue(clueField, newClues[stateKey])} 
+                    onClick={() => onSubmit(clueField, stateKey)} 
                     className="bg-[#d966ff]/20 border border-[#d966ff]/50 rounded-lg px-4 hover:bg-[#d966ff]/40 transition-all"
                 >
                     <Send size={14} className="text-[#d966ff]" />

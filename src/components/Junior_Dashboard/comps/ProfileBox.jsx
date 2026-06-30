@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Upload, Save, User, KeyRound, Mail, Hash } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 import ResetPasswordModal from '../../common/ResetPasswordModal';
 import StatusBox from '../../common/StatusBox';
+import ImageCropperModal from '../../Admin_Dashboard/ImageCropperModal';
 
 const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfile, isSaving, defaultAvatar, userEmail, notify }) => {
-  const [showResetModal, setShowResetModal] = React.useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [cropperOpen, setCropperOpen] = useState(false);
 
   const handleRequestOtp = async () => {
       try {
@@ -37,11 +39,10 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
             </div>
 
             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-                <label className="cursor-pointer flex flex-col items-center">
+                <button onClick={() => setCropperOpen(true)} className="flex flex-col items-center">
                     <Upload size={20} className="text-white" />
                     <span className="text-[9px] text-white tracking-widest mt-1">EDIT</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleUploadAvatar} />
-                </label>
+                </button>
             </div>
         </div>
         
@@ -99,6 +100,15 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
           onClose={() => setShowResetModal(false)} 
           userEmail={userEmail} 
           notify={notify} 
+      />
+
+      <ImageCropperModal
+          isOpen={cropperOpen}
+          onClose={() => setCropperOpen(false)}
+          title="UPLOAD AVATAR"
+          description="คลิกเพื่อเลือกรูปโปรไฟล์ของคุณ (อัตราส่วน 1:1)"
+          aspectRatio={1}
+          uploadFunction={handleUploadAvatar}
       />
     </div>
   );

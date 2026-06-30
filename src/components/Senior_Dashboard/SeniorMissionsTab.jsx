@@ -7,12 +7,11 @@ import { InboxModal, ClueModal } from './comps/SeniorModals';
 import { SeniorMissionsSkeleton } from '../common/Skeletons';
 
 const SeniorMissionsTab = ({ userId, userEmail, notify, setSystemAlert, getDefaultAvatar }) => {
-  const [clueData, setClueData] = useState(null);
+  const [clueData, setClueData] = useState([]);
   const [realMessages, setRealMessages] = useState([]);
   const [activityData, setActivityData] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  const [newClues, setNewClues] = useState({ clue_1: '', clue_2: '', clue_3: '' });
   const [modal, setModal] = useState({ isOpen: false, content: '' });
   const [inboxModal, setInboxModal] = useState(false);
 
@@ -22,13 +21,13 @@ const SeniorMissionsTab = ({ userId, userEmail, notify, setSystemAlert, getDefau
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [clue, juniors, activity] = await Promise.all([
+        const [cluesArray, juniors, activity] = await Promise.all([
           api.fetchSeniorClues(userEmail),
           api.fetchAllJuniors(),
           activityApi.fetchUserActivity(userId)
         ]);
         
-        if (clue) setClueData(clue);
+        if (cluesArray) setClueData(cluesArray);
         if (activity) setActivityData(activity);
         
         if (juniors) {
@@ -43,20 +42,19 @@ const SeniorMissionsTab = ({ userId, userEmail, notify, setSystemAlert, getDefau
     if (userId && userEmail) fetchData();
   }, [userId, userEmail]);
 
-  const submitClue = useCallback(async (clueField, clueValue) => {
+  const submitClue = useCallback(async (clueField, clueValue, juniorStudentId) => {
     if (!clueValue.trim()) return;
     try {
-      await api.updateClue(userEmail, clueField, clueValue);
-      setClueData(prev => ({ ...prev, [clueField]: clueValue }));
-      setNewClues(prev => ({ ...prev, [clueField]: '' }));
+      await api.updateClue(userEmail, clueField, clueValue, juniorStudentId);
+      setClueData(prev => prev.map(c => c.junior_student_id === juniorStudentId ? { ...c, [clueField]: clueValue } : c));
       notify(`SYSTEM: ${clueField.toUpperCase()} Uploaded!`);
     } catch (error) { notify("ERROR: " + error.message); }
   }, [userEmail, notify]);
 
-  const handleResetClue = useCallback((clueField) => {
+  const handleResetClue = useCallback((clueField, juniorStudentId, currentClueDataRow) => {
     const columnMap = { clue_1: 'clue1_edit_count', clue_2: 'clue2_edit_count', clue_3: 'clue3_edit_count' };
     const dbColumn = columnMap[clueField];
-    const currentCount = activityData ? activityData[dbColumn] : 0;
+    const currentCount = currentClueDataRow ? (currentClueDataRow[dbColumn] || 0) : 0;
     
     if (currentCount >= 5) {
         setSystemAlert({ isOpen: true, type: 'error', title: 'QUOTA EXCEEDED', message: 'คุณลบคำใบ้นี้ครบ 5 ครั้งแล้ว', onConfirm: null, confirmText: 'CLOSE' });
@@ -67,15 +65,13 @@ const SeniorMissionsTab = ({ userId, userEmail, notify, setSystemAlert, getDefau
         onConfirm: async () => {
             setSystemAlert(prev => ({ ...prev, isOpen: false }));
             try {
-                await api.updateClue(userEmail, clueField, null);
-                await activityApi.updateActivity(userId, { [dbColumn]: currentCount + 1 });
-                setClueData(prev => ({ ...prev, [clueField]: null }));
-                setActivityData(prev => ({ ...prev, [dbColumn]: currentCount + 1 }));
+                await api.resetClue(userEmail, clueField, dbColumn, currentCount + 1, juniorStudentId);
+                setClueData(prev => prev.map(c => c.junior_student_id === juniorStudentId ? { ...c, [clueField]: null, [dbColumn]: currentCount + 1 } : c));
                 notify(`SYSTEM: ${clueField.toUpperCase()} ล้างข้อมูลเรียบร้อย!`);
             } catch (error) { notify("ERROR: " + error.message); }
         }
     });
-  }, [activityData, userEmail, userId, setSystemAlert, notify]);
+  }, [userEmail, setSystemAlert, notify]);
 
   if (loading) return <SeniorMissionsSkeleton />;
 
@@ -85,8 +81,23 @@ const SeniorMissionsTab = ({ userId, userEmail, notify, setSystemAlert, getDefau
         <div className="w-full">
           <SeniorInboxBox setInboxModal={setInboxModal} realMessages={realMessages} getDefaultAvatar={getDefaultAvatar} formatTime={formatTime}/>
         </div>
-        <div className="w-full">
-          <SeniorClueController clueData={clueData} truncateText={truncateText} setModal={setModal} handleResetClue={handleResetClue} newClues={newClues} setNewClues={setNewClues} submitClue={submitClue}/>
+        <div className="w-full flex flex-col gap-6">
+          {clueData.length > 0 ? (
+            clueData.map((data, idx) => (
+              <SeniorClueController 
+                key={data.junior_student_id || idx} 
+                clueData={data} 
+                truncateText={truncateText} 
+                setModal={setModal} 
+                handleResetClue={handleResetClue} 
+                submitClue={submitClue}
+              />
+            ))
+          ) : (
+             <div className="text-gray-500 bg-[#08050f]/60 backdrop-blur-xl border border-white/10 rounded-[20px] p-6 shadow-xl text-center">
+                 ไม่พบข้อมูลน้องรหัสในระบบ
+             </div>
+          )}
         </div>
       </div>
       

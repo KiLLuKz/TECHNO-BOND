@@ -104,7 +104,7 @@ const Verify = ({ onLoginSuccess}) => {
                 const cleanId = studentId.trim();
                 
                 // ใช้ ilike เพื่อป้องกันช่องว่างแฝง
-                const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
+                const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).limit(1).maybeSingle();
                 const assumedRole = seniorData ? 'senior' : 'junior';
                 
                 if (data?.user) {
@@ -158,7 +158,7 @@ const Verify = ({ onLoginSuccess}) => {
                     role = 'senior';
                 } else {
                     const cleanId = studentId.trim();
-                    const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
+                    const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).limit(1).maybeSingle();
                     role = seniorData ? 'senior' : 'junior';
                 }
 

@@ -17,7 +17,7 @@ export const fetchSeniorClues = async (email) => {
         .select('*')
         .eq('senior_student_id', studentId);
     if (error) throw error;
-    return clues && clues.length > 0 ? clues[0] : null; 
+    return clues || []; 
 };
 
 // ดึงรายชื่อน้องทุกคน (สำหรับ Database หน้า Directory)
@@ -68,12 +68,27 @@ export const updateProfile = async (userId, profileData) => {
 };
 
 // อัปเดตคำใบ้ (เช็ค senior_student_id)
-export const updateClue = async (email, clueField, clueValue) => {
+export const updateClue = async (email, clueField, clueValue, juniorStudentId) => {
     const studentId = email.split('@')[0];
     const { error } = await supabase
         .from('pairing_data')
         .update({ [clueField]: clueValue })
-        .eq('senior_student_id', studentId);
+        .eq('senior_student_id', studentId)
+        .eq('junior_student_id', juniorStudentId);
+        
+    if (error) throw error;
+};
+
+export const resetClue = async (email, clueField, dbColumn, newCount, juniorStudentId) => {
+    const studentId = email.split('@')[0];
+    const { error } = await supabase
+        .from('pairing_data')
+        .update({ 
+            [clueField]: null,
+            [dbColumn]: newCount
+        })
+        .eq('senior_student_id', studentId)
+        .eq('junior_student_id', juniorStudentId);
         
     if (error) throw error;
 };
