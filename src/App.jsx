@@ -15,6 +15,7 @@ const Curriculum = lazy(() => import('./components/Curriculum'));
 const IdentityQuiz = lazy(() => import('./components/IdentityQuiz'));
 const Homework = lazy(() => import('./components/Homework'));
 const StudentList = lazy(() => import('./components/StudentList'));
+const Activities = lazy(() => import('./components/Activities'));
 const DashboardLayout = lazy(() => import('./components/DashboardLayout'));
 const J_Dashboard = lazy(() => import('./components/J_Dashboard'));
 const S_Dashboard = lazy(() => import('./components/S_Dashboard'));
@@ -58,6 +59,7 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
         <Route path="/quiz" element={<IdentityQuiz />} />
         <Route path="/curriculum" element={<Curriculum />} />
         <Route path="/students" element={<StudentList />} />
+        <Route path="/activities" element={<Activities />} />
         <Route path="homework" element={<Homework userRole={userRole} isAdmin={isAdmin} />} />
         
         {/* Dashboard Nested Routes */}

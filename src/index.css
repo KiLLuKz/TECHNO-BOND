@@ -1,11 +1,10 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;600&family=Kanit:wght@300;400;600&family=Orbitron:wght@400;600&display=swap');
 
 @layer base {
   body {
     background-color: #08050f;
-    color: #f0eaff;
-    font-family: 'Rajdhani', 'Orbitron', 'Chakra Petch', sans-serif;
+    color: #e2e8f0;
+    font-family: 'Inter', 'Noto Sans Thai', sans-serif;
   }
 }
 

@@ -4,29 +4,29 @@ import SeniorDirectoryBox from './comps/SeniorDirectoryBox';
 import { DirectorySkeleton } from '../common/Skeletons';
 
 const JuniorDirectoryTab = ({ getDefaultAvatar }) => {
-  const [allSeniors, setAllSeniors] = useState([]);
-  const [loading, setLoading] = useState(true);
+ const [allSeniors, setAllSeniors] = useState([]);
+ const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSeniors = async () => {
-      try {
-        const seniors = await api.fetchAllSeniors();
-        setAllSeniors(seniors);
-      } catch (error) {
-        console.error("Error fetching seniors:", error);
-      }
-      setLoading(false);
-    };
-    fetchSeniors();
-  }, []);
+ useEffect(() => {
+ const fetchSeniors = async () => {
+ try {
+ const seniors = await api.fetchAllSeniors();
+ setAllSeniors(seniors);
+ } catch (error) {
+ console.error("Error fetching seniors:", error);
+ }
+ setLoading(false);
+ };
+ fetchSeniors();
+ }, []);
 
-  if (loading) return <DirectorySkeleton />;
+ if (loading) return <DirectorySkeleton />;
 
-  return (
-    <div className="w-full">
-      <SeniorDirectoryBox seniors={allSeniors} getDefaultAvatar={getDefaultAvatar} />
-    </div>
-  );
+ return (
+ <div className="w-full">
+ <SeniorDirectoryBox seniors={allSeniors} getDefaultAvatar={getDefaultAvatar} />
+ </div>
+ );
 };
 
 export default JuniorDirectoryTab;

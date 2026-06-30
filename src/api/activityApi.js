@@ -71,3 +71,9 @@ export const updateActivity = async (userId, updates) => {
   if (error) throw error;
   return data;
 };
+
+export const addExpToUser = async (userId, expAmount) => {
+  const currentState = await fetchUserActivity(userId);
+  const currentExp = currentState.exp || 0;
+  return await updateActivity(userId, { exp: currentExp + expAmount });
+};
