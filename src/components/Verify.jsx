@@ -81,27 +81,7 @@ const Verify = ({ onLoginSuccess}) => {
                 if (password.length < 6) { setErrorMsg('ERROR: รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); setIsLoading(false); return; }
                 if (!securityChecked) { setErrorMsg('ERR: กรุณายอมรับเงื่อนไขความปลอดภัย'); setIsLoading(false); return; }
             
-                const cleanId = studentId.trim();
-                
-                // ใช้ ilike เพื่อป้องกันช่องว่างแฝง
-                const { data: seniorData } = await supabase
-                    .from('pairing_data')
-                    .select('senior_student_id')
-                    .ilike('senior_student_id', `%${cleanId}%`)
-                    .maybeSingle();
-            
-                const { data: juniorData } = await supabase
-                    .from('pairing_data')
-                    .select('junior_student_id')
-                    .ilike('junior_student_id', `%${cleanId}%`)
-                    .maybeSingle();
-            
-                if (!seniorData && !juniorData) {
-                    setErrorMsg(`ACCESS DENIED: รหัสนักเรียน ${cleanId} ไม่พบในระบบจับคู่ (ตรวจสอบข้อมูลกับ Admin)`);
-                    setIsLoading(false);
-                    return;
-                }
-            
+                // ลบตัวบล็อกออกไปแล้ว เพื่อให้ทุกคนสามารถสมัครสมาชิกได้ทันทีโดยไม่ต้องไปเช็คในตาราง pairing_data ให้วุ่นวาย
                 const { error: signUpError } = await supabase.auth.signUp({ email, password });
                 
                 if (signUpError) {
@@ -123,8 +103,7 @@ const Verify = ({ onLoginSuccess}) => {
 
                 const cleanId = studentId.trim();
                 
-                // แก้ให้ใช้ ilike เหมือนตอนสมัคร
-                const { data: juniorData } = await supabase.from('pairing_data').select('junior_student_id').ilike('junior_student_id', `%${cleanId}%`).maybeSingle();
+                // ใช้ ilike เพื่อป้องกันช่องว่างแฝง
                 const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
                 const assumedRole = seniorData ? 'senior' : 'junior';
                 
@@ -178,7 +157,6 @@ const Verify = ({ onLoginSuccess}) => {
                 } else if (profile?.role === 'senior') {
                     role = 'senior';
                 } else {
-                    // ปรับมาใช้ ilike เป็นด่านสุดท้าย
                     const cleanId = studentId.trim();
                     const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
                     role = seniorData ? 'senior' : 'junior';
@@ -378,4 +356,49 @@ const Verify = ({ onLoginSuccess}) => {
                                     maxLength={1}
                                     value={digit}
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                   
+                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                                    className="w-10 h-12 md:w-12 md:h-14 bg-black/50 border border-[#d966ff]/50 rounded-lg text-center text-[#d966ff] font-['Orbitron'] font-bold text-xl md:text-2xl focus:outline-none focus:border-[#99eedd] transition-colors"
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Error and Success Messages */}
+                {errorMsg && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-[11px] md:text-xs text-center font-bold bg-red-500/10 py-2 rounded-lg border border-red-500/20">
+                        {errorMsg}
+                    </motion.div>
+                )}
+                {successMsg && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[#99eedd] text-[11px] md:text-xs text-center font-bold bg-[#99eedd]/10 py-2 rounded-lg border border-[#99eedd]/20">
+                        {successMsg}
+                    </motion.div>
+                )}
+
+                <button type="submit" disabled={isLoading} className="w-full bg-[#7eb8ff]/20 hover:bg-[#7eb8ff]/30 text-[#7eb8ff] border border-[#7eb8ff]/50 py-3 rounded-xl font-bold tracking-widest transition-all mt-2 disabled:opacity-50">
+                    {mode === 'login' ? 'INITIALIZE CONNECTION' : 
+                     mode === 'register' ? 'CREATE CONNECTION' : 
+                     mode === 'forgot_password' ? 'SEND RECOVERY PING' : 
+                     'VERIFY CODE'}
+                </button>
+                </form>
+
+                <div className="mt-6 flex flex-col gap-3 text-center text-[10px] md:text-[11px] tracking-widest text-gray-400">
+                    {mode === 'login' && (
+                        <>
+                            <button type="button" onClick={() => switchMode('forgot_password')} className="hover:text-[#99eedd] transition-colors">FORGOT PASSWORD?</button>
+                            <button type="button" onClick={() => switchMode('register')} className="hover:text-[#b899ff] transition-colors">NEW USER? ESTABLISH CONNECTION</button>
+                        </>
+                    )}
+                    {(mode === 'register' || mode === 'forgot_password') && (
+                        <button type="button" onClick={() => switchMode('login')} className="hover:text-[#7eb8ff] transition-colors">ALREADY CONNECTED? LOGIN</button>
+                    )}
+                </div>
+            </div>
+        </motion.div>
+        </div>
+    );
+};
+
+export default Verify;
