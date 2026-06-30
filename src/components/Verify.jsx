@@ -81,31 +81,28 @@ const Verify = ({ onLoginSuccess}) => {
                 if (password.length < 6) { setErrorMsg('ERROR: รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); setIsLoading(false); return; }
                 if (!securityChecked) { setErrorMsg('ERR: กรุณายอมรับเงื่อนไขความปลอดภัย'); setIsLoading(false); return; }
             
-                // 🛡️ ปรับปรุงจุดนี้: เช็คข้อมูลให้ยืดหยุ่นขึ้น (ใช้ .trim() และเช็คทั้ง Senior/Junior)
                 const cleanId = studentId.trim();
                 
-                // เช็คในตาราง pairing_data
-                const { data: seniorData, error: sErr } = await supabase
+                // ใช้ ilike เพื่อป้องกันช่องว่างแฝง
+                const { data: seniorData } = await supabase
                     .from('pairing_data')
                     .select('senior_student_id')
-                    .eq('senior_student_id', cleanId)
+                    .ilike('senior_student_id', `%${cleanId}%`)
                     .maybeSingle();
             
-                const { data: juniorData, error: jErr } = await supabase
+                const { data: juniorData } = await supabase
                     .from('pairing_data')
                     .select('junior_student_id')
-                    .eq('junior_student_id', cleanId)
+                    .ilike('junior_student_id', `%${cleanId}%`)
                     .maybeSingle();
             
-                // 💡 ถ้าคิวอยากบังคับว่าต้องมีชื่ออยู่ในระบบจับคู่ถึงจะสมัครได้ ให้ใช้เงื่อนไขนี้:
                 if (!seniorData && !juniorData) {
                     setErrorMsg(`ACCESS DENIED: รหัสนักเรียน ${cleanId} ไม่พบในระบบจับคู่ (ตรวจสอบข้อมูลกับ Admin)`);
                     setIsLoading(false);
                     return;
                 }
             
-                // 🚀 ถ้าผ่านเงื่อนไขแล้ว ค่อยไปสมัครสมาชิก
-                const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+                const { error: signUpError } = await supabase.auth.signUp({ email, password });
                 
                 if (signUpError) {
                     if (signUpError.message.includes('already registered')) {
@@ -124,8 +121,11 @@ const Verify = ({ onLoginSuccess}) => {
                 const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'signup' });
                 if (error) throw error;
 
-                const { data: juniorData } = await supabase.from('pairing_data').select('junior_student_id').eq('junior_student_id', studentId.trim()).maybeSingle();
-                const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').eq('senior_student_id', studentId.trim()).maybeSingle();
+                const cleanId = studentId.trim();
+                
+                // แก้ให้ใช้ ilike เหมือนตอนสมัคร
+                const { data: juniorData } = await supabase.from('pairing_data').select('junior_student_id').ilike('junior_student_id', `%${cleanId}%`).maybeSingle();
+                const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
                 const assumedRole = seniorData ? 'senior' : 'junior';
                 
                 if (data?.user) {
@@ -175,8 +175,12 @@ const Verify = ({ onLoginSuccess}) => {
                 let role = 'junior';
                 if (profile?.role === 'admin') {
                     role = 'admin';
+                } else if (profile?.role === 'senior') {
+                    role = 'senior';
                 } else {
-                    const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').eq('senior_student_id', studentId.trim()).maybeSingle();
+                    // ปรับมาใช้ ilike เป็นด่านสุดท้าย
+                    const cleanId = studentId.trim();
+                    const { data: seniorData } = await supabase.from('pairing_data').select('senior_student_id').ilike('senior_student_id', `%${cleanId}%`).maybeSingle();
                     role = seniorData ? 'senior' : 'junior';
                 }
 
@@ -374,49 +378,4 @@ const Verify = ({ onLoginSuccess}) => {
                                     maxLength={1}
                                     value={digit}
                                     onChange={(e) => handleOtpChange(index, e.target.value)}
-                                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                                    className="w-10 h-12 md:w-12 md:h-14 bg-black/50 border border-[#d966ff]/50 rounded-lg text-center text-[#d966ff] font-['Orbitron'] font-bold text-xl md:text-2xl focus:outline-none focus:border-[#d966ff] focus:shadow-[0_0_10px_rgba(217,102,255,0.5)] transition-all"
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
-                
-                {errorMsg && <motion.div animate={{ x: [-5, 5, -5, 5, 0] }} transition={{ duration: 0.4 }} className="text-xs text-red-400 text-center font-['Orbitron']">{errorMsg}</motion.div>}
-                {successMsg && <div className="text-xs text-[#99eedd] text-center font-['Orbitron']">{successMsg}</div>}
-
-                <button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full mt-2 py-3 bg-white/5 border border-white/10 text-[#99eedd] font-bold tracking-widest rounded-lg hover:bg-[#99eedd] hover:text-black hover:shadow-[0_0_15px_rgba(153,238,221,0.6)] transition-all font-['Orbitron'] active:scale-[0.98] transform duration-150"
-                >
-                    {isLoading ? 'PROCESSING...' : mode === 'register' ? 'INITIALIZE' : mode === 'forgot_password' ? 'SEND RESET CODE' : mode === 'verify_otp_signup' ? 'VERIFY CODE' : mode === 'reset_password' ? 'CHANGE PASSWORD' : 'ENTER SYSTEM'}
-                </button>
-                </form>
-
-                <div className="mt-6 flex flex-col items-center gap-3">
-                    {mode === 'login' && (
-                        <button 
-                            onClick={() => switchMode('forgot_password')} 
-                            className="text-[10px] md:text-xs text-amber-500/60 hover:text-amber-500 tracking-widest transition-colors font-['Orbitron'] underline active:scale-95 transform duration-150"
-                        >
-                            FORGOT PASSWORD?
-                        </button>
-                    )}
-                    
-                    {(mode === 'login' || mode === 'register') && (
-                        <button 
-                            onClick={() => switchMode(mode === 'login' ? 'register' : 'login')} 
-                            className="text-xs md:text-[14px] text-[#7eb8ff]/60 hover:text-[#7eb8ff] tracking-widest transition-colors font-['Orbitron'] underline active:scale-95 transform duration-150"
-                        >
-                            {mode === 'register' ? "ALREADY HAVE ACCOUNT? LOG IN" : "DON'T HAVE ACCOUNT? REGISTER NOW"}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </motion.div>
-        </div>
-    );
-};
-
-export default Verify;
+                   
