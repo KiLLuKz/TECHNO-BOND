@@ -67,19 +67,6 @@ export const gamesData = [
     players: '2 Players'
   },
   {
-    id: 'flappy-drone',
-    title: 'FLAPPY DRONE',
-    desc: 'บังคับโดรนหลบสิ่งกีดขวางในโลก Cyberpunk ท้าทายความเร็วและสะสมคะแนนไต่อันดับ!',
-    image: null,
-    IconComponent: Plane,
-    tag: 'ALPHA-TEST',
-    colorTheme: '#4ECDC4',
-    textColor: '#e5e7eb',
-    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
-    tagTextColor: '#ffffff',
-    players: 'Single Player'
-  },
-  {
     id: 'shoot-em-up',
     title: "SHOOT'EM UP",
     desc: 'กำลังพัฒนา...',
@@ -91,6 +78,19 @@ export const gamesData = [
     tagGradient: 'from-[#86ACFF] to-[#2200FF]',
     tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
     players: 'Single player & Classic'
+  },
+  {
+    id: 'flappy-drone',
+    title: 'FLAPPY DRONE',
+    desc: 'บังคับโดรนหลบสิ่งกีดขวางในโลก Cyberpunk ท้าทายความเร็วและสะสมคะแนนไต่อันดับ!',
+    image: null,
+    IconComponent: Plane,
+    tag: 'WIP',
+    colorTheme: '#4ECDC4',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
+    tagTextColor: '#ffffff',
+    players: 'Single Player'
   },
   {
     id: 'system-defender',
