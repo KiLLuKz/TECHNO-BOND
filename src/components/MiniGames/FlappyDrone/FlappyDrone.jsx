@@ -25,16 +25,17 @@ export default function FlappyDrone() {
  try {
  const { data: { user } } = await supabase.auth.getUser();
  if (!user) return;
- const email = user.email;
- const username = email.substring(0, email.indexOf('@'));
+ const email = user.email ?? '';
+ const username = email.includes('@') ? email.split('@')[0] : user.id;
  
- const { data } = await supabase.from('leaderboard')
+ const { data, error } = await supabase.from('leaderboard')
  .select('score')
  .eq('username', username)
  .eq('game_slug', 'flappy_drone')
- .single();
+ .maybeSingle();
  
- if (data) setHighScore(data.score);
+ if (error && error.code !== 'PGRST116') throw error;
+ if (data?.score != null) setHighScore(data.score);
  } catch (err) {
  console.error("Error fetching high score", err);
  }
@@ -48,15 +49,17 @@ export default function FlappyDrone() {
  const { data: { user } } = await supabase.auth.getUser();
  if (!user) return 0;
  
- const email = user.email;
- const username = email.substring(0, email.indexOf('@'));
+ const email = user.email ?? '';
+ const username = email.includes('@') ? email.split('@')[0] : user.id;
  const gameSlug = 'flappy_drone';
 
- const { data: existingData } = await supabase.from('leaderboard')
+ const { data: existingData, error: fetchError } = await supabase.from('leaderboard')
  .select('id, score')
  .eq('username', username)
  .eq('game_slug', gameSlug)
- .single(); 
+ .maybeSingle();
+
+ if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
  if (existingData) {
  if (finalScore > existingData.score) {
