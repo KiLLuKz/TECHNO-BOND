@@ -161,8 +161,11 @@ const BlockBlastGame = () => {
  useEffect(() => {
  const canvas = canvasRef.current;
  
- // ส่ง grid เข้าไปในสร้างบล็อกชุดแรก
- createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, grid: gameData.current.grid, hadClear: false });
+  if (gameData.current.availableBlocks.length === 0) {
+    createTrayBlocks({ availableBlocks: gameData.current.availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, grid: gameData.current.grid, hadClear: false });
+  } else {
+    updateTrayBlockPositions(canvas, gameData.current.availableBlocks, TRAY_BLOCK_SIZE);
+  }
 
  let animationFrameId;
  const gameLoop = () => {
@@ -385,20 +388,23 @@ const BlockBlastGame = () => {
  const placement = findBestGridPlacement({ canvas, grid: gameData.current.grid, block: activeBlock, offsetX: gameData.current.offsetX, offsetY: gameData.current.offsetY, blockX: activeBlock.x, blockY: activeBlock.y });
 
  if (placement.canPlace) {
- for (let y = 0; y < activeBlock.shape.length; y++) {
- for (let x = 0; x < activeBlock.shape[y].length; x++) {
- if (activeBlock.shape[y][x]) gameData.current.grid[placement.gridY + y][placement.gridX + x] = activeBlock.color;
- }
- }
- gameData.current.availableBlocks = gameData.current.availableBlocks.filter(b => b.id !== activeBlock.id);
- playSound('drop', isMuted);
- const { linesCleared, clearedCellsData } = checkAndGetClearedLines(gameData.current.grid);
+  for (let y = 0; y < activeBlock.shape.length; y++) {
+  for (let x = 0; x < activeBlock.shape[y].length; x++) {
+  if (activeBlock.shape[y][x]) {
+      gameData.current.grid[placement.gridY + y][placement.gridX + x] = activeBlock.color;
+  }
+  }
+  }
+  gameData.current.availableBlocks = gameData.current.availableBlocks.filter(b => b.id !== activeBlock.id);
+  playSound('drop', isMuted);
 
- if (linesCleared > 0) {
- if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
- const nextCombo = combo + 1;
- setCombo(nextCombo);
- setScore(s => s + (linesCleared * 100 * nextCombo));
+  const { linesCleared, clearedCellsData } = checkAndGetClearedLines(gameData.current.grid);
+
+  if (linesCleared > 0) {
+  if (comboTimerRef.current) clearTimeout(comboTimerRef.current);
+  const nextCombo = combo + 1;
+  setCombo(nextCombo);
+  setScore(s => s + (linesCleared * 300 * nextCombo));
 
  gameData.current.clearingEffects = clearedCellsData; 
  gameData.current.hadClearInRound = true; 

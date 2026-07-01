@@ -15,9 +15,11 @@ export default function TicTacToe() {
 
  const winner = calculateWinner(board);
  const isDraw = !winner && board.every(square => square !== null);
+ const winningLine = winner ? getWinningLine(board) : [];
 
  useEffect(() => {
  if (winner || isDraw) {
+ const timer = setTimeout(() => {
  setIsAlertOpen(true);
  const rewardExp = async () => {
  try {
@@ -31,6 +33,10 @@ export default function TicTacToe() {
  }
  };
  rewardExp();
+ }, 1500);
+ return () => clearTimeout(timer);
+ } else {
+ setIsAlertOpen(false);
  }
  }, [winner, isDraw, gameMode]);
 
@@ -50,13 +56,27 @@ export default function TicTacToe() {
  }, [isXNext, gameMode, winner, isDraw, board]);
 
  const getAIMove = (currentBoard) => {
- const availableSpots = currentBoard.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
- if (availableSpots.length === 0) return -1;
- 
- // 30% chance to make a random move so it's beatable
- if (Math.random() < 0.3) {
- return availableSpots[Math.floor(Math.random() * availableSpots.length)];
- }
+    const availableSpots = currentBoard.map((val, idx) => val === null ? idx : null).filter(val => val !== null);
+    if (availableSpots.length === 0) return -1;
+    
+    // 1. Check if AI can win immediately
+    for (let i of availableSpots) {
+      const tempBoard = [...currentBoard];
+      tempBoard[i] = 'O';
+      if (calculateWinner(tempBoard) === 'O') return i;
+    }
+
+    // 2. Check if Player is about to win and block them
+    for (let i of availableSpots) {
+      const tempBoard = [...currentBoard];
+      tempBoard[i] = 'X';
+      if (calculateWinner(tempBoard) === 'X') return i;
+    }
+
+    // 3. 30% chance to make a random move so it's beatable
+    if (Math.random() < 0.3) {
+      return availableSpots[Math.floor(Math.random() * availableSpots.length)];
+    }
 
  const minimax = (tempBoard, depth, isMaximizing) => {
  const w = calculateWinner(tempBoard);
@@ -169,19 +189,23 @@ export default function TicTacToe() {
 
  <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl mb-8">
  <div className="grid grid-cols-3 gap-3 md:gap-4">
- {board.map((value, i) => (
- <button 
- key={i} 
- onClick={() => handleClick(i)}
- className={`w-20 h-20 md:w-28 md:h-28 text-3xl md:text-5xl font-bold rounded-2xl transition-all duration-300 
- flex items-center justify-center border border-white/5 
- ${!value ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10'}
- ${value === 'X' ? 'text-[#4ECDC4]' : 'text-[#d966ff]'}
- active:scale-95`}
- >
- {value}
- </button>
- ))}
+ {board.map((value, i) => {
+    const isWinning = winningLine.includes(i);
+    return (
+      <button 
+        key={i} 
+        onClick={() => handleClick(i)}
+        className={`w-20 h-20 md:w-28 md:h-28 text-3xl md:text-5xl font-bold rounded-2xl transition-all duration-300 
+        flex items-center justify-center border border-white/5 
+        ${!value ? 'bg-white/5 hover:bg-white/10' : 'bg-white/10'}
+        ${value === 'X' ? 'text-[#4ECDC4]' : 'text-[#d966ff]'}
+        ${isWinning ? 'ring-4 ring-[#ffe066] animate-pulse scale-105 shadow-[0_0_20px_rgba(255,224,102,0.8)]' : ''}
+        active:scale-95`}
+      >
+        {value}
+      </button>
+    );
+  })}
  </div>
  </div>
 
@@ -223,4 +247,13 @@ function calculateWinner(squares) {
  if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) return squares[a];
  }
  return null;
+}
+
+function getWinningLine(squares) {
+  const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) return lines[i];
+  }
+  return [];
 }

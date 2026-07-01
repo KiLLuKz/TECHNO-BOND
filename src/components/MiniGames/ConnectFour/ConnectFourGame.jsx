@@ -17,22 +17,27 @@ const ConnectFourGame = () => {
  const [winningCells, setWinningCells] = useState([]);
  const [gameMode, setGameMode] = useState('pvp');
  const [screen, setScreen] = useState('menu');
+ const [showPopup, setShowPopup] = useState(false);
 
  useEffect(() => {
- if (winner) {
- const rewardExp = async () => {
- try {
- const { data: { user } } = await supabase.auth.getUser();
- if (user) {
- const expAmount = gameMode === 'ai' ? 20 : 40;
- await addExpToUser(user.id, expAmount);
- }
- } catch (error) {
- console.error("Error rewarding EXP:", error);
- }
- };
- rewardExp();
- }
+   if (winner) {
+     const timer = setTimeout(() => setShowPopup(true), 1500);
+     const rewardExp = async () => {
+       try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+           const expAmount = gameMode === 'ai' ? 20 : 40;
+           await addExpToUser(user.id, expAmount);
+         }
+       } catch (error) {
+         console.error("Error rewarding EXP:", error);
+       }
+     };
+     rewardExp();
+     return () => clearTimeout(timer);
+   } else {
+     setShowPopup(false);
+   }
  }, [winner, gameMode]);
 
  const getLowestEmptyRow = (currentBoard, col) => {
@@ -81,11 +86,6 @@ const ConnectFourGame = () => {
  }
 
  if (validLocations.length === 0) return -1;
-
- // 20% chance to make a random move to ensure it's beatable
- if (Math.random() < 0.2) {
- return validLocations[Math.floor(Math.random() * validLocations.length)];
- }
 
  const evaluateWindow = (window, player) => {
  let score = 0;
@@ -220,6 +220,31 @@ const ConnectFourGame = () => {
  return { column, score: value };
  }
  };
+
+ // 1. Check if AI can win immediately
+ for (let c of validLocations) {
+   const row = getLowestEmptyRow(currentBoard, c);
+   if (row !== -1) {
+     let tempBoard = currentBoard.map(r => [...r]);
+     tempBoard[row][c] = 2; // AI
+     if (checkWinForMinimax(tempBoard, 2)) return c;
+   }
+ }
+
+ // 2. Check if Player is about to win and block them
+ for (let c of validLocations) {
+   const row = getLowestEmptyRow(currentBoard, c);
+   if (row !== -1) {
+     let tempBoard = currentBoard.map(r => [...r]);
+     tempBoard[row][c] = 1; // Player
+     if (checkWinForMinimax(tempBoard, 1)) return c;
+   }
+ }
+
+ // 3. 20% chance to make a random move to ensure it's beatable
+ if (Math.random() < 0.2) {
+   return validLocations[Math.floor(Math.random() * validLocations.length)];
+ }
 
  const { column } = minimax(currentBoard, 3, -Infinity, Infinity, true); 
  return column !== undefined ? column : validLocations[0];
@@ -364,7 +389,7 @@ const ConnectFourGame = () => {
  </div>
  </div>
 
- {winner && (
+ {showPopup && winner && (
  <motion.div 
  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
  className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
