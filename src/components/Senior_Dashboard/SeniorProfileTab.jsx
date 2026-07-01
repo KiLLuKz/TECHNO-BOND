@@ -25,15 +25,30 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  if (userId && userEmail) fetchProfile();
  }, [userId, userEmail]);
 
- const handleUploadAvatar = useCallback(async (file) => {
+  const handleUploadAvatar = useCallback(async (file) => {
  try {
  if (!file) return;
+
+ // 🛡️ 1. ดักจับขนาดไฟล์ตรงนี้ก่อนเลย! (เช่น ตั้งลิมิตไว้ที่ 2MB)
+ const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB (หน่วยเป็น Bytes)
+ if (file.size > MAX_FILE_SIZE) {
+ notify("ERROR: รูปภาพใหญ่เกินไป! กรุณาเลือกรูปขนาดไม่เกิน 2MB");
+ return; // สั่งหยุดการทำงานทันที ไม่ต้องอัปโหลด
+ }
+
+ // ถ้าไฟล์ขนาดผ่านเกณฑ์ ค่อยให้ทำงานต่อ
  const publicUrl = await api.uploadAvatar(userId, file);
+ 
  await api.updateProfile(userId, { avatar_url: publicUrl, username: profile.username, student_id: userEmail.split('@')[0] });
- setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
+
+ const timestampedUrl = `${publicUrl}?t=${new Date().getTime()}`;
+
+ setProfile(prev => ({ ...prev, avatar_url: timestampedUrl }));
+ 
  notify("SYSTEM: Avatar updated!");
  } catch (error) { notify("ERROR:" + error.message); }
  }, [userId, userEmail, profile.username, notify]);
+
 
  const handleUpdateProfile = useCallback(async () => {
  setIsSaving(true);
