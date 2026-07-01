@@ -10,6 +10,7 @@ export default function SystemDefender() {
  const [gameState, setGameState] = useState('menu'); // 'menu', 'playing', 'gameover'
  const [score, setScore] = useState(0);
  const [highScore, setHighScore] = useState(0);
+ const isSavingRef = useRef(false);
 
  const gameRef = useRef({
  player: { x: window.innerWidth / 2, y: window.innerHeight / 2, radius: 20, angle: 0, hp: 100, maxHp: 100 },
@@ -76,6 +77,8 @@ export default function SystemDefender() {
  }, []);
 
  const saveHighScore = async (finalScore) => {
+ if (isSavingRef.current) return;
+ isSavingRef.current = true;
  try {
  const { data: { user } } = await supabase.auth.getUser();
  if (!user) return;
@@ -101,6 +104,8 @@ export default function SystemDefender() {
  }
  } catch (error) {
  console.error("Error saving high score:", error);
+ } finally {
+ isSavingRef.current = false;
  }
  };
 

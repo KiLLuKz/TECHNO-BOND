@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Unity, useUnityContext } from 'react-unity-webgl';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,8 @@ export default function FlappyDrone() {
  const navigate = useNavigate();
  const [highScore, setHighScore] = useState(0);
  const [expPopup, setExpPopup] = useState(null);
+ const isSavingRef = useRef(false);
+ const lastGameOverTimeRef = useRef(0);
 
  // Note: The URLs here must match exactly what Unity outputs in the Build folder.
  const { unityProvider, isLoaded, loadingProgression } = useUnityContext({
@@ -44,57 +46,65 @@ export default function FlappyDrone() {
  }, []);
 
  const saveHighScore = useCallback(async (finalScore) => {
- let expAmount = 0;
- try {
- const { data: { user } } = await supabase.auth.getUser();
- if (!user) return 0;
- 
- const email = user.email ?? '';
- const username = email.includes('@') ? email.split('@')[0] : user.id;
- const gameSlug = 'flappy_drone';
+    if (isSavingRef.current) return 0;
+    isSavingRef.current = true;
+    let expAmount = 0;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return 0;
+      
+      const email = user.email ?? '';
+      const username = email.includes('@') ? email.split('@')[0] : user.id;
+      const gameSlug = 'flappy_drone';
 
- const { data: existingData, error: fetchError } = await supabase.from('leaderboard')
- .select('id, score')
- .eq('username', username)
- .eq('game_slug', gameSlug)
- .maybeSingle();
+      const { data: existingData, error: fetchError } = await supabase.from('leaderboard')
+        .select('id, score')
+        .eq('username', username)
+        .eq('game_slug', gameSlug)
+        .maybeSingle();
 
- if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
- if (existingData) {
- if (finalScore > existingData.score) {
- await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
- setHighScore(finalScore);
- }
- } else {
- await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
- setHighScore(finalScore);
- }
+      if (existingData) {
+        if (finalScore > existingData.score) {
+          await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
+          setHighScore(finalScore);
+        }
+      } else {
+        await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
+        setHighScore(finalScore);
+      }
 
- if (finalScore >= 200) expAmount = 100;
- else if (finalScore >= 100) expAmount = 50;
- else if (finalScore >= 50) expAmount = 25;
- else if (finalScore >= 20) expAmount = 10;
- else if (finalScore >= 10) expAmount = 5;
+      if (finalScore >= 200) expAmount = 100;
+      else if (finalScore >= 100) expAmount = 50;
+      else if (finalScore >= 50) expAmount = 25;
+      else if (finalScore >= 20) expAmount = 10;
+      else if (finalScore >= 10) expAmount = 5;
 
- if (expAmount > 0) {
- await addExpToUser(user.id, expAmount);
- }
- return expAmount;
- } catch (error) {
- console.error("Error saving high score or exp:", error);
- return 0;
- }
- }, []);
+      if (expAmount > 0) {
+        await addExpToUser(user.id, expAmount);
+      }
+      return expAmount;
+    } catch (error) {
+      console.error("Error saving high score or exp:", error);
+      return 0;
+    } finally {
+      isSavingRef.current = false;
+    }
+  }, []);
 
  // Listen for Unity events (Dispatched from ReactInterop.jslib)
  useEffect(() => {
- const handleUnityGameOver = async (event) => {
- const score = event.detail;
- const expEarned = await saveHighScore(score);
- setExpPopup(expEarned);
- setTimeout(() => setExpPopup(null), 3000); // Hide after 3 seconds
- };
+    const handleUnityGameOver = async (event) => {
+      const now = Date.now();
+      if (now - lastGameOverTimeRef.current < 2000) return; // Prevent multiple events within 2 seconds
+      lastGameOverTimeRef.current = now;
+
+      const score = event.detail;
+      const expEarned = await saveHighScore(score);
+      setExpPopup(expEarned);
+      setTimeout(() => setExpPopup(null), 3000); // Hide after 3 seconds
+    };
 
  window.addEventListener("OnUnityGameOver", handleUnityGameOver);
  return () => {

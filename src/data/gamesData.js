@@ -85,7 +85,7 @@ export const gamesData = [
     desc: 'บังคับโดรนหลบสิ่งกีดขวางในโลก Cyberpunk ท้าทายความเร็วและสะสมคะแนนไต่อันดับ!',
     image: null,
     IconComponent: Plane,
-    tag: 'WIP',
+    tag: 'NEW',
     colorTheme: '#4ECDC4',
     textColor: '#e5e7eb',
     tagGradient: 'from-[#86ACFF] to-[#2200FF]',
