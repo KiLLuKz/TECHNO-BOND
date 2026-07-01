@@ -2,19 +2,6 @@ import { Gamepad2, Users, Crown, Rocket, Anchor, X, Toolbox, Plane, Crosshair } 
 
 export const gamesData = [
   {
-    id: 'cyber-basket',
-    title: 'CYBER HOOPS',
-    desc: 'บาสเกตบอลสุดกาวแบบ 2v2! แตะจอเพื่อกระโดดและโยนลูก ตัวละครโยกเยกไปมาตลอดเวลา เล่นกับเพื่อนเพลินๆ',
-    image: null,
-    IconComponent: Gamepad2, 
-    tag: 'BETA',
-    colorTheme: '#ffe066', 
-    textColor: '#ffe066',
-    tagGradient: 'from-[#10b981] to-[#47DEAC]', // Green gradient
-    tagTextColor: '#ffffff',
-    players: '2 Players / PvP'
-  },
-  {
     id: 'block-blast',
     title: 'BLOCK BLAST',
     desc: 'เกมต่อบล็อกสุดคลาสสิก ลากบล็อกลงตารางเพื่อเคลียร์แถว ทำคอมโบเพื่อรับคะแนนทวีคูณ!',
@@ -142,6 +129,19 @@ export const gamesData = [
     textColor: '#e5e7eb',
     tagGradient: 'from-[#EF4444] to-[#B91C1C]',
     tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
+    players: '2 Players / PvP'
+  },
+    {
+    id: 'cyber-basket',
+    title: 'CYBER HOOPS',
+    desc: 'บาสเกตบอลสุดกาวแบบ 2v2! แตะจอเพื่อกระโดดและโยนลูก ตัวละครโยกเยกไปมาตลอดเวลา เล่นกับเพื่อนเพลินๆ',
+    image: null,
+    IconComponent: Gamepad2, 
+    tag: 'WIP',
+    colorTheme: '#ff0000', 
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#EF4444] to-[#B91C1C]', // Green gradient
+    tagTextColor: '#ffffff',
     players: '2 Players / PvP'
   },
 ];

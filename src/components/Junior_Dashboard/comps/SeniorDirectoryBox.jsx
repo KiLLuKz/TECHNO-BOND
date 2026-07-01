@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Users, Search, X, User } from 'lucide-react';
 import { motion } from 'framer-motion';
+import HoloIDModal from '../../common/HoloIDModal';
 
 const SeniorDirectoryBox = ({ seniors }) => {
  const [searchTerm, setSearchTerm] = useState('');
+ const [selectedProfile, setSelectedProfile] = useState(null);
 
  const containerVariants = {
  hidden: { opacity: 0 },
@@ -34,7 +36,17 @@ const SeniorDirectoryBox = ({ seniors }) => {
  return <span className="font-mono text-gray-400 text-sm md:text-base">@{username}</span>;
  };
 
+ const handleAvatarClick = (sr) => {
+  setSelectedProfile({
+    username: (sr.username && sr.username !== 'NULL' && sr.username !== 'Not Registered') ? sr.username : sr.senior_student_id,
+    avatar_url: sr.avatar_url,
+    banner_url: sr.banner_url,
+    student_id: sr.senior_student_id
+  });
+ };
+
  return (
+ <>
  <motion.div 
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
@@ -88,7 +100,12 @@ const SeniorDirectoryBox = ({ seniors }) => {
  <motion.tr variants={itemVariants}><td colSpan="5" className="py-10 text-center text-gray-500 text-sm md:text-base">ไม่พบข้อมูลที่ค้นหา</td></motion.tr>
  ) : (
  filteredSeniors.map((sr) => (
- <motion.tr variants={itemVariants} key={sr.senior_id} className="border-b border-white/5 hover:bg-white/10 transition-colors">
+ <motion.tr 
+  variants={itemVariants} 
+  key={sr.senior_id} 
+  onClick={() => handleAvatarClick(sr)}
+  className="border-b border-white/5 hover:bg-white/10 transition-colors cursor-pointer"
+ >
  <td className="py-4 pl-4">
  <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border-2 border-white/10">
  {sr.avatar_url ? <img src={sr.avatar_url} className="w-full h-full object-cover" alt="avatar" /> : <User size={20} className="text-gray-400" />}
@@ -109,7 +126,12 @@ const SeniorDirectoryBox = ({ seniors }) => {
  <motion.div variants={containerVariants} initial="hidden" animate="visible" className="md:hidden flex flex-col gap-3">
  {filteredSeniors.length > 0 ? (
  filteredSeniors.map(sr => (
- <motion.div variants={itemVariants} key={sr.senior_id} className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-center gap-4">
+ <motion.div 
+  variants={itemVariants} 
+  key={sr.senior_id} 
+  onClick={() => handleAvatarClick(sr)}
+  className="bg-white/5 p-4 rounded-xl border border-white/5 flex items-center gap-4 cursor-pointer hover:bg-white/10 transition-colors"
+ >
  <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-white/10">
  {sr.avatar_url && <img src={sr.avatar_url} className="w-full h-full object-cover" alt="" />}
  </div>
@@ -127,6 +149,14 @@ const SeniorDirectoryBox = ({ seniors }) => {
  </motion.div>
  </div>
  </motion.div>
+ 
+ <HoloIDModal 
+  isOpen={!!selectedProfile} 
+  onClose={() => setSelectedProfile(null)}
+  profile={selectedProfile}
+  role="SENIOR"
+ />
+ </>
  );
 };
 

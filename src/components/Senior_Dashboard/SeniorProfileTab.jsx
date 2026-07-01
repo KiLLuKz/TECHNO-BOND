@@ -25,7 +25,7 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  if (userId && userEmail) fetchProfile();
  }, [userId, userEmail]);
 
-  const handleUploadAvatar = useCallback(async (file) => {
+ const handleUploadAvatar = useCallback(async (file) => {
  try {
  if (!file) return;
 
@@ -39,7 +39,7 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  // ถ้าไฟล์ขนาดผ่านเกณฑ์ ค่อยให้ทำงานต่อ
  const publicUrl = await api.uploadAvatar(userId, file);
  
- await api.updateProfile(userId, { avatar_url: publicUrl, username: profile.username, student_id: userEmail.split('@')[0] });
+ await api.updateProfile(userId, { avatar_url: publicUrl });
 
  const timestampedUrl = `${publicUrl}?t=${new Date().getTime()}`;
 
@@ -47,13 +47,29 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  
  notify("SYSTEM: Avatar updated!");
  } catch (error) { notify("ERROR:" + error.message); }
- }, [userId, userEmail, profile.username, notify]);
+ }, [userId, notify]);
+
+ const handleUploadBanner = useCallback(async (file) => {
+ try {
+ if (!file) return;
+ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB for banner
+ if (file.size > MAX_FILE_SIZE) {
+ notify("ERROR: รูปภาพใหญ่เกินไป! กรุณาเลือกรูปขนาดไม่เกิน 5MB");
+ return;
+ }
+ const publicUrl = await api.uploadBanner(userId, file);
+ await api.updateProfile(userId, { banner_url: publicUrl });
+ const timestampedUrl = `${publicUrl}?t=${new Date().getTime()}`;
+ setProfile(prev => ({ ...prev, banner_url: timestampedUrl }));
+ notify("SYSTEM: Banner updated!");
+ } catch (error) { notify("ERROR:" + error.message); }
+ }, [userId, notify]);
 
 
  const handleUpdateProfile = useCallback(async () => {
  setIsSaving(true);
  try {
- await api.updateProfile(userId, { username: profile.username, avatar_url: profile.avatar_url, student_id: userEmail.split('@')[0] });
+ await api.updateProfile(userId, { username: profile.username, avatar_url: profile.avatar_url, banner_url: profile.banner_url, student_id: userEmail.split('@')[0] });
  notify("SYSTEM: Profile saved!");
  } catch (error) { notify("ERROR:" + error.message); }
  setIsSaving(false);
@@ -69,6 +85,7 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  userEmail={userEmail} 
  getDefaultAvatar={getDefaultAvatar} 
  handleUploadAvatar={handleUploadAvatar} 
+ handleUploadBanner={handleUploadBanner}
  handleUpdateProfile={handleUpdateProfile} 
  isSaving={isSaving}
  notify={notify}

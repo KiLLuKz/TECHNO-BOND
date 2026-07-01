@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Users, Search, User, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
+import HoloIDModal from '../../common/HoloIDModal';
 
 const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  const [searchTerm, setSearchTerm] = useState('');
+ const [selectedProfile, setSelectedProfile] = useState(null);
 
  const containerVariants = {
  hidden: { opacity: 0 },
@@ -34,8 +36,20 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  return <span className="font-mono text-gray-400 text-sm md:text-base">@{username}</span>;
  };
 
+
+ const handleAvatarClick = (jr) => {
+  setSelectedProfile({
+    username: (jr.username && jr.username !== 'NULL' && jr.username !== 'Not Registered') ? jr.username : jr.junior_student_id,
+    avatar_url: jr.avatar_url,
+    banner_url: jr.banner_url,
+    student_id: jr.junior_student_id
+  });
+ };
+
  return (
+ <>
  <motion.div 
+
  initial={{ opacity: 0 }}
  animate={{ opacity: 1 }}
  transition={{ duration: 0.5 }}
@@ -75,7 +89,7 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  {filteredJuniors.map((jr) => {
  const isMyJunior = myJuniorIds.includes(jr.junior_id);
  return (
- <motion.tr variants={itemVariants} key={jr.junior_id} className={`border-b transition-colors ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'border-white/5 hover:bg-white/5'}`}>
+ <motion.tr variants={itemVariants} key={jr.junior_id} className={`border-b transition-colors cursor-pointer ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20 hover:bg-[#99eedd]/10' : 'border-white/5 hover:bg-white/5'}`} onClick={() => handleAvatarClick(jr)}>
  <td className="py-4 pl-4 font-bold text-[#d966ff]">{jr.junior_student_id}</td>
  <td className="py-4 pl-6">
  <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden border border-white/10">
@@ -105,7 +119,7 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  filteredJuniors.map(jr => {
  const isMyJunior = myJuniorIds.includes(jr.junior_id);
  return (
- <motion.div variants={itemVariants} key={jr.junior_id} className={`p-4 rounded-xl border flex items-center gap-4 ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'bg-white/5 border-white/5'}`}>
+ <motion.div variants={itemVariants} key={jr.junior_id} onClick={() => handleAvatarClick(jr)} className={`p-4 rounded-xl border flex items-center gap-4 cursor-pointer hover:bg-white/10 transition-colors ${isMyJunior ? 'bg-[#99eedd]/5 border-[#99eedd]/20' : 'bg-white/5 border-white/5'}`}>
  <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden shrink-0 border border-white/10">
  {jr.avatar_url && <img src={jr.avatar_url} className="w-full h-full object-cover" alt="" />}
  </div>
@@ -124,9 +138,18 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  ) : (
  <div className="text-center py-10 text-gray-500">ไม่พบข้อมูล</div>
  )}
+ 
  </motion.div>
  </div>
  </motion.div>
+ 
+ <HoloIDModal 
+  isOpen={!!selectedProfile} 
+  onClose={() => setSelectedProfile(null)}
+  profile={selectedProfile}
+  role="JUNIOR"
+ />
+ </>
  );
 };
 

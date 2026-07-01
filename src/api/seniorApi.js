@@ -28,7 +28,12 @@ export const fetchAllJuniors = async () => {
 
     return allJuniors.map(jr => {
         const p = allProfiles?.find(prof => prof.student_id === jr.junior_student_id);
-        return { ...jr, avatar_url: p?.avatar_url || null, username: p?.username || 'Not Registered' };
+        return { 
+            ...jr, 
+            avatar_url: p?.avatar_url || null, 
+            banner_url: p?.banner_url || null,
+            username: p?.username || 'Not Registered' 
+        };
     });
 };
 
@@ -55,10 +60,18 @@ export const fetchInboxMessages = async (email, allJuniorsArray) => {
 };
 
 export const uploadAvatar = async (userId, file) => {
-    const fileName = `${userId}.${file.name.split('.').pop()}`;
+    const fileName = `avatar_${userId}_${Date.now()}.${file.name.split('.').pop()}`;
     const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, file, { upsert: true });
     if (uploadError) throw uploadError;
     const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
+    return publicUrl;
+};
+
+export const uploadBanner = async (userId, file) => {
+    const fileName = `banner_${userId}_${Date.now()}.${file.name.split('.').pop()}`;
+    const { error: uploadError } = await supabase.storage.from('banners').upload(fileName, file, { upsert: true });
+    if (uploadError) throw uploadError;
+    const { data: { publicUrl } } = supabase.storage.from('banners').getPublicUrl(fileName);
     return publicUrl;
 };
 

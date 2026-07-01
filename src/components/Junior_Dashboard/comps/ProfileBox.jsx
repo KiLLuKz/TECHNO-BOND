@@ -6,9 +6,12 @@ import StatusBox from '../../common/StatusBox';
 import ImageCropperModal from '../../Admin_Dashboard/ImageCropperModal';
 import { calculateLevel, calculateExpProgress } from '../../../utils/levelUtils';
 
-const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfile, isSaving, defaultAvatar, userEmail, notify, exp }) => {
+import HoloIDCard from '../../common/HoloIDCard';
+
+const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUploadBanner, handleUpdateProfile, isSaving, defaultAvatar, userEmail, notify, exp }) => {
  const [showResetModal, setShowResetModal] = useState(false);
  const [cropperOpen, setCropperOpen] = useState(false);
+ const [bannerCropperOpen, setBannerCropperOpen] = useState(false);
 
  const level = calculateLevel(exp);
  const { currentLevelExp, maxLevelExp } = calculateExpProgress(exp);
@@ -25,36 +28,19 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
  };
 
  return (
- <div className="grid grid-cols-1 md:grid-cols-2 gap-4 h-full w-full">
+ <div className="grid grid-cols-1 gap-4 h-full w-full">
  {/* Box 1: Profile Edit (Left) */}
  <div className="bg-[#08050f]/60 backdrop-blur-sm border border-white/10 rounded-[20px] p-6 flex flex-col items-center">
- <div className="relative group w-32 h-32 md:w-40 md:h-40 rounded-full mb-6 border-2 border-white/10 hover:border-[#99eedd] overflow-visible cursor-pointer bg-black/50 flex items-center justify-center transition-colors shadow-lg" onClick={() => setCropperOpen(true)}>
- <div className="w-full h-full rounded-full overflow-hidden relative">
- {profile.avatar_url ? (
- <img 
- src={profile.avatar_url} 
- className="w-full h-full object-cover bg-[#08050f]" 
- alt="Avatar"
- onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
- />
- ) : null}
-
- <div className={`w-full h-full items-center justify-center bg-slate-800 ${profile.avatar_url ? 'hidden' : 'flex'}`}>
- <User size={48} className="text-gray-500" />
- </div>
-
- <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
- <div className="flex flex-col items-center">
- <Upload size={24} className="text-white" />
- <span className="text-xs md:text-sm text-white tracking-widest mt-1 font-bold">CHANGE</span>
- </div>
- </div>
- </div>
- 
- {/* Permanent Camera Badge indicating editable */}
- <div className="absolute bottom-0 right-0 bg-[#99eedd] text-[#08050f] p-2 md:p-3 rounded-full border-2 border-[#08050f] shadow-[0_0_10px_rgba(153,238,221,0.5)] z-10 group-hover:scale-110 transition-transform">
- <Camera size={18} />
- </div>
+ <div className="w-full flex justify-center mb-6">
+   <HoloIDCard 
+      profile={profile} 
+      exp={exp} 
+      role="JUNIOR" 
+      defaultAvatar={defaultAvatar}
+      isEditable={true}
+      onAvatarClick={() => setCropperOpen(true)}
+      onBannerClick={() => setBannerCropperOpen(true)}
+   />
  </div>
  
  <div className="relative w-full mb-4">
@@ -80,14 +66,12 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
 
  {/* Box 2: Status (Right) */}
  <div>
- <StatusBox 
- username={profile.username}
- role="JUNIOR"
- level={level}
- exp={currentLevelExp}
- maxExp={maxLevelExp}
- color="#99eedd"
- />
+ 
+<div className="bg-[#08050f]/60 backdrop-blur-sm border border-white/10 rounded-[20px] p-6 flex flex-col items-center justify-center h-full min-h-[200px]">
+  <h2 className="text-[#99eedd] font-bold text-2xl font-['Orbitron'] mb-2">SYSTEM STATUS</h2>
+  <p className="text-gray-500 tracking-widest text-lg animate-pulse">COMING SOON</p>
+</div>
+
  </div>
 
  {/* Box 3: Account Info & Reset Password (Bottom Full Width) */}
@@ -126,6 +110,15 @@ const ProfileBox = ({ profile, setProfile, handleUploadAvatar, handleUpdateProfi
  description="คลิกเพื่อเลือกรูปโปรไฟล์ของคุณ (อัตราส่วน 1:1)"
  aspectRatio={1}
  uploadFunction={handleUploadAvatar}
+ />
+
+ <ImageCropperModal
+ isOpen={bannerCropperOpen}
+ onClose={() => setBannerCropperOpen(false)}
+ title="UPLOAD BANNER"
+ description="คลิกเพื่อเลือกรูปหน้าปก (อัตราส่วน 16:9)"
+ aspectRatio={16/9}
+ uploadFunction={handleUploadBanner}
  />
  </div>
  );

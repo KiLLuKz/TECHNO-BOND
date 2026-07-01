@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Users, Search, User, Camera } from 'lucide-react';
 import { motion } from 'framer-motion';
+import HoloIDModal from '../common/HoloIDModal';
 
 const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  const [viewMode, setViewMode] = useState('senior'); 
  const [searchTerm, setSearchTerm] = useState('');
+ const [selectedProfile, setSelectedProfile] = useState(null);
 
  const rawData = viewMode === 'senior' ? seniors : juniors;
 
@@ -35,6 +37,16 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  );
  }
  return <span className="font-mono text-gray-200 text-sm md:text-base">@{username}</span>;
+ };
+
+ const handleRowClick = (item) => {
+   setSelectedProfile({
+     username: item.username,
+     avatar_url: item.avatar_url,
+     banner_url: item.banner_url,
+     student_id: viewMode === 'senior' ? item.senior_student_id : item.junior_student_id,
+     exp: 0
+   });
  };
 
  return (
@@ -91,7 +103,7 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  </thead>
  <tbody className="font-['Rajdhani'] text-base">
  {filteredData.map((item) => (
- <tr key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+ <tr key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="border-b border-white/5 hover:bg-white/5 transition-colors cursor-pointer" onClick={() => handleRowClick(item)}>
  <td className="py-4 pl-2">
  <div className="w-10 h-10 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border border-white/10 relative group cursor-pointer">
  {item.avatar_url ? <img src={item.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-gray-400" />}
@@ -110,7 +122,7 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  {viewMode === 'senior' && (
  <td className="py-4 pr-4 text-right">
  <button 
- onClick={() => onUploadClick(item)}
+ onClick={(e) => { e.stopPropagation(); onUploadClick(item); }}
  className={`text-xs md:text-sm md:text-base px-3 py-1.5 rounded-lg flex items-center gap-2 ml-auto transition-colors border ${
  item.senior_photo_url 
  ?"bg-[#99eedd]/10 text-[#99eedd] hover:bg-[#99eedd]/30 border-[#99eedd]/40" 
@@ -130,7 +142,7 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  {/* Card View (Mobile) */}
  <div className="md:hidden flex flex-col gap-4">
  {filteredData.map((item) => (
- <div key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="bg-black/20 border border-white/10 rounded-xl p-4 flex flex-col gap-3 relative">
+ <div key={viewMode === 'senior' ? item.senior_id : item.junior_id} className="bg-black/20 border border-white/10 rounded-xl p-4 flex flex-col gap-3 relative cursor-pointer" onClick={() => handleRowClick(item)}>
  <div className="flex items-center gap-3">
  <div className="w-12 h-12 rounded-full bg-slate-800 overflow-hidden flex items-center justify-center border border-white/10 shrink-0">
  {item.avatar_url ? <img src={item.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-gray-400" />}
@@ -170,6 +182,13 @@ const UnifiedDirectoryBox = ({ seniors = [], juniors = [], onUploadClick }) => {
  )}
  </div>
  </div>
+ <HoloIDModal 
+    isOpen={!!selectedProfile} 
+    onClose={() => setSelectedProfile(null)}
+    profile={selectedProfile}
+    exp={selectedProfile?.exp || 0}
+    role={viewMode === 'senior' ? "SENIOR" : "JUNIOR"}
+  />
  </motion.div>
  );
 };

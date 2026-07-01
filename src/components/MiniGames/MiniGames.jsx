@@ -6,6 +6,7 @@ import { Gamepad2, Trophy, Filter, Loader2, Users, Crown, User } from 'lucide-re
 import { supabase } from '../../supabaseClient'; 
 import { gamesData } from '../../data/gamesData'; // Import ข้อมูลเกมจากไฟล์ใหม่
 import { motion, AnimatePresence } from 'framer-motion';
+import HoloIDModal from '../common/HoloIDModal';
 
 const MiniGames = () => {
  const navigate = useNavigate();
@@ -14,6 +15,14 @@ const MiniGames = () => {
 
  const [leaderboard, setLeaderboard] = useState([]);
  const [loading, setLoading] = useState(true);
+ const [selectedProfile, setSelectedProfile] = useState(null);
+
+ const formatScore = (score) => {
+   if (score >= 1000000) {
+     return (score / 1000000).toFixed(2) + ' M';
+   }
+   return score.toLocaleString();
+ };
 
  useEffect(() => {
  const fetchScores = async () => {
@@ -31,21 +40,42 @@ const MiniGames = () => {
  const usernames = [...new Set(data.map(d => d.username))].filter(Boolean);
  const { data: profilesData, error: profilesError } = await supabase
  .from('profiles')
- .select('id, username, avatar_url, student_id')
+ .select('id, username, avatar_url, banner_url, student_id')
  .in('student_id', usernames);
 
  if (!profilesError && profilesData) {
- const profileMap = {};
- // Map by student_id to match with leaderboard's username
- profilesData.forEach(p => { 
- if (p.student_id) profileMap[p.student_id.toLowerCase()] = p; 
- });
+   const userIds = profilesData.map(p => p.id).filter(Boolean);
+   let activityMap = {};
+   
+   if (userIds.length > 0) {
+     const { data: activityData } = await supabase
+       .from('user_activity_states')
+       .select('user_id, exp')
+       .in('user_id', userIds);
+       
+     if (activityData) {
+       activityData.forEach(a => {
+         activityMap[a.user_id] = a.exp;
+       });
+     }
+   }
+
+   const profileMap = {};
+   // Map by student_id to match with leaderboard's username
+   profilesData.forEach(p => { 
+     if (p.student_id) {
+       profileMap[p.student_id.toLowerCase()] = {
+         ...p,
+         exp: activityMap[p.id] || 0
+       };
+     }
+   });
  
- data.forEach(d => {
- if (d.username) {
- d.profiles = profileMap[d.username.toLowerCase()] || null;
- }
- });
+   data.forEach(d => {
+     if (d.username) {
+       d.profiles = profileMap[d.username.toLowerCase()] || null;
+     }
+   });
  }
  }
 
@@ -63,7 +93,29 @@ const MiniGames = () => {
  .filter(entry => gameFilter === 'all' || entry.game_slug === gameFilter)
  .sort((a, b) => b.score - a.score);
 
+
+ const handleAvatarClick = (profile, username) => {
+  if (!profile) {
+    setSelectedProfile({
+      username: username,
+      avatar_url: null,
+      banner_url: null,
+      student_id: username,
+      exp: 0
+    });
+    return;
+  }
+  setSelectedProfile({
+    username: profile.username || username,
+    avatar_url: profile.avatar_url,
+    banner_url: profile.banner_url,
+    student_id: profile.student_id || username,
+    exp: profile.exp || 0
+  });
+ };
+
  return (
+
  <motion.div 
  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
  className="min-h-screen p-6 md:p-10 text-white max-w-[1200px] mx-auto"
@@ -221,7 +273,7 @@ const MiniGames = () => {
  else if (index === 2) { rankColor = "text-amber-600 drop-shadow-[0_0_10px_rgba(217,119,6,0.8)]"; rankSize = "text-3xl md:text-4xl"; isTop3 = true; }
 
  return (
- <div key={player.id} className="flex items-center justify-between p-3 md:p-4 bg-[#08050f]/60 border border-white/5 rounded-2xl shadow-md hover:bg-white/5 transition-colors">
+ <div key={player.id} onClick={() => handleAvatarClick(player.profiles, player.username)} className="flex items-center justify-between p-3 md:p-4 bg-[#08050f]/60 border border-white/5 rounded-2xl shadow-md hover:bg-white/10 transition-colors cursor-pointer">
  <div className="flex items-center gap-2 md:gap-5">
  
  <div className={`w-16 md:w-24 grid grid-cols-2 items-center font-bold font-['Orbitron'] ${rankSize}`}>
@@ -247,7 +299,7 @@ const MiniGames = () => {
  <p className="text-[9px] md:text-xs text-gray-500 uppercase">{player.game_slug.replace(/-/g, ' ')}</p>
  </div>
  </div>
- <span className="text-sm md:text-xl font-bold text-[#99eedd] pl-2 whitespace-nowrap">{player.score.toLocaleString()}</span>
+ <span className="text-sm md:text-xl font-bold text-[#99eedd] pl-2 whitespace-nowrap">{formatScore(player.score)}</span>
  </div>
  );
  })
@@ -285,7 +337,14 @@ const MiniGames = () => {
  }
  `}</style>
 
- </motion.div>
+  <HoloIDModal 
+    isOpen={!!selectedProfile} 
+    onClose={() => setSelectedProfile(null)}
+    profile={selectedProfile}
+    exp={selectedProfile?.exp || 0}
+    role="PLAYER"
+  />
+  </motion.div>
  );
 };
 

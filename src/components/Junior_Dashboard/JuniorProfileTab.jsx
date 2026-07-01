@@ -32,16 +32,26 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gamePro
  try {
  if (!file) return;
  const publicUrl = await api.uploadAvatar(userId, file);
- await api.updateProfile(userId, { avatar_url: publicUrl, username: profile.username, student_id: profile.student_id });
+ await api.updateProfile(userId, { avatar_url: publicUrl });
  setProfile(prev => ({ ...prev, avatar_url: publicUrl }));
  notify("SYSTEM: Avatar updated!");
  } catch (error) { notify("ERROR:" + error.message); }
- }, [userId, profile.username, profile.student_id, notify]);
+ }, [userId, notify]);
+
+ const handleUploadBanner = useCallback(async (file) => {
+ try {
+ if (!file) return;
+ const publicUrl = await api.uploadBanner(userId, file);
+ await api.updateProfile(userId, { banner_url: publicUrl });
+ setProfile(prev => ({ ...prev, banner_url: publicUrl }));
+ notify("SYSTEM: Banner updated!");
+ } catch (error) { notify("ERROR:" + error.message); }
+ }, [userId, notify]);
 
  const handleUpdateProfile = useCallback(async () => {
  setIsSaving(true);
  try {
- await api.updateProfile(userId, { username: profile.username, avatar_url: profile.avatar_url, student_id: profile.student_id });
+ await api.updateProfile(userId, { username: profile.username, avatar_url: profile.avatar_url, banner_url: profile.banner_url, student_id: profile.student_id });
  notify("SYSTEM: Profile updated successfully!");
  } catch (error) { notify("ERROR:" + error.message); }
  setIsSaving(false);
@@ -55,6 +65,7 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gamePro
  profile={profile} 
  setProfile={setProfile} 
  handleUploadAvatar={handleUploadAvatar} 
+ handleUploadBanner={handleUploadBanner}
  handleUpdateProfile={handleUpdateProfile} 
  isSaving={isSaving} 
  defaultAvatar={getDefaultAvatar('junior', clueData?.junior_id)}
