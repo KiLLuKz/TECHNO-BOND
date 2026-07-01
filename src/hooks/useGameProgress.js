@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 export const GAME_TARGETS = {
-  'block-blast': 20000,
+  'block-blast': 100000,
   'flappy_drone': 100,
   'shoot-em-up': 2500000
 };

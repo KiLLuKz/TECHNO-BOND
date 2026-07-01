@@ -26,7 +26,9 @@ export const BLOCK_SHAPES = [
   // --- 13. Corner pieces (มุมขนาดใหญ่ 3x3) --- [30-33]
   [[1, 1, 1], [1, 0, 0], [1, 0, 0]], [[1, 1, 1], [0, 0, 1], [0, 0, 1]], [[1, 0, 0], [1, 0, 0], [1, 1, 1]], [[0, 0, 1], [0, 0, 1], [1, 1, 1]],
   // --- 14. Diagonal pieces (2 blocks) --- [34-35]
-  [[1, 0], [0, 1]], [[0, 1], [1, 0]]
+  [[1, 0], [0, 1]], [[0, 1], [1, 0]],
+  // --- 15. Giant square (3x3) --- [36]
+  [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
 ];
 
 export const SHAPE_GROUPS = {
@@ -36,8 +38,8 @@ export const SHAPE_GROUPS = {
   WEIRD: [34, 35],
   // MEDIUM: 3-blocks, T, S, Z, J, L (3-4, 12-27)
   MEDIUM: [3, 4, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27], 
-  // LARGE: 4-lines, big corners, rectangles (9-10, 28-33)
-  LARGE: [9, 10, 28, 29, 30, 31, 32, 33] 
+  // LARGE: 4-lines, big corners, rectangles, 3x3 square (9-10, 28-33, 36)
+  LARGE: [9, 10, 28, 29, 30, 31, 32, 33, 36] 
 };
 
 export const BLOCK_COLORS = [

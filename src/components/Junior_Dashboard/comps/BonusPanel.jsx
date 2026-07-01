@@ -4,11 +4,11 @@ import { CheckCircle, Lock } from 'lucide-react'; // เพิ่ม Lock เข
 const BonusPanel = ({ isQuizPassed, startQuiz, canPlayQuiz }) => {
  return (
  <div className="bg-[#08050f]/60 backdrop-blur-xl border border-[#99eedd]/20 rounded-[20px] p-6 shadow-xl flex flex-col h-full">
- <h2 className="text-[#99eedd] font-bold tracking-widest text-lg mb-4 uppercase font-['Orbitron']">BONUS ROUND</h2>
+ <h2 className="text-[#99eedd] font-bold tracking-widest text-lg mb-4 uppercase font-['Orbitron']">BONUS QUIZ</h2>
  
  <p className="text-white text-base mb-6 text-xl leading-relaxed">
  {isQuizPassed 
- ?"ทำภารกิจสำเร็จแล้ว! รอรับรางวัลได้เลย"
+ ?"ทำภารกิจสำเร็จแล้ว! รอรับคำใบ้ที่สองได้เลย"
  :"อยากได้คำใบ้ที่สองต้องผ่านด่าน 7 จาก 10 ก่อนนะวัยรุ่น"
  }
  </p>

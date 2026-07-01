@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import * as api from '../../api/juniorApi';
 import { fetchUserActivity } from '../../api/activityApi';
 import ProfileBox from './comps/ProfileBox';
-import GameProgressPanel from './comps/GameProgressPanel';
 import { ProfileSkeleton } from '../common/Skeletons';
 
 const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gameProgress }) => {
@@ -63,7 +62,6 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gamePro
  notify={notify}
  exp={exp}
  />
- <GameProgressPanel gameProgress={gameProgress} />
  </div>
  );
 };

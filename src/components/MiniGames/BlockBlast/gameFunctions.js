@@ -260,66 +260,122 @@ function isTripletPlaceable(grid, shapes) {
   return false;
 }
 
-export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, grid, hadClear = false }) {
-  availableBlocks.length = 0;
-  
-  // Calculate Board Density (0 to 64)
-  let filledCells = 0;
-  if (grid) {
-      for(let y=0; y<GRID_SIZE; y++){
-          for(let x=0; x<GRID_SIZE; x++){
-              if (grid[y][x] !== 0) filledCells++;
-          }
-      }
-  }
-  
-  let attempts = 0;
-  let finalIndices = [];
-  
-  while (attempts < 50) {
-    let categoriesToSpawn = [];
-    
-    // Smart RNG / Mercy Logic based on board density
-    if (filledCells > 45) {
-       // Board is extremely full (Over 70%)
-       // SECRET TO ADDICTION: Still give LARGE blocks! 
-       // The look-ahead algorithm will filter them, meaning if a LARGE block spawns, it is guaranteed to fit perfectly into a hole!
-       categoriesToSpawn = [SHAPE_GROUPS.SMALL, Math.random() < 0.6 ? SHAPE_GROUPS.SMALL : SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
-    } else if (filledCells > 30) {
-       // Board is half full, balance it out
-       categoriesToSpawn = [SHAPE_GROUPS.SMALL, SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
-    } else if (hadClear) {
-       // Just cleared, reward with big/medium combinations for chain combos!
-       categoriesToSpawn = [SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE, Math.random() < 0.5 ? SHAPE_GROUPS.LARGE : SHAPE_GROUPS.WEIRD];
-    } else {
-       // Empty board or normal play
-       const rollCategory = () => {
-         const chance = Math.random();
-         if (chance < 0.30) return SHAPE_GROUPS.SMALL;       
-         if (chance < 0.60) return SHAPE_GROUPS.MEDIUM;
-         if (chance < 0.85) return SHAPE_GROUPS.LARGE;     
-         return SHAPE_GROUPS.WEIRD;                          
-       };
-       categoriesToSpawn = [SHAPE_GROUPS.SMALL, rollCategory(), rollCategory()];
-    }
-    
-    categoriesToSpawn.sort(() => Math.random() - 0.5);
-    const candidateIndices = categoriesToSpawn.map(group => group[Math.floor(Math.random() * group.length)]);
-    const candidateShapes = candidateIndices.map(idx => BLOCK_SHAPES[idx]);
-    
-    // Look-ahead validation
-    if (!grid || isTripletPlaceable(grid, candidateShapes)) {
-      finalIndices = candidateIndices;
-      break;
-    }
-    attempts++;
-  }
-  
-  // Ultimate Fallback: if 50 attempts fail, the board is effectively dead. 
-  // Give three 1x1 blocks as a last resort mercy.
-  if (finalIndices.length === 0) {
-    finalIndices = [0, 0, 0]; 
-  }
+function getHelperBlockIndex(grid) {
+ let helpers = [];
+ // Check rows for gaps
+ for(let y=0; y<GRID_SIZE; y++) {
+ let emptySpaces = 0;
+ let emptyCols = [];
+ for(let x=0; x<GRID_SIZE; x++) {
+ if(grid[y][x] === 0) { emptySpaces++; emptyCols.push(x); }
+ }
+ if(emptySpaces >= 1 && emptySpaces <= 3) {
+ let isContiguous = true;
+ for(let i=1; i<emptyCols.length; i++) {
+ if(emptyCols[i] !== emptyCols[i-1] + 1) { isContiguous = false; break; }
+ }
+ if(isContiguous) {
+ if(emptySpaces === 1) helpers.push(0); // 1x1
+ else if(emptySpaces === 2) helpers.push(1); // 1x2 horizontal
+ else if(emptySpaces === 3) helpers.push(3); // 1x3 horizontal
+ }
+ }
+ }
+
+ // Check columns for gaps
+ for(let x=0; x<GRID_SIZE; x++) {
+ let emptySpaces = 0;
+ let emptyRows = [];
+ for(let y=0; y<GRID_SIZE; y++) {
+ if(grid[y][x] === 0) { emptySpaces++; emptyRows.push(y); }
+ }
+ if(emptySpaces >= 2 && emptySpaces <= 3) { 
+ let isContiguous = true;
+ for(let i=1; i<emptyRows.length; i++) {
+ if(emptyRows[i] !== emptyRows[i-1] + 1) { isContiguous = false; break; }
+ }
+ if(isContiguous) {
+ if(emptySpaces === 2) helpers.push(2); // 2x1 vertical
+ else if(emptySpaces === 3) helpers.push(4); // 3x1 vertical
+ }
+ }
+ }
+
+ if (helpers.length > 0) {
+ return helpers[Math.floor(Math.random() * helpers.length)];
+ }
+ return null;
+}
+
+export function createTrayBlocks({ availableBlocks, canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS, grid, hadClear = false, combo = 0 }) {
+ availableBlocks.length = 0;
+ 
+ let filledCells = 0;
+ if (grid) {
+ for(let y=0; y<GRID_SIZE; y++){
+ for(let x=0; x<GRID_SIZE; x++){
+ if (grid[y][x] !== 0) filledCells++;
+ }
+ }
+ }
+ 
+ let attempts = 0;
+ let finalIndices = [];
+ 
+ // Try to find a perfect helper block
+ const helperIdx = grid ? getHelperBlockIndex(grid) : null;
+ 
+ while (attempts < 50) {
+ let categoriesToSpawn = [];
+ 
+ if (filledCells > 45) {
+ categoriesToSpawn = [SHAPE_GROUPS.SMALL, Math.random() < 0.7 ? SHAPE_GROUPS.SMALL : SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
+ } else if (filledCells > 30) {
+ categoriesToSpawn = [SHAPE_GROUPS.SMALL, SHAPE_GROUPS.MEDIUM, SHAPE_GROUPS.LARGE];
+ } else if (hadClear || combo > 0) {
+ // Higher combo = easier blocks, but keep some challenge
+ const rollCombo = () => {
+ const chance = Math.random();
+ if (combo >= 3) return chance < 0.6 ? SHAPE_GROUPS.SMALL : SHAPE_GROUPS.MEDIUM; // Easy when combo is high
+ if (combo >= 1) return chance < 0.4 ? SHAPE_GROUPS.SMALL : (chance < 0.8 ? SHAPE_GROUPS.MEDIUM : SHAPE_GROUPS.LARGE);
+ return SHAPE_GROUPS.MEDIUM;
+ };
+ categoriesToSpawn = [SHAPE_GROUPS.SMALL, rollCombo(), rollCombo()];
+ } else {
+ const rollCategory = () => {
+ const chance = Math.random();
+ if (chance < 0.30) return SHAPE_GROUPS.SMALL; 
+ if (chance < 0.60) return SHAPE_GROUPS.MEDIUM;
+ if (chance < 0.85) return SHAPE_GROUPS.LARGE; 
+ return SHAPE_GROUPS.WEIRD; 
+ };
+ categoriesToSpawn = [SHAPE_GROUPS.SMALL, rollCategory(), rollCategory()];
+ }
+ 
+ categoriesToSpawn.sort(() => Math.random() - 0.5);
+ let candidateIndices = categoriesToSpawn.map(group => group[Math.floor(Math.random() * group.length)]);
+ 
+ // Inject helper block to guarantee a satisfying clear (high chance if combo is high)
+ if (helperIdx !== null) {
+ const injectChance = combo > 0 ? 0.8 : 0.4;
+ if (Math.random() < injectChance) {
+ candidateIndices[0] = helperIdx; 
+ candidateIndices.sort(() => Math.random() - 0.5); // Shuffle
+ }
+ }
+ 
+ const candidateShapes = candidateIndices.map(idx => BLOCK_SHAPES[idx]);
+ 
+ if (!grid || isTripletPlaceable(grid, candidateShapes)) {
+ finalIndices = candidateIndices;
+ break;
+ }
+ attempts++;
+ }
+ 
+ if (finalIndices.length === 0) {
+ finalIndices = [0, 0, 0]; 
+ }
 
   for (let i = 0; i < TOTAL_BLOCKS; i++) {
     availableBlocks.push({

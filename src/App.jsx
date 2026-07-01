@@ -32,6 +32,7 @@ const BattleShip = lazy(() => import('./components/MiniGames/BattleShip/Battlesh
 const ShootEmUp = lazy(() => import('./components/MiniGames/ShootEmUp/ShootEmUp'));
 const FlappyDrone = lazy(() => import('./components/MiniGames/FlappyDrone/FlappyDrone'));
 const SystemDefender = lazy(() => import('./components/MiniGames/SystemDefender/SystemDefender'));
+const CyberBasket = lazy(() => import('./components/MiniGames/CyberBasket/CyberBasket'));
 
 const ConditionalFooter = () => {
   const location = useLocation();
@@ -57,7 +58,7 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
           />
         } />
         <Route path="/quiz" element={<IdentityQuiz />} />
-        <Route path="/curriculum" element={<Curriculum />} />
+        <Route path="/curriculum" element={<Navigate to="/#curriculum-section" replace />} />
         <Route path="/students" element={<StudentList />} />
         <Route path="/activities" element={<Activities />} />
         <Route path="homework" element={<Homework userRole={userRole} isAdmin={isAdmin} />} />
@@ -79,6 +80,7 @@ function AppRoutes({ setUserRole, setIsAdmin, userRole, isAdmin }) {
           <Route path="minigames/shoot-em-up" element={<ShootEmUp />} />
           <Route path="minigames/flappy-drone" element={<FlappyDrone />} />
           <Route path="minigames/system-defender" element={<SystemDefender />} />
+          <Route path="minigames/cyber-basket" element={<CyberBasket />} />
 
         </Route>
         

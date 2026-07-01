@@ -9,6 +9,7 @@ import GuessPanel from './comps/GuessPanel';
 import BonusPanel from './comps/BonusPanel';
 import QuizModal from './comps/QuizModal';
 import ClueModal from './comps/ClueModal';
+import GameQuestPanel from './comps/GameQuestPanel';
 import { JuniorMissionsSkeleton } from '../common/Skeletons';
 
 const JuniorMissionsTab = ({ userId, userEmail, notify, gameProgress }) => {
@@ -90,14 +91,36 @@ const JuniorMissionsTab = ({ userId, userEmail, notify, gameProgress }) => {
  setGuessFeedback('[SUCCESS]: CORRECT PROTOCOL!');
  notify('SYSTEM: MISSION ACCOMPLISHED!');
  } else {
- const teaseMessages = [
-"WRONG! Try harder, rookie.",
-"ERROR: Identity mismatch.",
-"Nope. Not even close.",
-"Are you even trying?",
-"ACCESS DENIED.",
-"Incorrect. Senior remains hidden."
- ];
+const teaseMessages = [
+  // --- สายกวนสั้นๆ ได้ใจความ ---
+  "WRONG! ผิดจ้าาา Try harder, rookie.",
+  "Nope! ห่างไกลคำว่าถูกมากน้องเอ๊ย",
+  "Are you even trying? เดามั่วปะเนี่ย!",
+  "Incorrect! พี่รหัสตัวจริงยังคงเป็นความลับจ้า",
+  "Oops! Wrong target! ผิดคนแล้วจ้า ไปสืบมาใหม่นะ",
+  "Not even close! ยังไม่เฉียดเลยน้อง",
+  
+  // --- สายขิงความเนียน ---
+  "Still hiding! พี่รหัสยังลอยนวลอยู่นะจ๊ะ หาให้เจอ!",
+  "Mission failed! สกิลนักสืบยังไม่ผ่านนะเราอะ",
+  "Error 404: Senior not found! เดาผิดจ้า ไปหาข้อมูลมาใหม่",
+  "Too bad! พี่ซ่อนเนียนขนาดนั้นเลยหรอเนี่ย",
+  "Ninja mode: ON! ยังหาพี่ไม่เจอหรอกน้อง",
+  
+  // --- สายปั่นประสาท แอบขิงคำใบ้ ---
+  "Wrong! คำใบ้ชัดขนาดนี้ยังเดาผิดอีกหรอเนี่ย!",
+  "So close... ล้อเล่น! Not even close จ้า ผิดเต็มๆ",
+  "Try again! พี่ให้โอกาสไปถามเพื่อนมาใหม่นะ",
+  "No no no! เสียใจด้วย พี่ไม่ใช่พี่รหัสเธอนะจ๊ะ",
+  "Is that your best guess? ได้แค่นี้จริงๆ ดิ?",
+  
+  // --- สายเอ็นดู ให้กำลังใจแบบกวนๆ ---
+  "Don't give up! หาต่อไปนะน้อง ความจริงมีเพียงหนึ่งเดียว!",
+  "Fail! แต่ไม่เป็นไร ให้โอกาสเดาใหม่นะ rookie",
+  "Keep guessing! เดาต่อไปจ้า พี่เอาใจช่วยอยู่ห่างๆ (อย่างห่วงๆ)",
+  "Next time, better luck! ผิดอีกแล้วนะเรา สู้ๆ ละกัน",
+  "Sorry, try again later! พักดื่มน้ำก่อนแล้วค่อยมาเดาใหม่นะน้อง"
+];
  const randomTease = teaseMessages[Math.floor(Math.random() * teaseMessages.length)];
  setGuessFeedback(randomTease);
  await activityApi.updateActivity(userId, { last_guess_at: new Date().toISOString() });
@@ -183,6 +206,8 @@ const JuniorMissionsTab = ({ userId, userEmail, notify, gameProgress }) => {
  <BonusPanel isQuizPassed={isQuizPassed} startQuiz={startQuiz} canPlayQuiz={canPlayQuiz} />
  </div>
  </div>
+ 
+ <GameQuestPanel gameProgress={gameProgress} />
  
  <QuizModal isOpen={quizModal} onClose={() => setQuizModal(false)} quizState={quizState} startQuiz={startQuiz} randomizedBank={randomizedBank} selectedOption={selectedOption} isAnswerCorrect={isAnswerCorrect} handleAnswer={handleAnswer} />
  <ClueModal isOpen={modal.isOpen} content={modal.content} onClose={() => setModal({ isOpen: false, content: '' })} notify={notify} />

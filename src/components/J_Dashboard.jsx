@@ -11,6 +11,7 @@ import JuniorDirectoryTab from './Junior_Dashboard/JuniorDirectoryTab';
 import JuniorSidebar from './Junior_Dashboard/JuniorSidebar';
 import MiniGames from './MiniGames/MiniGames';
 import { useGameProgress } from '../hooks/useGameProgress';
+import HomeworkHub from './Homework';
 
 const J_Dashboard = ({ isAdmin }) => {
  const { tab } = useParams();
@@ -94,6 +95,14 @@ const J_Dashboard = ({ isAdmin }) => {
  <motion.div key="directory" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="space-y-6">
  <ErrorBoundary>
  <JuniorDirectoryTab getDefaultAvatar={getDefaultAvatar} />
+ </ErrorBoundary>
+ </motion.div>
+ )}
+
+ {tab === 'activity' && (
+ <motion.div key="activity" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+ <ErrorBoundary>
+ <HomeworkHub userRole="junior" isAdmin={isAdmin} readOnly={true} />
  </ErrorBoundary>
  </motion.div>
  )}

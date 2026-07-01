@@ -2,6 +2,19 @@ import { Gamepad2, Users, Crown, Rocket, Anchor, X, Toolbox, Plane, Crosshair } 
 
 export const gamesData = [
   {
+    id: 'cyber-basket',
+    title: 'CYBER HOOPS',
+    desc: 'บาสเกตบอลสุดกาวแบบ 2v2! แตะจอเพื่อกระโดดและโยนลูก ตัวละครโยกเยกไปมาตลอดเวลา เล่นกับเพื่อนเพลินๆ',
+    image: null,
+    IconComponent: Gamepad2, 
+    tag: 'BETA',
+    colorTheme: '#ffe066', 
+    textColor: '#ffe066',
+    tagGradient: 'from-[#10b981] to-[#47DEAC]', // Green gradient
+    tagTextColor: '#ffffff',
+    players: '2 Players / PvP'
+  },
+  {
     id: 'block-blast',
     title: 'BLOCK BLAST',
     desc: 'เกมต่อบล็อกสุดคลาสสิก ลากบล็อกลงตารางเพื่อเคลียร์แถว ทำคอมโบเพื่อรับคะแนนทวีคูณ!',
@@ -24,7 +37,7 @@ export const gamesData = [
     colorTheme: '#4ECDC4',
     textColor: '#4ECDC4',
     tagGradient: 'from-[#4ECDC4] to-[#2EC4B6]',
-    tagTextColor: '#000000', // สีดำ ตัดกับพื้นหลังสว่าง
+    tagTextColor: '#ffffff', // สีดำ ตัดกับพื้นหลังสว่าง
     players: '2 Players / PvP'
   },
   {
@@ -54,28 +67,15 @@ export const gamesData = [
     players: '2 Players'
   },
   {
-    id: 'battleship',
-    title: 'BATTLESHIP',
-    desc: 'สงครามเรือรบ วางแผนจัดกองทัพเรือของคุณ และเดาที่ตั้งเรือศัตรูเพื่อถล่มให้ราบคาบ!',
-    image: null,
-    IconComponent: Anchor,
-    tag: 'NEW',
-    colorTheme: '#1a63e2',
-    textColor: '#e5e7eb',
-    tagGradient: 'from-[#2200FF] to-[#A104CC]',
-    tagTextColor: '#ffffff', // สีดำ ตัดกับพื้นหลังเหลืองเขียว
-    players: '2 Players'
-  },
-  {
     id: 'shoot-em-up',
     title: "SHOOT'EM UP",
-    desc: 'กำลังพัฒนา...',
+    desc: 'เกมยิงเครื่องบินสุด classic',
     image: null,
     IconComponent: Rocket,
-    tag: 'ALPHA-TEST',
+    tag: 'NEW',
     colorTheme: '#00f7ff',
     textColor: '#e5e7eb',
-    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
+    tagGradient: 'from-[#2200FF] to-[#A104CC]',
     tagTextColor: '#ffffff', // สีขาว ตัดกับพื้นหลังแดงเข้ม
     players: 'Single player & Classic'
   },
@@ -88,9 +88,22 @@ export const gamesData = [
     tag: 'NEW',
     colorTheme: '#4ECDC4',
     textColor: '#e5e7eb',
-    tagGradient: 'from-[#86ACFF] to-[#2200FF]',
+    tagGradient: 'from-[#2200FF] to-[#A104CC]',
     tagTextColor: '#ffffff',
     players: 'Single Player'
+  },
+    {
+    id: 'battleship',
+    title: 'BATTLESHIP',
+    desc: 'สงครามเรือรบ วางแผนจัดกองทัพเรือของคุณ และเดาที่ตั้งเรือศัตรูเพื่อถล่มให้ราบคาบ!',
+    image: null,
+    IconComponent: Anchor,
+    tag: 'WIP',
+    colorTheme: '#ff0000',
+    textColor: '#e5e7eb',
+    tagGradient: 'from-[#EF4444] to-[#B91C1C]',
+    tagTextColor: '#ffffff', // สีดำ ตัดกับพื้นหลังเหลืองเขียว
+    players: '2 Players'
   },
   {
     id: 'system-defender',

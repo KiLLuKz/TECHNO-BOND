@@ -250,8 +250,8 @@ const Curriculum = () => {
  <Cpu size={32} className="text-[#c084fc] md:hidden" />
  </div>
  <div className="flex-1">
- <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Engineering & AI <Cpu size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
- <p className="text-gray-400 text-sm md:text-base">KMUTT, Chula, KMITL — Computer, Software, Robotics</p>
+ <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Technology & Engineering <Cpu size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
+ <p className="text-gray-400 text-sm md:text-base">มุ่งเน้นการศึกษาต่อด้านวิศวกรรมศาสตร์ วิทยาการคอมพิวเตอร์ และปัญญาประดิษฐ์</p>
  </div>
  </motion.div>
 
@@ -261,8 +261,8 @@ const Curriculum = () => {
  <Activity size={32} className="text-[#c084fc] md:hidden" />
  </div>
  <div className="flex-1">
- <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Medicine & Health-Tech <Activity size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
- <p className="text-gray-400 text-sm md:text-base">ผสมผสานวิทยาศาสตร์การแพทย์กับนวัตกรรมดิจิทัล</p>
+ <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Science & Health-Tech <Activity size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
+ <p className="text-gray-400 text-sm md:text-base">วิทยาศาสตร์ประยุกต์ และการผสมผสานเทคโนโลยีทางการแพทย์</p>
  </div>
  </motion.div>
 
@@ -272,8 +272,8 @@ const Curriculum = () => {
  <Gamepad2 size={32} className="text-[#c084fc] md:hidden" />
  </div>
  <div className="flex-1">
- <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Digital Content Creator <Gamepad2 size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
- <p className="text-gray-400 text-sm md:text-base">Game Dev, Animation, และ Tech YouTuber</p>
+ <h3 className="font-['Orbitron'] text-xl font-bold text-[#c084fc] mb-1 flex items-center gap-2">Mathematics & Data <Gamepad2 size={20} className="hidden md:inline-block opacity-0 group-hover:opacity-100 transition-opacity" /></h3>
+ <p className="text-gray-400 text-sm md:text-base">วิทยาการข้อมูล สถิติประยุกต์ และการวิเคราะห์ข้อมูลเชิงลึก</p>
  </div>
  </motion.div>
  </div>

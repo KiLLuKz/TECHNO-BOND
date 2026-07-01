@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   body {
     background-color: #08050f;
     color: #e2e8f0;
@@ -20,6 +23,15 @@
   /* ตัวหนังสือ Glow */
   .text-glow {
     text-shadow: 0 0 15px rgba(153, 238, 221, 0.6);
+  }
+
+  @keyframes marquee {
+    0% { transform: translateX(-50%); }
+    100% { transform: translateX(0%); }
+  }
+
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
   }
 
   @keyframes starFall {

@@ -14,7 +14,7 @@ const SeniorSidebar = ({ activeTab, isAdmin }) => {
 
  const navItems = [
  { id: 'profile', label: 'PROFILE', icon: User },
- { id: 'homework', label: 'HOMEWORK', icon: BookOpen },
+ { id: 'homework', label: 'ACTIVITY', icon: BookOpen },
  { id: 'missions', label: 'MISSIONS', icon: Target },
  { id: 'directory', label: 'DIRECTORY', icon: Users },
  ];

@@ -41,23 +41,6 @@ export default function HomeworkHub({ userRole, isAdmin, readOnly = false }) {
  setIsLoading(false);
  };
 
- if (!isAllowed) {
- return (
- <div className="min-h-screen bg-[#060412] text-white flex flex-col items-center justify-center p-6">
- <div className="bg-white/5 border border-red-500/20 backdrop-blur-xl p-10 rounded-[35px] text-center shadow-2xl max-w-md w-full flex flex-col items-center">
- <ShieldAlert size={64} className="text-red-500 mb-4 animate-bounce" />
- <h2 className="font-['Orbitron'] text-2xl font-bold text-red-500 tracking-widest mb-3">ACCESS DENIED</h2>
- <p className="text-gray-400 font-['Inter'] text-sm md:text-base leading-relaxed mb-8">
- ขออภัย ระบบจัดการการบ้านนี้จำกัดสิทธิ์ให้เข้าใช้งานได้เฉพาะนักเรียนระดับ Senior หรือสิทธิ์ Admin เท่านั้นครับ
- </p>
- <button onClick={() => navigate('/')} className="w-full bg-white/10 hover:bg-white/20 border border-white/10 py-3 rounded-xl font-bold tracking-wider transition-all text-sm md:text-base">
- BACK TO HOME
- </button>
- </div>
- </div>
- );
- }
-
  const handleInputChange = (e) => {
  const { name, value } = e.target;
  setFormData(prev => ({ ...prev, [name]: value }));
@@ -131,12 +114,14 @@ export default function HomeworkHub({ userRole, isAdmin, readOnly = false }) {
  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[500px] blur-[120px] rounded-full pointer-events-none"></div>
  <div className="max-w-4xl mx-auto relative z-10">
  
+ {isAllowed && (
+ <>
  {!readOnly && (
  <header className="mb-10 text-center md:text-left">
  <h1 className="text-4xl md:text-5xl font-['Orbitron'] font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff7ec8] to-[#d966ff] mb-2 drop-shadow-[0_0_15px_rgba(217,102,255,0.4)]">
- ADMIN CONTROL PANEL
+ ACTIVITY MANAGEMENT
  </h1>
- <p className="text-[#99eedd] tracking-widest uppercase text-sm md:text-base">Homework Database Management</p>
+ <p className="text-[#99eedd] tracking-widest uppercase text-sm md:text-base">Activity & Task Database Management</p>
  </header>
  )}
 
@@ -262,6 +247,45 @@ export default function HomeworkHub({ userRole, isAdmin, readOnly = false }) {
  </AnimatePresence>
  </div>
  )}
+ </section>
+ </>
+ )}
+
+ {/* Schedule Section */}
+ <section className="mt-16">
+ <div className="flex justify-between items-center mb-6">
+ <h2 className="text-2xl font-bold font-['Orbitron'] tracking-widest text-white flex items-center gap-3">
+ <Calendar className="text-[#99eedd]" size={28} />
+ CLASS SCHEDULE
+ </h2>
+ </div>
+ <div className="w-full bg-[#08050f]/80 backdrop-blur-md border border-[#99eedd]/30 rounded-2xl p-4 md:p-6 flex flex-col justify-center items-center shadow-[0_0_20px_rgba(153,238,221,0.15)] group hover:border-[#99eedd]/60 transition-all duration-300">
+ 
+ {/* Desktop / Tablet View (Iframe) */}
+ <div className="hidden md:flex w-full max-w-4xl min-h-[600px] border-2 border-dashed border-[#99eedd]/20 rounded-xl flex-col items-center justify-center relative overflow-hidden group-hover:border-[#99eedd]/50 transition-colors bg-white/5">
+ <iframe src={userRole === 'junior' ? '/assets/pdf/508.pdf#toolbar=0&navpanes=0&scrollbar=0' : '/assets/pdf/608.pdf#toolbar=0&navpanes=0&scrollbar=0'} className="w-full h-full min-h-[600px] relative z-20 border-none rounded-xl" title="Class Schedule"></iframe>
+ </div>
+ 
+ {/* Mobile View (App-like Card) */}
+ <div className="md:hidden w-full flex flex-col items-center text-center py-8">
+ <div className="w-20 h-20 bg-[#99eedd]/10 rounded-full flex items-center justify-center mb-6 border border-[#99eedd]/30 shadow-[0_0_15px_rgba(153,238,221,0.2)]">
+ <BookOpen size={40} className="text-[#99eedd]" />
+ </div>
+ <h3 className="font-['Orbitron'] font-bold text-xl text-white mb-2 tracking-widest">SCHEDULE DOCUMENT</h3>
+ <p className="text-gray-400 text-sm mb-8 px-4 font-['Inter']">Tap below to open the PDF viewer</p>
+ 
+ <a href={userRole === 'junior' ? '/assets/pdf/508.pdf' : '/assets/pdf/608.pdf'} target="_blank" rel="noopener noreferrer" className="w-full max-w-[280px] px-6 py-4 bg-[#99eedd]/20 text-[#99eedd] border border-[#99eedd] rounded-xl hover:bg-[#99eedd]/40 active:scale-95 transition-all font-bold tracking-widest flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(153,238,221,0.3)]">
+ <FileText size={20} />
+ OPEN VIEWER
+ </a>
+ </div>
+ 
+ {/* Download Button for Desktop */}
+ <a href={userRole === 'junior' ? '/assets/pdf/508.pdf' : '/assets/pdf/608.pdf'} download target="_blank" rel="noopener noreferrer" className="hidden md:flex mt-6 px-6 py-3 bg-transparent text-gray-400 border border-gray-600 rounded-lg hover:bg-white/5 hover:text-white transition-colors font-bold tracking-widest items-center gap-2 text-sm">
+ <FileText size={18} />
+ DOWNLOAD PDF
+ </a>
+ </div>
  </section>
  </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShieldAlert, RefreshCw, MessageSquare, BookOpen, BrainCircuit } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import UnifiedDirectoryBox from './Admin_Dashboard/UnifiedDirectoryBox';
+import ClueTrackerBox from './Admin_Dashboard/ClueTrackerBox';
 import ImageCropperModal from './Admin_Dashboard/ImageCropperModal';
 import Loader from './Loader';
 import SystemAlert from './SystemAlert'; 
@@ -44,6 +45,9 @@ const AdminDashboard = () => {
  senior_nickname: pair.senior_nickname,
  senior_full_name: pair.senior_full_name,
  senior_photo_url: pair.senior_photo_url,
+ clue_1: pair.clue_1,
+ clue_2: pair.clue_2,
+ clue_3: pair.clue_3,
  ...(profile || {}), // ถ้าไม่มี profile ให้ใช้ข้อมูลจาก pair แทน
  id: profile ? profile.id : pair.senior_id
  });
@@ -148,6 +152,8 @@ const AdminDashboard = () => {
  <ResetCard title="Reset Clue Limits" icon={BookOpen} action="RESET_QUOTAS" desc="รีเซ็ตโควตาการลบคำใบ้" onReset={handleReset} />
  <ResetCard title="Quiz Cooldown" icon={BrainCircuit} action="RESET_QUIZ" desc="รีเซ็ตสิทธิ์การทำควิซ" onReset={handleReset} />
  </div>
+
+ <ClueTrackerBox seniors={seniors} />
 
  <UnifiedDirectoryBox seniors={seniors} juniors={juniors} onUploadClick={handleUploadClick} />
  

@@ -10,29 +10,65 @@ import { supabase } from"../../../supabaseClient";
 
 import { addExpToUser } from '../../../api/activityApi';
 
-const saveScore = async (finalScore) => {
- try {
- const { data: { user } } = await supabase.auth.getUser();
- if (!user) return;
- const username = user.email ? user.email.split('@')[0] : 'Player'; 
- const gameSlug = 'block-blast';
- const { data: existingData, error: fetchError } = await supabase.from('leaderboard').select('id, score').eq('username', username).eq('game_slug', gameSlug).single(); 
+let initPromise = null;
 
- if (fetchError && fetchError.code !== 'PGRST116') return;
+const saveScore = async (finalScore, recordRef = null, setEarnedExp = null) => {
+  // FAST PATH: synchronous update for unmount safety
+  if (recordRef && recordRef.current?.id) {
+     if (finalScore > recordRef.current.score) {
+        supabase.from('leaderboard').update({ score: finalScore }).eq('id', recordRef.current.id).then();
+        recordRef.current.score = finalScore;
+        const userId = recordRef.current.userId;
+        if (userId) {
+            if (finalScore > 0) addExpToUser(userId, 50).then();
+        }
+     }
+     return;
+  }
 
- if (existingData) {
- if (finalScore > existingData.score) {
- await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
- }
- } else {
- await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
- }
- 
- // Reward EXP for playing Block Blast
- await addExpToUser(user.id, 50);
- } catch (error) {
- console.error("Error saving score or exp:", error);
- }
+  // SLOW PATH: serialized to prevent duplicate inserts
+  const currentInit = initPromise || Promise.resolve();
+  initPromise = (async () => {
+      await currentInit;
+      
+      if (recordRef && recordRef.current?.id) {
+         if (finalScore > recordRef.current.score) {
+            await supabase.from('leaderboard').update({ score: finalScore }).eq('id', recordRef.current.id);
+            recordRef.current.score = finalScore;
+            const userId = recordRef.current.userId;
+            if (userId) {
+                if (finalScore > 0) await addExpToUser(userId, 50);
+            }
+         }
+         return;
+      }
+      
+      try {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (!session?.user) return;
+         const user = session.user;
+         const username = user.email ? user.email.split('@')[0] : 'Player'; 
+         const gameSlug = 'block-blast';
+         
+         const { data: existingData, error: fetchError } = await supabase.from('leaderboard').select('id, score').eq('username', username).eq('game_slug', gameSlug).single(); 
+         if (fetchError && fetchError.code !== 'PGRST116') return;
+
+         if (existingData) {
+            if (finalScore > existingData.score) {
+               await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
+               if (finalScore > 0) await addExpToUser(user.id, 50);
+            }
+            if (recordRef) recordRef.current = { id: existingData.id, score: Math.max(finalScore, existingData.score), userId: user.id };
+         } else {
+            const { data } = await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]).select();
+            if (finalScore > 0) await addExpToUser(user.id, 50);
+            if (data && data.length > 0 && recordRef) recordRef.current = { id: data[0].id, score: finalScore, userId: user.id };
+         }
+      } catch (error) {
+         console.error("Error saving score or exp:", error);
+      }
+  })();
+  await initPromise;
 };
 
 const playSound = (type, isMuted, comboCount = 0) => {
@@ -92,6 +128,35 @@ const BlockBlastGame = () => {
  if (cooldown > 0) timer = setInterval(() => setCooldown(prev => prev - 1), 1000);
  return () => clearInterval(timer);
  }, [cooldown]);
+
+ const recordRef = useRef({ id: null, score: 0, userId: null });
+
+  useEffect(() => {
+    // Fetch initial record so beforeunload can be synchronous
+    saveScore(0, recordRef);
+  }, []);
+
+  const latestScore = useRef(0);
+  useEffect(() => {
+    latestScore.current = score;
+  }, [score]);
+
+ useEffect(() => {
+   const handleBeforeUnload = () => {
+     if (latestScore.current > 0) {
+       saveScore(latestScore.current, recordRef);
+     }
+   };
+   window.addEventListener('beforeunload', handleBeforeUnload);
+   
+   // Save score when component unmounts (e.g. user clicks back button)
+   return () => {
+     window.removeEventListener('beforeunload', handleBeforeUnload);
+     if (latestScore.current > 0) {
+       saveScore(latestScore.current, recordRef);
+     }
+   };
+ }, []);
 
  const triggerEmergencyClear = () => {
  if (cooldown > 0 || gameOver) return;
@@ -353,7 +418,7 @@ const BlockBlastGame = () => {
  gameData.current.startX = x; gameData.current.startY = y;
  const scaleRatio = CELL_SIZE / TRAY_BLOCK_SIZE;
  // Shift block UP so finger doesn't hide it
- const liftOffset = isDesktop ? 30 : 100;
+ const liftOffset = isDesktop ? 60 : 150;
  gameData.current.offsetX = (blockWidth / 2) * scaleRatio; 
  gameData.current.offsetY = (blockHeight / 2) * scaleRatio + liftOffset;
  gameData.current.activeBlock.x = x - gameData.current.offsetX; gameData.current.activeBlock.y = y - gameData.current.offsetY;
@@ -447,18 +512,19 @@ const BlockBlastGame = () => {
  }
 
  if (gameData.current.availableBlocks.length === 0) {
- // ส่ง grid เข้าไปให้ Look-Ahead เช็คก่อน
+ const currentCombo = linesCleared > 0 ? combo + 1 : combo;
  createTrayBlocks({ 
  availableBlocks: gameData.current.availableBlocks, 
  canvas, TRAY_BLOCK_SIZE, TOTAL_BLOCKS: 3, 
  grid: gameData.current.grid, 
- hadClear: gameData.current.hadClearInRound 
+ hadClear: gameData.current.hadClearInRound,
+ combo: currentCombo
  });
  gameData.current.hadClearInRound = false; 
  }
 
  if (!canPlaceAnyBlock({ grid: gameData.current.grid, availableBlocks: gameData.current.availableBlocks })) {
- setGameOver(true); playSound('gameover', isMuted); saveScore(score); 
+ setGameOver(true); playSound('gameover', isMuted); saveScore(score, recordRef); 
  }
  } else {
  const originalBlock = gameData.current.availableBlocks.find(b => b.id === activeBlock.id);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Target, Users, Gamepad2, Home, LogOut, ChevronLeft, ChevronRight, Menu, NotebookTabs } from 'lucide-react';
+import { User, Target, Users, Gamepad2, Home, LogOut, ChevronLeft, ChevronRight, Menu, NotebookTabs, BookOpen } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../supabaseClient';
 
@@ -14,6 +14,7 @@ const JuniorSidebar = ({ activeTab, isAdmin }) => {
 
  const navItems = [
  { id: 'profile', label: 'PROFILE', icon: User },
+ { id: 'activity', label: 'ACTIVITY', icon: BookOpen },
  { id: 'missions', label: 'MISSIONS', icon: Target },
  { id: 'directory', label: 'DIRECTORY', icon: Users },
  ];

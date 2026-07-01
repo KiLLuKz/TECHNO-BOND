@@ -6,31 +6,97 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { addExpToUser } from '../../../api/activityApi';
 
 // --- ฟังก์ชันบันทึกคะแนน ---
-const saveScore = async (finalScore, setEarnedExp) => {
- try {
- const { data: { user } } = await supabase.auth.getUser();
- if (!user) return;
- const username = user.email ? user.email.split('@')[0] : 'Player'; 
- const gameSlug = 'shoot-em-up'; 
- const { data: existingData, error: fetchError } = await supabase.from('leaderboard').select('id, score').eq('username', username).eq('game_slug', gameSlug).single(); 
- if (fetchError && fetchError.code !== 'PGRST116') return;
- if (existingData) {
- if (finalScore > existingData.score) await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
- } else {
- await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]);
- }
+let initPromise = null;
 
- let expAmount = 0;
- if (finalScore >= 5000000) expAmount = 1000;
- else if (finalScore >= 1000000) expAmount = 500;
- else if (finalScore >= 100000) expAmount = 250;
- else if (finalScore >= 10000) expAmount = 25;
+const saveScore = async (finalScore, recordRef = null, setEarnedExp = null) => {
+  // FAST PATH: synchronous update for unmount safety
+  if (recordRef && recordRef.current?.id) {
+     if (finalScore > recordRef.current.score) {
+        supabase.from('leaderboard').update({ score: finalScore }).eq('id', recordRef.current.id).then();
+        recordRef.current.score = finalScore;
+        const userId = recordRef.current.userId;
+        if (userId) {
+            let expAmount = 0;
+            if (finalScore >= 5000000) expAmount = 1000;
+            else if (finalScore >= 1000000) expAmount = 500;
+            else if (finalScore >= 100000) expAmount = 250;
+            else if (finalScore >= 10000) expAmount = 25;
+            if (expAmount > 0) {
+               addExpToUser(userId, expAmount).then();
+               if (setEarnedExp) setEarnedExp(expAmount);
+            }
+        }
+     }
+     return;
+  }
 
- if (expAmount > 0) {
- await addExpToUser(user.id, expAmount);
- if (setEarnedExp) setEarnedExp(expAmount);
- }
- } catch (error) { console.error("Error saving score or exp:", error); }
+  // SLOW PATH: serialized to prevent duplicate inserts
+  const currentInit = initPromise || Promise.resolve();
+  initPromise = (async () => {
+      await currentInit;
+      
+      if (recordRef && recordRef.current?.id) {
+         if (finalScore > recordRef.current.score) {
+            await supabase.from('leaderboard').update({ score: finalScore }).eq('id', recordRef.current.id);
+            recordRef.current.score = finalScore;
+            const userId = recordRef.current.userId;
+            if (userId) {
+                let expAmount = 0;
+            if (finalScore >= 5000000) expAmount = 1000;
+            else if (finalScore >= 1000000) expAmount = 500;
+            else if (finalScore >= 100000) expAmount = 250;
+            else if (finalScore >= 10000) expAmount = 25;
+            if (expAmount > 0) {
+               await addExpToUser(userId, expAmount);
+               if (setEarnedExp) setEarnedExp(expAmount);
+            }
+            }
+         }
+         return;
+      }
+      
+      try {
+         const { data: { session } } = await supabase.auth.getSession();
+         if (!session?.user) return;
+         const user = session.user;
+         const username = user.email ? user.email.split('@')[0] : 'Player'; 
+         const gameSlug = 'shoot-em-up';
+         
+         const { data: existingData, error: fetchError } = await supabase.from('leaderboard').select('id, score').eq('username', username).eq('game_slug', gameSlug).single(); 
+         if (fetchError && fetchError.code !== 'PGRST116') return;
+
+         if (existingData) {
+            if (finalScore > existingData.score) {
+               await supabase.from('leaderboard').update({ score: finalScore }).eq('id', existingData.id); 
+               let expAmount = 0;
+            if (finalScore >= 5000000) expAmount = 1000;
+            else if (finalScore >= 1000000) expAmount = 500;
+            else if (finalScore >= 100000) expAmount = 250;
+            else if (finalScore >= 10000) expAmount = 25;
+            if (expAmount > 0) {
+               await addExpToUser(user.id, expAmount);
+               if (setEarnedExp) setEarnedExp(expAmount);
+            }
+            }
+            if (recordRef) recordRef.current = { id: existingData.id, score: Math.max(finalScore, existingData.score), userId: user.id };
+         } else {
+            const { data } = await supabase.from('leaderboard').insert([{ user_id: user.id, username: username, score: finalScore, game_slug: gameSlug }]).select();
+            let expAmount = 0;
+            if (finalScore >= 5000000) expAmount = 1000;
+            else if (finalScore >= 1000000) expAmount = 500;
+            else if (finalScore >= 100000) expAmount = 250;
+            else if (finalScore >= 10000) expAmount = 25;
+            if (expAmount > 0) {
+               await addExpToUser(user.id, expAmount);
+               if (setEarnedExp) setEarnedExp(expAmount);
+            }
+            if (data && data.length > 0 && recordRef) recordRef.current = { id: data[0].id, score: finalScore, userId: user.id };
+         }
+      } catch (error) {
+         console.error("Error saving score or exp:", error);
+      }
+  })();
+  await initPromise;
 };
 
 const formatScore = (score) => {
@@ -69,6 +135,35 @@ const ShootEmUp = () => {
  const [level, setLevel] = useState(1);
  const [exp, setExp] = useState(0);
  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  const recordRef = useRef({ id: null, score: 0, userId: null });
+
+  useEffect(() => {
+    // Fetch initial record so beforeunload can be synchronous
+    saveScore(0, recordRef, () => {});
+  }, []);
+
+  const latestScore = useRef(0);
+  useEffect(() => {
+    latestScore.current = score;
+  }, [score]);
+
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (latestScore.current > 0) {
+        saveScore(latestScore.current, recordRef, () => {});
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Save score when component unmounts (e.g. user clicks back button)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (latestScore.current > 0) {
+        saveScore(latestScore.current, recordRef, () => {});
+      }
+    };
+  }, []);
 
  const gameState = useRef({
  player: { x: VIRTUAL_WIDTH / 2 - 18, y: 800 - 150, width: 36, height: 36 },
@@ -486,7 +581,7 @@ const ShootEmUp = () => {
  if (localHp <= 0) {
  state.gameOver = true; setGameOver(true);
  spawnParticles(state.player.x + state.player.width/2, state.player.y + state.player.height/2, '#7ecfff', 50, 10);
- saveScore(localScore, setEarnedExp); return;
+ saveScore(localScore, recordRef, setEarnedExp); return;
  }
  }
  }
