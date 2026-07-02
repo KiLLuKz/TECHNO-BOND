@@ -90,7 +90,8 @@ export const fetchAllSeniors = async () => {
                 banner_url: p?.banner_url || null,
                 senior_photo_url: pair.senior_photo_url || null, // New field from DB
                 username: p?.username || 'Not Registered',
-                role: p?.role || 'SENIOR'
+                role: p?.role || 'SENIOR',
+                equipped_tags: p?.equipped_tags || []
             });
         }
     });

@@ -3,6 +3,7 @@ import * as api from '../../api/juniorApi';
 import { fetchUserActivity } from '../../api/activityApi';
 import ProfileBox from './comps/ProfileBox';
 import { ProfileSkeleton } from '../common/Skeletons';
+import TagEquipment from '../common/TagEquipment';
 
 const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gameProgress }) => {
  const [profile, setProfile] = useState({ username: '', avatar_url: '', student_id: '' });
@@ -73,6 +74,7 @@ const JuniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar, gamePro
  notify={notify}
  exp={exp}
  />
+ <TagEquipment profile={profile} onProfileUpdate={setProfile} />
  </div>
  );
 };

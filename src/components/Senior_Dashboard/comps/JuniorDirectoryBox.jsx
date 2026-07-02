@@ -37,14 +37,17 @@ const JuniorDirectoryBox = ({ allJuniors, myJuniorIds = [] }) => {
  };
 
 
- const handleAvatarClick = (jr) => {
-  setSelectedProfile({
-    username: (jr.username && jr.username !== 'NULL' && jr.username !== 'Not Registered') ? jr.username : jr.junior_student_id,
-    avatar_url: jr.avatar_url,
-    banner_url: jr.banner_url,
-    student_id: jr.junior_student_id
-  });
- };
+  const handleAvatarClick = (jr) => {
+   setSelectedProfile({
+     username: (jr.username && jr.username !== 'NULL' && jr.username !== 'Not Registered') ? jr.username : jr.junior_student_id,
+     avatar_url: jr.avatar_url,
+     banner_url: jr.banner_url,
+     student_id: jr.junior_student_id,
+     exp: jr.exp || 0,
+     role: jr.role || 'JUNIOR',
+     equipped_tags: jr.equipped_tags || []
+   });
+  };
 
  return (
  <>

@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Image as ImageIcon } from 'lucide-react';
 import { calculateLevel, calculateExpProgress } from '../../utils/levelUtils';
+import { getTagConfig } from '../../config/tagsConfig';
 
 const HoloIDCard = ({ 
   profile, 
@@ -101,7 +102,8 @@ const HoloIDCard = ({
             <h2 className="text-2xl font-bold text-white tracking-wider truncate uppercase">
               {profile?.username || 'UNKNOWN'}
             </h2>
-            <div className="flex justify-center md:justify-start items-center gap-2">
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-2">
+              {/* Primary Role Tag */}
               {(() => {
                 const displayRole = (profile?.role || role || 'PLAYER').toUpperCase();
                 let roleColor = "text-[#99eedd] bg-white/10"; // Default Junior/Player
@@ -113,21 +115,32 @@ const HoloIDCard = ({
                   roleColor = "text-[#99eedd] bg-white/10 border-white/5";
                 }
                 return (
-                  <span className={`px-3 py-1 rounded-full text-xs font-mono tracking-widest border ${roleColor}`}>
+                  <span className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-mono tracking-widest border ${roleColor}`}>
                     {displayRole}
                   </span>
                 );
               })()}
-              <span className="text-xs text-white/50 font-mono">
-                ID: {profile?.student_id || '----'}
-              </span>
               
               {/* Test ID Tag */}
               {(profile?.student_id === '99999' || profile?.student_id === '99998') && (
-                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-[10px] font-bold tracking-widest">
+                <span className="px-2 py-0.5 md:px-3 md:py-1 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-[10px] md:text-xs font-bold tracking-widest whitespace-nowrap">
                   TEST-ID
                 </span>
               )}
+
+              {/* Custom Equipped Tags */}
+              {(profile?.equipped_tags || []).map((tagId, i) => {
+                const tagStyle = getTagConfig(tagId);
+                return (
+                  <span key={i} className={`px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-mono tracking-widest border whitespace-nowrap ${tagStyle.colorClass}`}>
+                    {tagStyle.label}
+                  </span>
+                );
+              })}
+            </div>
+            
+            <div className="text-xs text-white/50 font-mono text-center md:text-left mt-1">
+              ID: {profile?.student_id || '----'}
             </div>
           </div>
 

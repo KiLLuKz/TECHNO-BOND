@@ -3,6 +3,7 @@ import * as api from '../../api/seniorApi';
 import { fetchUserActivity } from '../../api/activityApi';
 import SeniorProfileBox from './comps/SeniorProfileBox';
 import { ProfileSkeleton } from '../common/Skeletons';
+import TagEquipment from '../common/TagEquipment';
 
 const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  const [profile, setProfile] = useState({ username: '', avatar_url: '' });
@@ -91,6 +92,7 @@ const SeniorProfileTab = ({ userId, userEmail, notify, getDefaultAvatar }) => {
  notify={notify}
  exp={exp}
  />
+ <TagEquipment profile={profile} onProfileUpdate={setProfile} />
  </div>
  );
 };

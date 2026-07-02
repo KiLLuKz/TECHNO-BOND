@@ -33,7 +33,8 @@ export const fetchAllJuniors = async () => {
             avatar_url: p?.avatar_url || null, 
             banner_url: p?.banner_url || null,
             username: p?.username || 'Not Registered',
-            role: p?.role || 'JUNIOR'
+            role: p?.role || 'JUNIOR',
+            equipped_tags: p?.equipped_tags || []
         };
     });
 };

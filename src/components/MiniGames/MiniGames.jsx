@@ -7,6 +7,7 @@ import { supabase } from '../../supabaseClient';
 import { gamesData } from '../../data/gamesData'; // Import ข้อมูลเกมจากไฟล์ใหม่
 import { motion, AnimatePresence } from 'framer-motion';
 import HoloIDModal from '../common/HoloIDModal';
+import { getTagConfig } from '../../config/tagsConfig';
 
 const MiniGames = () => {
  const navigate = useNavigate();
@@ -40,7 +41,7 @@ const MiniGames = () => {
  const usernames = [...new Set(data.map(d => d.username))].filter(Boolean);
  const { data: profilesData, error: profilesError } = await supabase
  .from('profiles')
- .select('id, username, avatar_url, banner_url, student_id, role')
+ .select('id, username, avatar_url, banner_url, student_id, role, equipped_tags')
  .in('student_id', usernames);
 
  if (!profilesError && profilesData) {
@@ -112,7 +113,8 @@ const MiniGames = () => {
     banner_url: profile.banner_url,
     student_id: profile.student_id || username,
     exp: profile.exp || 0,
-    role: profile.role || 'PLAYER'
+    role: profile.role || 'PLAYER',
+    equipped_tags: profile.equipped_tags || []
   });
  };
 
@@ -298,7 +300,7 @@ const MiniGames = () => {
  {displayName}
  <span className="text-[9px] md:text-xs text-gray-500 font-['Rajdhani'] tracking-wider lowercase hidden sm:inline">@{player.username}</span>
  </h3>
- <div className="flex items-center gap-1 md:gap-2 mt-0.5">
+ <div className="flex flex-wrap items-center gap-1 md:gap-2 mt-0.5">
  {(() => {
    const displayRole = (profile?.role || 'PLAYER').toUpperCase();
    if (displayRole === 'ADMIN') return <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">ADMIN</span>;
@@ -306,10 +308,28 @@ const MiniGames = () => {
    if (displayRole === 'JUNIOR') return <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded bg-[#99eedd]/20 text-[#99eedd] border border-[#99eedd]/30">JUNIOR</span>;
    return null;
  })()}
+ 
  {(profile?.student_id === '99999' || profile?.student_id === '99998') && (
    <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 font-bold tracking-wider">TEST-ID</span>
  )}
- <p className="text-[9px] md:text-xs text-gray-500 uppercase ml-1">{player.game_slug.replace(/-/g, ' ')}</p>
+ 
+ {/* Custom Equipped Tags */}
+ {((profile?.equipped_tags || []).slice(0, 3)).map((tagId, i) => {
+   const tagStyle = getTagConfig(tagId);
+   return (
+     <span key={i} className={`text-[8px] md:text-[9px] px-1.5 py-0.5 rounded border whitespace-nowrap ${tagStyle.colorClass}`}>
+       {tagStyle.label}
+     </span>
+   );
+ })}
+ 
+ {(profile?.equipped_tags?.length > 3) && (
+   <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 rounded border bg-gray-500/20 text-gray-400 border-gray-500/30 whitespace-nowrap">
+     +{profile.equipped_tags.length - 3} ...
+   </span>
+ )}
+
+ <p className="text-[9px] md:text-xs text-gray-500 uppercase ml-1 shrink-0">{player.game_slug.replace(/-/g, ' ')}</p>
  </div>
  </div>
  </div>

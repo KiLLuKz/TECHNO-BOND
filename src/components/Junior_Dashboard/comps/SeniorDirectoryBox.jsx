@@ -41,7 +41,10 @@ const SeniorDirectoryBox = ({ seniors }) => {
     username: (sr.username && sr.username !== 'NULL' && sr.username !== 'Not Registered') ? sr.username : sr.senior_student_id,
     avatar_url: sr.avatar_url,
     banner_url: sr.banner_url,
-    student_id: sr.senior_student_id
+    student_id: sr.senior_student_id,
+    exp: sr.exp || 0,
+    role: sr.role || 'SENIOR',
+    equipped_tags: sr.equipped_tags || []
   });
  };
 
