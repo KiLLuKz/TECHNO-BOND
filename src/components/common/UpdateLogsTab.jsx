@@ -4,6 +4,17 @@ import { FileClock, Sparkles, Zap, Wrench, ChevronDown } from 'lucide-react';
 
 const updateLogsData = [
   {
+    version: 'v1.0.1 (Custom Tag Editor)',
+    date: '2026-07-03',
+    type: 'improvement',
+    summary: 'พัฒนาระบบสวมใส่ป้ายฉายา (Tag Equipment)',
+    changes: [
+      'เพิ่มระบบจัดการและสวมใส่ป้ายฉายาในหน้า Profile (สถานะ: In-Development)',
+      'เพิ่มดีไซน์ป้ายรูปแบบต่างๆ ในแคตตาล็อกระบบเตรียมพร้อมสำหรับการปลดล็อก',
+      'ปรับปรุงการแสดงผล Leaderboard ให้รองรับการแสดงป้ายฉายาสูงสุด 3 ป้ายเพื่อความสวยงาม'
+    ]
+  },
+  {
     version: 'v1.0.0 (System Core Initialization)',
     date: '2026-07-02',
     type: 'feature',
