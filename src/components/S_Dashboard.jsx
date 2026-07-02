@@ -10,6 +10,7 @@ import SeniorProfileTab from './Senior_Dashboard/SeniorProfileTab';
 import SeniorMissionsTab from './Senior_Dashboard/SeniorMissionsTab';
 import SeniorDirectoryTab from './Senior_Dashboard/SeniorDirectoryTab';
 import HomeworkHub from './Homework';
+import UpdateLogsTab from './common/UpdateLogsTab';
 import SeniorSidebar from './Senior_Dashboard/SeniorSidebar';
 import MiniGames from './MiniGames/MiniGames';
 import AdminDashboard from './AdminDashboard';
@@ -106,6 +107,14 @@ const S_Dashboard = ({ isAdmin }) => {
  <motion.div key="directory" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
  <ErrorBoundary>
  <SeniorDirectoryTab userEmail={userEmail} getDefaultAvatar={getDefaultAvatar} />
+ </ErrorBoundary>
+ </motion.div>
+ )}
+
+ {tab === 'changelog' && (
+ <motion.div key="changelog" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.4 }} className="w-full">
+ <ErrorBoundary>
+ <UpdateLogsTab />
  </ErrorBoundary>
  </motion.div>
  )}

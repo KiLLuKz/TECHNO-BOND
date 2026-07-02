@@ -387,12 +387,12 @@ const Verify = ({ onLoginSuccess}) => {
  <div className="mt-6 flex flex-col gap-3 text-center text-[10px] md:text-[11px] tracking-widest text-gray-400">
  {mode === 'login' && (
  <>
- <button type="button" onClick={() => switchMode('forgot_password')} className="hover:text-[#99eedd] transition-colors">FORGOT PASSWORD?</button>
- <button type="button" onClick={() => switchMode('register')} className="hover:text-[#b899ff] transition-colors">NEW USER? ESTABLISH CONNECTION</button>
+ <button type="button" onClick={() => switchMode('forgot_password')} className="hover:text-[#99eedd] text-[16px] transition-colors">ลืมรหัสผ่าน?</button>
+ <button type="button" onClick={() => switchMode('register')} className="hover:text-[#b899ff] text-[16px] transition-colors">ผู้ใช้ใหม่? สร้างบัญชีเลย</button>
  </>
  )}
  {(mode === 'register' || mode === 'forgot_password') && (
- <button type="button" onClick={() => switchMode('login')} className="hover:text-[#7eb8ff] transition-colors">ALREADY CONNECTED? LOGIN</button>
+ <button type="button" onClick={() => switchMode('login')} className="hover:text-[#7eb8ff] text-[16px] transition-colors">มีบัญชีอยู่แล้ว? ล็อคอิน</button>
  )}
  </div>
  </div>

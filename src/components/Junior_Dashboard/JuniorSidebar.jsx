@@ -17,6 +17,7 @@ const JuniorSidebar = ({ activeTab, isAdmin }) => {
  { id: 'activity', label: 'ACTIVITY', icon: BookOpen },
  { id: 'missions', label: 'MISSIONS', icon: Target },
  { id: 'directory', label: 'DIRECTORY', icon: Users },
+ { id: 'changelog', label: 'UPDATE LOGS', icon: NotebookTabs },
  ];
 
  return (

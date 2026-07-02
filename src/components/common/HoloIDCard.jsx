@@ -102,12 +102,32 @@ const HoloIDCard = ({
               {profile?.username || 'UNKNOWN'}
             </h2>
             <div className="flex justify-center md:justify-start items-center gap-2">
-              <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-mono text-[#99eedd] tracking-widest border border-white/5">
-                {role}
-              </span>
+              {(() => {
+                const displayRole = (profile?.role || role || 'PLAYER').toUpperCase();
+                let roleColor = "text-[#99eedd] bg-white/10"; // Default Junior/Player
+                if (displayRole === 'ADMIN') {
+                  roleColor = "text-red-500 bg-red-500/10 font-bold border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.3)]";
+                } else if (displayRole === 'SENIOR') {
+                  roleColor = "text-[#d966ff] bg-[#d966ff]/10 border-white/5";
+                } else {
+                  roleColor = "text-[#99eedd] bg-white/10 border-white/5";
+                }
+                return (
+                  <span className={`px-3 py-1 rounded-full text-xs font-mono tracking-widest border ${roleColor}`}>
+                    {displayRole}
+                  </span>
+                );
+              })()}
               <span className="text-xs text-white/50 font-mono">
                 ID: {profile?.student_id || '----'}
               </span>
+              
+              {/* Test ID Tag */}
+              {(profile?.student_id === '99999' || profile?.student_id === '99998') && (
+                <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded text-[10px] font-bold tracking-widest">
+                  TEST-ID
+                </span>
+              )}
             </div>
           </div>
 

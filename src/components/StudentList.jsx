@@ -11,7 +11,10 @@ const StudentList = () => {
  useEffect(() => {
  const loadStudents = async () => {
  try {
- const seniors = await fetchAllSeniors();
+ let seniors = await fetchAllSeniors();
+ 
+ // Filter out Test Senior (ID 99)
+ seniors = seniors.filter(s => String(s.senior_id) !== '99' && String(s.senior_student_id) !== '99998');
 
  // --- Hardcode Student No. 3 ---
  const hardcodedStudent = {

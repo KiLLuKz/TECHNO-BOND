@@ -101,7 +101,7 @@ export const gamesData = [
     tag: 'WIP',
     colorTheme: '#ff3366',
     textColor: '#e5e7eb',
-    tagGradient: 'from-[#EF4444] to-[#B91C1C]',
+    tagGradient: 'from-[#EF4444] to-[#Bf91C1C]',
     tagTextColor: '#ffffff',
     players: 'Single Player'
   },
